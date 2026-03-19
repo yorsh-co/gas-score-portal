@@ -53,7 +53,6 @@ const Response = (() => {
         );
       },
 
-      // internal
       _get: () => output,
       _hasSent: () => output !== null,
       _getStatus: () => statusCode,

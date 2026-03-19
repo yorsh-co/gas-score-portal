@@ -1,8 +1,7 @@
-// middleware/errorHandler.js
 const ErrorHandler = (() => {
   const isApiRoute = (route) => route.startsWith('/api');
 
-  const middleware = (err, req, res, _next) => {
+  const handleError  = (err, req, res, _next) => {
     console.error(err);
 
     const route = req.route;
@@ -43,5 +42,5 @@ const ErrorHandler = (() => {
     });
   };
 
-  return { middleware };
+  return { handleError };
 })();

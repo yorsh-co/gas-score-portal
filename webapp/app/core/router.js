@@ -1,72 +1,77 @@
 const Router = (() => {
-  const routes = {};
-  const preMiddleware = [];
-  const postMiddleware = [];
+  const stack = [];
 
-  const register = (method, path, ...handlers) => {
-    if (!routes[path]) routes[path] = {};
-    routes[path][method] = handlers;
-  };
+  const use = (handler) =>
+    stack.push({
+      method: null,
+      path: null,
+      handler,
+    });
+
+  const register = (method, path, ...handlers) =>
+    handlers.forEach((handler) => {
+      stack.push({
+        method,
+        path,
+        handler,
+      });
+    });
 
   const get = (path, ...handlers) => register('GET', path, ...handlers);
   const post = (path, ...handlers) => register('POST', path, ...handlers);
-  const use = (mw) => {
-    if (mw.length === 4)
-      postMiddleware.push(mw); // Error middleware
-    else preMiddleware.push(mw);
+
+  const match = (layer, req) => {
+    const methodMatches = !layer.method || layer.method === req.method;
+
+    const pathMatches = !layer.path || layer.path === req.route;
+
+    return methodMatches && pathMatches;
   };
 
-  const runChain = (handlers, req, res) => {
+  const run = (req, res) => {
     let i = 0;
 
+    console.log(
+      stack.map((l) => ({
+        method: l.method,
+        path: l.path,
+        name: l.handler.name || 'anonymous',
+      })),
+    );
+
     const next = (err) => {
-      const handler = handlers[i++];
-      if (!handler) return;
+      const layer = stack[i++];
+      if (!layer) return;
 
-      // Error case → only call error middleware
-      if (err) {
-        if (handler.length === 4) {
-          return handler(err, req, res, next);
-        }
-        return next(err);
-      }
+      if (!match(layer, req)) return next(err);
 
-      // Normal case → skip error middleware
-      if (handler.length === 4) {
-        return next();
-      }
+      const { handler } = layer;
+
+      if (err)
+        return handler.length === 4 ? handler(err, req, res, next) : next(err);
+
+      if (handler.length === 4) return next();
 
       try {
+        console.log('Running:', handler.name || 'anonymous');
         return handler(req, res, next);
       } catch (e) {
         return next(e);
       }
     };
 
-    return next();
+    next();
   };
 
   const handle = (e, method) => {
     const route = (e.parameter.route || '/').replace(/\/$/, '') || '/';
-
-    const handlers = routes?.[route]?.[method];
 
     const req = Request.create(e, method);
     req.route = route;
 
     const res = Response.create();
 
-    if (!handlers) {
-      const notFoundMiddleware = (route) => (_req, _res, next) =>
-        next(HttpError.notFound(`Route not found: ${route}`));
-      return runChain(
-        [...preMiddleware, notFoundMiddleware(route), ...postMiddleware],
-        req,
-        res,
-      );
-    }
-
-    runChain([...preMiddleware, ...handlers, ...postMiddleware], req, res);
+    run(req, res);
 
     return res._get();
   };

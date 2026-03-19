@@ -43,16 +43,16 @@ const Request = (() => {
       query: params,
       body,
 
-      // Raw event (escape hatch)
+      // Raw event
       event: e,
 
-      // Auth (to be filled by middleware)
+      // Auth
       user: null,
 
       // Meta
       isApi: route.startsWith('/api'),
 
-      // 🔥 Helpers
+      // Helpers
       get: (key) => params?.[key] ?? null,
 
       has: (key) => key in params,
@@ -63,7 +63,6 @@ const Request = (() => {
       }),
 
       header: (_name) => {
-        // Apps Script limitation (no headers available)
         return null;
       },
     };
