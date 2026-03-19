@@ -23,11 +23,11 @@ const ScoresService = (() => {
     if (!respondentRowNum) return null;
 
     // Mask the respondent name.
-    const respondentName = ScoresSheet.values
+    const respondentName = (ScoresSheet.values
       .getCell({
         rowNum: respondentRowNum,
         colKey: 'name',
-      })
+      }) || '')
       .trim();
     const nameParts = respondentName.split(' ');
     if (nameParts.length > 2) {
@@ -46,7 +46,6 @@ const ScoresService = (() => {
     const altRespondentRows = ScoresSheet.respondents.findAlternatives(
       userData.email,
     );
-    console.error();
     const altEmails = new Set([userId]);
     for (const altRowNum of altRespondentRows) {
       const altEmail = ScoresSheet.values.getCell({
