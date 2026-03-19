@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <head>
+    <base target="_top" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="mobile-web-app-capable" content="no" />
+
+    <!-- FONTS -->
+    <!-- Roboto -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Material Icons -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+
+    <!-- STYLE -->
+
+    <!-- /components -->
+    <?!= helpers.include('webapp/client/assets/css/components/loaders') ?>
+
+    <!-- /elements -->
+    <?!= helpers.include('webapp/client/assets/css/elements/buttons') ?> <?!=
+    helpers.include('webapp/client/assets/css/elements/input') ?> <?!=
+    helpers.include('webapp/client/assets/css/elements/semantic') ?> <?!=
+    helpers.include('webapp/client/assets/css/elements/table') ?>
+
+    <!-- /views -->
+    <?!= helpers.include('webapp/client/assets/css/views/user-scores') ?> <?!=
+    helpers.include('webapp/client/assets/css/views/errors') ?>
+
+    <!-- / -->
+    <?!= helpers.include('webapp/client/assets/css/global') ?>
+
+    <!-- /STYLE -->
+  </head>
+
+  <body>
+    <?!= helpers.include(view) ?> <?!=
+    helpers.include('webapp/client/partials/footer') ?>
+  </body>
+
+  <!-- SCRIPT -->
+
+  <!-- /utils -->
+  <?!= helpers.include('webapp/client/assets/js/utils/StringUtils') ?>
+
+  <!-- /components -->
+  <?!= helpers.include('webapp/client/assets/js/components/Loaders') ?>
+
+  <!-- /pages -->
+  <?!= helpers.include('webapp/client/assets/js/views/UserScores') ?>
+
+  <!-- /core -->
+  <?!= helpers.include('webapp/client/assets/js/core/event-listeners') ?>
+
+  <!-- / -->
+  <?!= helpers.include('webapp/client/assets/js/onload') ?>
+
+  <!-- /SCRIPT -->
+</html>
