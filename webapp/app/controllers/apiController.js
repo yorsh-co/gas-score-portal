@@ -11,7 +11,7 @@ const ApiController = (() => {
     const scores = ScoresService.getByUser(userId);
 
     if (!scores) {
-      throw HttpError.notFound('Usuário não encontrado');
+      throw HttpError.badRequest('Usuário não encontrado');
     }
 
     return res.json(scores);

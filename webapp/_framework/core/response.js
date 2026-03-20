@@ -89,7 +89,7 @@ const Response = (() => {
         return setOutput({
           ok: statusCode < 400,
           code: statusCode,
-          data: statusCode < 400 ? data : null,
+          data: statusCode <= 400 ? data : null,
         });
       },
 

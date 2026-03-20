@@ -69,8 +69,8 @@
 
       if (!response.ok) {
         document.getElementById('error').textContent =
-          response.error.message +
-          (response.error.message.endsWith('.') ? '' : '.');
+          response.data.error.message +
+          (response.data.error.message.endsWith('.') ? '' : '.');
         return;
       }
 

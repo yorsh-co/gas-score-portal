@@ -29,7 +29,7 @@ const HttpError = (() => {
       this.details = details;
 
       /** @type {boolean} */
-      this.expose = status < 500; // like Express: expose client errors
+      this.expose = status < 500; // expose client errors
     }
 
     /**
