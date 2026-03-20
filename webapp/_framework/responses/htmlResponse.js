@@ -1,11 +1,15 @@
 const HtmlResponse = (() => {
-  const basePaths = {
-    views: 'webapp/client/views',
-    layouts: 'webapp/client/layouts',
+  let config = null;
+
+  const setConfig = (cfg) => {
+    config = cfg;
   };
+  const getBasePaths = () => config.html.basePaths;
+
   const resolveView = (view) => {
     if (view.startsWith('webapp/')) return view;
 
+    const basePaths = getBasePaths();
     if (!view.endsWith('.html')) {
       return `${basePaths.views}/${view}.html`;
     }
@@ -16,7 +20,9 @@ const HtmlResponse = (() => {
   const resolveLayout = (layout) => {
     if (layout === false) return null;
 
-    if (!layout) return `${basePaths.layouts}/main.html`;
+    const basePaths = getBasePaths();
+    if (!layout)
+      return `${basePaths.layouts}/${config.html.defaultLayout}.html`;
 
     if (layout.startsWith('webapp/')) return layout;
 
@@ -164,8 +170,7 @@ const HtmlResponse = (() => {
     const output = layoutTemplate.evaluate();
 
     // meta
-    const title =
-      options.title || locals.pageTitle || Config.data.appsScript.webappTitle;
+    const title = options.title || locals.pageTitle || config.appName;
 
     if (title) output.setTitle(title);
 
@@ -185,5 +190,6 @@ const HtmlResponse = (() => {
 
   return {
     render,
+    setConfig,
   };
 })();

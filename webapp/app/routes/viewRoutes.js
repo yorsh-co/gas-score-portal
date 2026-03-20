@@ -1,7 +1,10 @@
 const ViewRoutes = (() => {
   const register = (router) => {
     router.get('/', ViewsController.home);
-    router.get('/users/scores', ViewsController.scores);
+
+    router.group('/users', (users) => {
+      users.get('/scores', ViewsController.scores);
+    });
   };
 
   return { register };

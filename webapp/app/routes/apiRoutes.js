@@ -1,10 +1,10 @@
 const ApiRoutes = (() => {
   const register = (router) => {
-    router.get(
-      '/api/users/:userId/scores',
-      // AuthMiddleware.requireAuth,
-      ApiController.getUserScores
-    );
+    router.group('/api', /*AuthMiddleware.requireAuth,*/ (api) => {
+      api.group('/users', (users) => {
+        users.get('/:userId/scores', ApiController.getUserScores);
+      });
+    });
   };
 
   return { register };

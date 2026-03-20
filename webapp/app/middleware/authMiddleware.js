@@ -1,6 +1,6 @@
 const AuthMiddleware = (() => {
-  const requireAuth = (req, res, next) => {
-    const token = req.params.token;
+  const requireAuth = (req, res, next) => {    
+    /*const token = req.params.token;
 
     if (!token) {
       return res.error(HttpError.forbidden('Missing token'));
@@ -10,8 +10,9 @@ const AuthMiddleware = (() => {
       return res.error(HttpError.forbidden('Invalid token'));
     }
 
-    req.user = { id: '123' };
+    req.user = { id: '123' };*/
 
+  
     return next();
   };
 
