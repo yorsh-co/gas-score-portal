@@ -1,66 +1,125 @@
+/**
+ * Base HTTP Error class.
+ * Similar to Express/http-errors pattern.
+ */
 const HttpError = (() => {
+  /**
+   * Base HTTP Error.
+   */
   class HttpError extends Error {
-    constructor(code, type, message, details = null) {
+    /**
+     * @param {number} status - HTTP status code
+     * @param {string} message - Error message
+     * @param {string} [type] - Optional error type identifier
+     * @param {any} [details] - Optional additional details
+     */
+    constructor(status, message, type = null, details = null) {
       super(message);
-      this.code = code;
-      this.type = type;
+
+      /** @type {number} */
+      this.status = status;
+
+      /** @type {string} */
+      this.code = status; // alias for compatibility
+
+      /** @type {string} */
+      this.type = type || HttpError.defaultType(status);
+
+      /** @type {any} */
       this.details = details;
+
+      /** @type {boolean} */
+      this.expose = status < 500; // like Express: expose client errors
+    }
+
+    /**
+     * Maps status → default type.
+     * @param {number} status
+     * @returns {string}
+     */
+    static defaultType(status) {
+      const map = {
+        400: 'BAD_REQUEST',
+        401: 'UNAUTHORIZED',
+        403: 'FORBIDDEN',
+        404: 'NOT_FOUND',
+        405: 'METHOD_NOT_ALLOWED',
+        409: 'CONFLICT',
+        500: 'INTERNAL_ERROR',
+      };
+      return map[status] || 'HTTP_ERROR';
     }
   }
 
-  const badRequest = (message, details = null) =>
-    new HttpError(
-      JsonResponse.Errors.INVALID_REQUEST.code,
-      JsonResponse.Errors.INVALID_REQUEST.type,
-      message,
-      details,
-    );
+  // ---------- Specific Errors ----------
 
-  const notFound = (message, details = null) =>
-    new HttpError(
-      JsonResponse.Errors.NOT_FOUND.code,
-      JsonResponse.Errors.NOT_FOUND.type,
-      message,
-      details,
-    );
+  class BadRequest extends HttpError {
+    constructor(message = 'Bad request', details = null) {
+      super(400, message, 'BAD_REQUEST', details);
+    }
+  }
 
-  const forbidden = (message, details = null) =>
-    new HttpError(
-      JsonResponse.Errors.FORBIDDEN.code,
-      JsonResponse.Errors.FORBIDDEN.type,
-      message,
-      details,
-    );
+  class Unauthorized extends HttpError {
+    constructor(message = 'Unauthorized', details = null) {
+      super(401, message, 'UNAUTHORIZED', details);
+    }
+  }
 
-  const methodNotAllowed = (message, details = null) =>
-    new HttpError(
-      JsonResponse.Errors.METHOD_NOT_ALLOWED.code,
-      JsonResponse.Errors.METHOD_NOT_ALLOWED.type,
-      message,
-      details,
-    );
+  class Forbidden extends HttpError {
+    constructor(message = 'Forbidden', details = null) {
+      super(403, message, 'FORBIDDEN', details);
+    }
+  }
 
-  const conflict = (message, details = null) =>
-    new HttpError(
-      JsonResponse.Errors.CONFLICT.code,
-      JsonResponse.Errors.CONFLICT.type,
-      message,
-      details,
-    );
+  class NotFound extends HttpError {
+    constructor(message = 'Not found', details = null) {
+      super(404, message, 'NOT_FOUND', details);
+    }
+  }
 
-  const internal = (message = 'Internal server error', details = null) =>
-    new HttpError(
-      JsonResponse.Errors.INTERNAL_ERROR.code,
-      JsonResponse.Errors.INTERNAL_ERROR.type,
-      message,
-      details,
-    );
+  class MethodNotAllowed extends HttpError {
+    constructor(message = 'Method not allowed', details = null) {
+      super(405, message, 'METHOD_NOT_ALLOWED', details);
+    }
+  }
+
+  class Conflict extends HttpError {
+    constructor(message = 'Conflict', details = null) {
+      super(409, message, 'CONFLICT', details);
+    }
+  }
+
+  class InternalError extends HttpError {
+    constructor(message = 'Internal server error', details = null) {
+      super(500, message, 'INTERNAL_ERROR', details);
+    }
+  }
+
+  // ---------- Factory helpers (Express-like ergonomics) ----------
+
+  const badRequest = (msg, details) => new BadRequest(msg, details);
+  const unauthorized = (msg, details) => new Unauthorized(msg, details);
+  const forbidden = (msg, details) => new Forbidden(msg, details);
+  const notFound = (msg, details) => new NotFound(msg, details);
+  const methodNotAllowed = (msg, details) => new MethodNotAllowed(msg, details);
+  const conflict = (msg, details) => new Conflict(msg, details);
+  const internal = (msg, details) => new InternalError(msg, details);
 
   return {
     HttpError,
+    BadRequest,
+    Unauthorized,
+    Forbidden,
+    NotFound,
+    MethodNotAllowed,
+    Conflict,
+    InternalError,
+
+    // helpers
     badRequest,
-    notFound,
+    unauthorized,
     forbidden,
+    notFound,
     methodNotAllowed,
     conflict,
     internal,

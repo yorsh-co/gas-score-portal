@@ -103,6 +103,8 @@ const Request = (() => {
       // Meta
       isApi: route.startsWith('/api'),
 
+      _matched: false,
+
       /**
        * Gets a parameter or query value by key.
        *

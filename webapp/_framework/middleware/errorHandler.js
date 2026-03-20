@@ -1,39 +1,61 @@
+/**
+ * Central error handler middleware.
+ * Handles both API and HTML responses.
+ */
 const ErrorHandler = (() => {
+  /**
+   * Checks if route is API.
+   * @param {string} route
+   * @returns {boolean}
+   */
   const isApiRoute = (route) => route.startsWith('/api');
 
+  /**
+   * Express-style error handler middleware.
+   *
+   * @param {any} err
+   * @param {Request} req
+   * @param {Response} res
+   * @param {Function} _next
+   */
   const handleError = (err, req, res, _next) => {
+    // Prevent double send
+    if (res._hasSent()) return;
+
     console.error(err);
 
     const route = req.route;
+    const isApi = isApiRoute(route);
+
+    // Normalize error
+    let status = 500;
+    let type = 'INTERNAL_ERROR';
+    let message = 'Unexpected server error';
+    let details = null;
 
     if (err instanceof HttpError.HttpError) {
-      if (isApiRoute(route)) {
-        return res.status(err.code).json({
-          error: {
-            type: err.type,
-            message: err.message,
-            details: err.details,
-          },
-        });
-      }
-
-      res.locals.pageTitle = err.code === 404 ? 'Not Found' : 'Error';
-      res.locals.message = err.message;
-
-      return res.status(err.code).render(err.code === 404 ? '404' : '500');
+      status = err.status || err.code || 500;
+      type = err.type;
+      message = err.expose ? err.message : 'Internal server error';
+      details = err.details;
     }
 
-    if (isApiRoute(route)) {
-      return res.status(500).json({
+    // ---------- API ----------
+    if (isApi) {
+      return res.status(status).json({
         error: {
-          type: 'INTERNAL_ERROR',
-          message: 'Unexpected server error',
+          type,
+          message,
+          ...(details && { details }),
         },
       });
     }
 
-    res.locals.pageTitle = 'Error';
-    return res.status(500).render('500');
+    // ---------- HTML ----------
+    res.locals.pageTitle = status === 404 ? 'Not Found' : 'Error';
+    res.locals.message = message;
+
+    return res.status(status).render(status === 404 ? '404' : '500');
   };
 
   return { handleError };

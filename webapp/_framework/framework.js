@@ -46,8 +46,14 @@ const Framework = (() => {
       if (typeof routes === 'function') routes(router);
 
       // Fallback: route not found
-      router.use((req, _res, next) => {
-        next(HttpError.notFound(`Route not found: ${req.route}`));
+      router.use((req, res, next) => {
+        if (res._hasSent()) return;
+
+        if (!req._matched) {
+          return next(HttpError.notFound(`Route not found: ${req.route}`));
+        }
+
+        return next(HttpError.internal('Request was not handled'));
       });
 
       // Global error handler (must be last)

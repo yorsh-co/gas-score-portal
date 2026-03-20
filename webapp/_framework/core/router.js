@@ -98,6 +98,8 @@ const Router = (() => {
         }
       }
 
+      req._matched = true;
+
       req.params = params;
       return true;
     };
@@ -111,6 +113,7 @@ const Router = (() => {
      */
     const run = (req, res) => {
       let i = 0;
+      let finished = false;
 
       console.log(
         stack.map((l) => ({
@@ -120,13 +123,17 @@ const Router = (() => {
         })),
       );
 
+      const end = () => {
+        finished = true;
+      };
+
       /**
        * Moves to the next middleware in the stack.
        * @param {any} [err]
        */
       const next = (err) => {
-        if (res._hasSent()) return; 
-        
+        if (finished || res._hasSent()) return end();
+
         const layer = stack[i++];
         if (!layer) return;
 
@@ -134,21 +141,45 @@ const Router = (() => {
 
         const { handler } = layer;
 
-        // Error flow
-        if (err)
-          return handler.length === 4
-            ? handler(err, req, res, next)
-            : next(err);
-
-        // Skip error handlers in normal flow
-        if (handler.length === 4) return next();
-
         try {
+          // Error flow
+          if (err)
+            return handler.length === 4
+              ? handler(err, req, res, next)
+              : next(err);
+
+          // Skip error handlers in normal flow
+          if (handler.length === 4) return next();
+
           console.log('Running:', handler.name || 'anonymous');
-          return handler(req, res, next);
+
+          const result = handler(req, res, next);
+          return handleResult(result);
         } catch (e) {
           return next(e);
         }
+      };
+
+      /**
+       * Handles return values from handlers (sync or async).
+       *
+       * @param {any} result
+       */
+      const handleResult = (result) => {
+        // If handler returned a Promise → handle async
+        if (result && typeof result.then === 'function') {
+          return result
+            .then(() => {
+              if (!res._hasSent()) next();
+            })
+            .catch(next);
+        }
+
+        // If sync handler didn't send response → continue
+        if (!res._hasSent()) return;
+
+        // If response was sent → stop everything
+        return end();
       };
 
       next();

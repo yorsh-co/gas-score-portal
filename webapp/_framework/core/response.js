@@ -40,7 +40,7 @@ const Response = (() => {
      * @returns {any}
      */
     const setOutput = (value) => {
-      if (output !== null) return output;
+      if (output !== null) throw new Error('Response already sent');
       output = value;
       return value;
     };
