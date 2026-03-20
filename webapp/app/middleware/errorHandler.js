@@ -17,7 +17,7 @@ const ErrorHandler = (() => {
         });
       }
 
-      return res.status(err.code).html('webapp/client/pages/index', {
+      return res.status(err.code).render('webapp/client/pages/index', {
         view:
           err.code === 404
             ? 'webapp/client/views/404'
@@ -36,7 +36,7 @@ const ErrorHandler = (() => {
       });
     }
 
-    return res.status(500).html('webapp/client/pages/index', {
+    return res.status(500).render('webapp/client/pages/index', {
       view: 'webapp/client/views/500',
       pageTitle: 'Error',
     });

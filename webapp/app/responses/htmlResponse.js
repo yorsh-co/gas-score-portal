@@ -2,14 +2,13 @@ const HtmlResponse = (() => {
   const include = (filename) =>
     HtmlService.createHtmlOutputFromFile(filename).getContent();
 
-  const render = (view, model = {}, options = {}) => {
+  const render = (view, locals = {}, options = {}) => {
     const template = HtmlService.createTemplateFromFile(view);
 
-    Object.assign(template, model);
-    template.helpers = {
-      // Use <?!= helpers.include('...') ?>
-      include,
-    };
+    Object.assign(template, locals);
+    template.helpers = Object.freeze({
+      include, // Use <?!= helpers.include('...') ?>
+    });
 
     const output = template.evaluate();
 
@@ -30,7 +29,8 @@ const HtmlResponse = (() => {
     );
   };
 
-  const page = (view, model = {}, options = {}) => render(view, model, options);
+  const page = (view, locals = {}, options = {}) =>
+    render(view, locals, options);
 
   return {
     render,

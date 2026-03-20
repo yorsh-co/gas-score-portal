@@ -2,6 +2,7 @@ const Response = (() => {
   const create = () => {
     let output = null;
     let statusCode = 200;
+    const locals = {};
 
     const setOutput = (value) => {
       output = value;
@@ -14,6 +15,8 @@ const Response = (() => {
     };
 
     const api = {
+      locals,
+      
       status: (code) => setStatus(code),
 
       send: (content) => setOutput(content),
@@ -26,9 +29,9 @@ const Response = (() => {
         });
       },
 
-      html: (view, model = {}, options = {}) => {
+      render: (view, options = {}) => {
         return setOutput(
-          HtmlResponse.page(view, model, {
+          HtmlResponse.page(view, locals, {
             ...options,
             status: statusCode,
           }),
