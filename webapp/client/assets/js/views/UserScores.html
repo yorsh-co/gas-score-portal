@@ -52,7 +52,7 @@
       google.script.run
         .withSuccessHandler(handleResponse_)
         .withFailureHandler(handleFailure_)
-        .doGet({ parameter: { route: '/api/users/scores', userId: userId } });
+        .doGet({ parameter: { route: `/api/users/${userId}/scores` } });
     };
 
     /**

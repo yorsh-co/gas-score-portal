@@ -1,7 +1,7 @@
 const ApiRoutes = (() => {
   const register = (router) => {
     router.get(
-      '/api/users/scores',
+      '/api/users/:userId/scores',
       // AuthMiddleware.requireAuth,
       ApiController.getUserScores
     );
