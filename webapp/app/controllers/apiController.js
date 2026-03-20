@@ -1,4 +1,10 @@
 const ApiController = (() => {
+  /**
+   * 
+   * @param {Req} req 
+   * @param {Res} res 
+   * @returns 
+   */
   const getUserScores = (req, res) => {
     const userId = req.params.userId;
 

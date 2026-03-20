@@ -17,7 +17,6 @@ const ErrorHandler = (() => {
         });
       }
 
-      // 👉 set locals instead of passing object
       res.locals.pageTitle = err.code === 404 ? 'Not Found' : 'Error';
       res.locals.message = err.message;
 

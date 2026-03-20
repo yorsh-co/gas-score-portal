@@ -1,7 +1,29 @@
+/**
+ * Minimal Express-like Router for Apps Script.
+ * Supports middleware, route handlers, nested groups, and error handling.
+ */
 const Router = (() => {
+  /**
+   * Creates a new router instance.
+   * @returns {{
+   *  get: (path: string, ...handlers: Function[]) => void,
+   *  post: (path: string, ...handlers: Function[]) => void,
+   *  use: (handler: Function) => void,
+   *  handle: (e: GoogleAppsScript.Events.DoGet, method: string) => any,
+   *  group: (prefix: string, ...args: any[]) => void
+   * }}
+   */
   const create = () => {
+    /**
+     * Internal middleware/route stack.
+     * @type {{ method: string|null, path: string|null, handler: Function }[]}
+     */
     const stack = [];
 
+    /**
+     * Registers a global middleware (runs on every request).
+     * @param {(req, res, next) => void} handler
+     */
     const use = (handler) =>
       stack.push({
         method: null,
@@ -9,6 +31,12 @@ const Router = (() => {
         handler,
       });
 
+    /**
+     * Registers handlers for a specific HTTP method and path.
+     * @param {string} method
+     * @param {string} path
+     * @param {...Function} handlers
+     */
     const register = (method, path, ...handlers) =>
       handlers.forEach((handler) => {
         stack.push({
@@ -18,9 +46,28 @@ const Router = (() => {
         });
       });
 
+    /**
+     * Registers a GET route.
+     * @param {string} path
+     * @param {...Function} handlers
+     */
     const get = (path, ...handlers) => register('GET', path, ...handlers);
+
+    /**
+     * Registers a POST route.
+     * @param {string} path
+     * @param {...Function} handlers
+     */
     const post = (path, ...handlers) => register('POST', path, ...handlers);
 
+    /**
+     * Matches a request against a stack layer.
+     * Supports params like `/users/:id`.
+     *
+     * @param {{ method: string|null, path: string|null }} layer
+     * @param {object} req
+     * @returns {boolean}
+     */
     const match = (layer, req) => {
       if (layer.method && layer.method !== req.method) return false;
       if (!layer.path) return true;
@@ -28,6 +75,7 @@ const Router = (() => {
       const routeParts = req.route.split('/');
       const layerParts = layer.path.split('/');
 
+      // Prefix match for middleware
       if (!layer.method) {
         for (let i = 0; i < layerParts.length; i++) {
           if (layerParts[i] !== routeParts[i]) return false;
@@ -54,6 +102,13 @@ const Router = (() => {
       return true;
     };
 
+    /**
+     * Executes the middleware stack.
+     * Supports standard and error middleware (4 args).
+     *
+     * @param {object} req
+     * @param {object} res
+     */
     const run = (req, res) => {
       let i = 0;
 
@@ -65,7 +120,13 @@ const Router = (() => {
         })),
       );
 
+      /**
+       * Moves to the next middleware in the stack.
+       * @param {any} [err]
+       */
       const next = (err) => {
+        if (res._hasSent()) return; 
+        
         const layer = stack[i++];
         if (!layer) return;
 
@@ -73,11 +134,13 @@ const Router = (() => {
 
         const { handler } = layer;
 
+        // Error flow
         if (err)
           return handler.length === 4
             ? handler(err, req, res, next)
             : next(err);
 
+        // Skip error handlers in normal flow
         if (handler.length === 4) return next();
 
         try {
@@ -91,6 +154,13 @@ const Router = (() => {
       next();
     };
 
+    /**
+     * Entry point for Apps Script doGet/doPost.
+     *
+     * @param {GoogleAppsScript.Events.DoGet|GoogleAppsScript.Events.DoPost} e
+     * @param {string} method
+     * @returns {any}
+     */
     const handle = (e, method) => {
       const route = (e.parameter.route || '/').replace(/\/$/, '') || '/';
 
@@ -104,6 +174,15 @@ const Router = (() => {
       return res._get();
     };
 
+    /**
+     * Creates a route group with a shared prefix and optional middleware.
+     *
+     * Usage:
+     * router.group('/api', mw1, mw2, (api) => { ... })
+     *
+     * @param {string} prefix
+     * @param {...any} args - middleware functions + final callback
+     */
     const group = (prefix, ...args) => {
       let callback;
       let middleware = [];
@@ -115,24 +194,50 @@ const Router = (() => {
         callback = args[args.length - 1];
       }
 
+      /**
+       * Prefixes a route path.
+       * @param {string} path
+       * @returns {string}
+       */
       const prefixed = (path) => {
         if (!path) return prefix;
         return `${prefix}${path}`.replace(/\/+/g, '/');
       };
 
+      // Register group-level middleware
       middleware.forEach((mw) => {
         stack.push({ method: null, path: prefix, handler: mw });
       });
 
+      /**
+       * Router scoped to this group.
+       */
       const groupRouter = {
+        /**
+         * @param {string} path
+         * @param {...Function} handlers
+         */
         get: (path, ...handlers) =>
           register('GET', prefixed(path), ...handlers),
 
+        /**
+         * @param {string} path
+         * @param {...Function} handlers
+         */
         post: (path, ...handlers) =>
           register('POST', prefixed(path), ...handlers),
 
+        /**
+         * Adds middleware scoped to this group prefix.
+         * @param {Function} handler
+         */
         use: (handler) => stack.push({ method: null, path: prefix, handler }),
 
+        /**
+         * Creates a nested group.
+         * @param {string} subPrefix
+         * @param {...any} subArgs
+         */
         group: (subPrefix, ...subArgs) =>
           group(prefixed(subPrefix), ...subArgs),
       };
@@ -142,6 +247,7 @@ const Router = (() => {
 
     return { get, post, use, handle, group };
   };
+
   return {
     create,
   };
