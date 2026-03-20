@@ -62,23 +62,21 @@ const HtmlResponse = (() => {
     };
 
     // include system
+    const basePaths = getBasePaths();
+
     const include = {
       raw: (path) => includeOnce(path),
       asset: (type, name) =>
         includeOnce(
-          `webapp/client/assets/${type}/${name.replace(/^\//, '')}.${type}.html`,
+          `${basePaths.assets}/${type}/${name.replace(/^\//, '')}.${type}.html`,
         ),
       css: (name) =>
-        includeOnce(
-          `webapp/client/assets/css/${name.replace(/^\//, '')}.css.html`,
-        ),
+        includeOnce(`${basePaths.css}/${name.replace(/^\//, '')}.css.html`),
       js: (name) =>
-        includeOnce(
-          `webapp/client/assets/js/${name.replace(/^\//, '')}.js.html`,
-        ),
+        includeOnce(`${basePaths.js}/${name.replace(/^\//, '')}.js.html`),
       partial: (name, data = {}, parentLocals = {}) => {
         const template = HtmlService.createTemplateFromFile(
-          `webapp/client/partials/${name.replace(/^\//, '')}.html`,
+          `${basePaths.partials}/${name.replace(/^\//, '')}.html`,
         );
         Object.assign(template, {
           locals: {
@@ -94,7 +92,7 @@ const HtmlResponse = (() => {
       },
       component: (name, props = {}, parentLocals = {}) => {
         const template = HtmlService.createTemplateFromFile(
-          `webapp/client/components/${name.replace(/^\//, '')}`,
+          `${basePaths.components}/${name.replace(/^\//, '')}`,
         );
 
         const { children, slots = {}, ...rest } = props;

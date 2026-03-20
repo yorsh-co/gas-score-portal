@@ -3,8 +3,13 @@ const AppConfig = {
 
   html: {
     basePaths: {
-      views: 'webapp/client/views',
+      assets: 'webapp/client/assets',
+      css: 'webapp/client/assets/css',
+      js: 'webapp/client/assets/js',
+      components: 'webapp/client/components',
       layouts: 'webapp/client/layouts',
+      partials: 'webapp/client/partials',
+      views: 'webapp/client/views',
     },
 
     defaultLayout: 'main',
