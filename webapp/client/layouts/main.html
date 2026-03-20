@@ -23,45 +23,46 @@
     <!-- STYLE -->
 
     <!-- /components -->
-    <?!= helpers.include('webapp/client/assets/css/components/loaders') ?>
+    <?!= $css('components/loaders') ?>
 
     <!-- /elements -->
-    <?!= helpers.include('webapp/client/assets/css/elements/buttons') ?> <?!=
-    helpers.include('webapp/client/assets/css/elements/input') ?> <?!=
-    helpers.include('webapp/client/assets/css/elements/semantic') ?> <?!=
-    helpers.include('webapp/client/assets/css/elements/table') ?>
+    <?!= $css('elements/buttons') ?> <?!=
+    $css('elements/input') ?> <?!=
+    $css('elements/semantic') ?> <?!=
+    $css('elements/table') ?>
 
     <!-- /views -->
-    <?!= helpers.include('webapp/client/assets/css/views/user-scores') ?> <?!=
-    helpers.include('webapp/client/assets/css/views/errors') ?>
+    <?!= $css('views/user-scores') ?> <?!=
+    $css('views/errors') ?>
 
     <!-- / -->
-    <?!= helpers.include('webapp/client/assets/css/global') ?>
+    <?!= $css('global') ?>
 
     <!-- /STYLE -->
   </head>
 
   <body>
-    <?!= helpers.include(view) ?> <?!=
-    helpers.include('webapp/client/partials/footer') ?>
+    <main><?!= body ?></main>
+
+    <?!= $partial('footer') ?>
   </body>
 
   <!-- SCRIPT -->
 
   <!-- /utils -->
-  <?!= helpers.include('webapp/client/assets/js/utils/StringUtils') ?>
+  <?!= $js('utils/StringUtils') ?>
 
   <!-- /components -->
-  <?!= helpers.include('webapp/client/assets/js/components/Loaders') ?>
+  <?!= $js('components/Loaders') ?>
 
   <!-- /pages -->
-  <?!= helpers.include('webapp/client/assets/js/views/UserScores') ?>
+  <?!= $js('views/UserScores') ?>
 
   <!-- /core -->
-  <?!= helpers.include('webapp/client/assets/js/core/event-listeners') ?>
+  <?!= $js('core/eventListeners') ?>
 
   <!-- / -->
-  <?!= helpers.include('webapp/client/assets/js/onload') ?>
+  <?!= $js('onload') ?>
 
   <!-- /SCRIPT -->
 </html>
