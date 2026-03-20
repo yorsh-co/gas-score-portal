@@ -31,7 +31,7 @@ const Response = (() => {
 
       render: (view, options = {}) => {
         return setOutput(
-          HtmlResponse.page(view, locals, {
+          HtmlResponse.render(view, locals, {
             ...options,
             status: statusCode,
           }),

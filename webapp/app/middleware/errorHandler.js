@@ -1,7 +1,7 @@
 const ErrorHandler = (() => {
   const isApiRoute = (route) => route.startsWith('/api');
 
-  const handleError  = (err, req, res, _next) => {
+  const handleError = (err, req, res, _next) => {
     console.error(err);
 
     const route = req.route;
@@ -17,14 +17,11 @@ const ErrorHandler = (() => {
         });
       }
 
-      return res.status(err.code).render('webapp/client/pages/index', {
-        view:
-          err.code === 404
-            ? 'webapp/client/views/404'
-            : 'webapp/client/views/500',
-        pageTitle: err.code === 404 ? 'Not Found' : 'Error',
-        message: err.message,
-      });
+      // 👉 set locals instead of passing object
+      res.locals.pageTitle = err.code === 404 ? 'Not Found' : 'Error';
+      res.locals.message = err.message;
+
+      return res.status(err.code).render(err.code === 404 ? '404' : '500');
     }
 
     if (isApiRoute(route)) {
@@ -36,10 +33,8 @@ const ErrorHandler = (() => {
       });
     }
 
-    return res.status(500).render('webapp/client/pages/index', {
-      view: 'webapp/client/views/500',
-      pageTitle: 'Error',
-    });
+    res.locals.pageTitle = 'Error';
+    return res.status(500).render('500');
   };
 
   return { handleError };
