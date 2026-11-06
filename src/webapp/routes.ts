@@ -55,6 +55,12 @@ const VERIFY_EMAIL_LIMIT = 10;
 /** Verification attempts allowed across all emails in each window. */
 const VERIFY_GLOBAL_LIMIT = 200;
 
+/** Verification attempts allowed per email in each daily window. */
+const VERIFY_EMAIL_DAILY_LIMIT = 20;
+
+/** Daily rate limit window, in seconds. */
+const VERIFY_DAILY_WINDOW_SECONDS = 86400;
+
 /** Request log keys that are always masked, on top of the library defaults. */
 const LOG_REDACT_KEYS = [
   'token',
@@ -91,10 +97,14 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
   // The counters are shared across visitors. Under USER_DEPLOYING the user
   // lock is global too, and it does not contend with the synchronizer's
   // script lock.
-  const limiter = (key: (req: GasWebAppRequest) => string, limit: number) =>
+  const limiter = (
+    key: (req: GasWebAppRequest) => string,
+    limit: number,
+    windowSeconds = OTP_WINDOW_SECONDS,
+  ) =>
     createRateLimiter({
       limit,
-      windowSeconds: OTP_WINDOW_SECONDS,
+      windowSeconds,
       lockScope: 'user',
       lockService: GasLock,
       keyFn: key,
@@ -105,6 +115,12 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
   const emailLimit = limiter(emailKey('otp'), OTP_EMAIL_LIMIT);
   const verifyGlobalLimit = limiter(() => 'verify:global', VERIFY_GLOBAL_LIMIT);
   const verifyEmailLimit = limiter(emailKey('verify'), VERIFY_EMAIL_LIMIT);
+  // Runs after the window limiters so rejected attempts do not use the budget.
+  const verifyEmailDailyLimit = limiter(
+    emailKey('verify:daily'),
+    VERIFY_EMAIL_DAILY_LIMIT,
+    VERIFY_DAILY_WINDOW_SECONDS,
+  );
 
   router.post('/otp', validateEmail, globalLimit, emailLimit, (req, res) => {
     auth.otp.request(requireBodyEmail(req));
@@ -118,6 +134,7 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
     validateEmail,
     verifyGlobalLimit,
     verifyEmailLimit,
+    verifyEmailDailyLimit,
     (req, res) => {
       const email = requireBodyEmail(req);
       const code = (req.body as { code?: unknown }).code;

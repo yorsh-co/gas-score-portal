@@ -171,7 +171,11 @@ test('the sign-in flow round-trips through the web app over RPC', () => {
         email: userId,
         name: 'Test',
         alternatives: [],
-        scores: [],
+        scores: [
+          userId === other
+            ? { formTitle: 'Other', formPoints: 100, score: 99 }
+            : { formTitle: 'Mine', formPoints: 100, score: 7 },
+        ],
       }),
     },
     { otp: harness.otp, sessions: harness.sessions, hmac: computeOtpHmac },
@@ -204,6 +208,15 @@ test('the sign-in flow round-trips through the web app over RPC', () => {
   assert(
     (scores.data as UserScores).email === email,
     'only the signed-in respondent is served',
+  );
+  const served = (scores.data as UserScores).scores;
+  assert(
+    served.length === 1 && served[0]!.formTitle === 'Mine',
+    'the scores must be those of the signed-in respondent',
+  );
+  assert(
+    JSON.stringify(scores.data).indexOf('Other') === -1,
+    "another respondent's scores must never be served",
   );
 
   const forged = callRpc(app, 'GET', '/api/me/scores', {

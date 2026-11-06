@@ -13,6 +13,9 @@ const OTP_SAMPLE_LIMIT = 16000000;
 /** Minimum duration of an OTP request, so the response time hides whether a mail was sent. */
 const OTP_MIN_RESPONSE_MS = 2500;
 
+/** Minimum duration of a verification, so the response time hides whether a code was live. */
+const VERIFY_MIN_RESPONSE_MS = 2500;
+
 /** An OTP as stored in the cache. Only the HMAC of the code is kept. */
 interface OtpEntry {
   codeHmac: string;
@@ -138,6 +141,30 @@ function generateOtpCode(uuid: () => string): string {
 function createOtpService(deps: OtpServiceDeps): OtpService {
   const cacheKey = (email: string) => `otp:${deps.hmac(`email:${email}`)}`;
 
+  /**
+   * Puts back the entry a failed send replaced, with its remaining TTL, so
+   * the failed attempts are not lost. Removes the key when there was none.
+   */
+  const restoreEntry = (
+    key: string,
+    raw: string | null,
+    previous: OtpEntry | null,
+  ) => {
+    GasLock.withLock('user', () => {
+      const remaining = previous
+        ? Math.ceil((previous.expiresAt - deps.now()) / 1000)
+        : 0;
+      if (raw && remaining > 0) deps.cache.put(key, raw, remaining);
+      else deps.cache.remove(key);
+    });
+  };
+
+  /** Sleeps whatever is left of the floor, measured from `startedAt`. */
+  const padTo = (startedAt: number, minMs: number) => {
+    const remaining = minMs - (deps.now() - startedAt);
+    if (remaining > 0) deps.sleep(remaining);
+  };
+
   const issue = (rawEmail: string) => {
     const email = normalizeEmail(rawEmail);
     const key = cacheKey(email);
@@ -153,26 +180,55 @@ function createOtpService(deps: OtpServiceDeps): OtpService {
     if (!deps.isRespondent(email)) return;
 
     const code = generateOtpCode(deps.uuid);
-    GasLock.withLock('user', () => {
+    const { previousRaw, previous } = GasLock.withLock('user', () => {
       // A new code voids the live one but keeps its failed attempts.
       const raw = deps.cache.get(key);
-      const previous = raw ? (JSON.parse(raw) as OtpEntry) : null;
+      const prior = raw ? (JSON.parse(raw) as OtpEntry) : null;
       const entry: OtpEntry = {
         codeHmac: deps.hmac(code),
-        attempts: previous?.attempts ?? 0,
+        attempts: prior?.attempts ?? 0,
         expiresAt: deps.now() + OTP_TTL_SECONDS * 1000,
       };
       deps.cache.put(key, JSON.stringify(entry), OTP_TTL_SECONDS);
+      return { previousRaw: raw, previous: prior };
     });
     try {
       deps.mailer.sendOtp(email, code, OTP_TTL_SECONDS / 60);
     } catch (err) {
-      deps.cache.remove(key);
+      restoreEntry(key, previousRaw, previous);
       deps.logger.error('OTP email failed', {
         email: StringUtils.maskEmail(email),
         error: err instanceof Error ? err.message : String(err),
       });
     }
+  };
+
+  const check = (rawEmail: string, code: string): boolean => {
+    const email = normalizeEmail(rawEmail);
+    const key = cacheKey(email);
+    return GasLock.withLock('user', () => {
+      const raw = deps.cache.get(key);
+      if (!raw) return false;
+      const entry = JSON.parse(raw) as OtpEntry;
+      const remaining = Math.ceil((entry.expiresAt - deps.now()) / 1000);
+      if (remaining <= 0 || entry.attempts >= OTP_MAX_ATTEMPTS) {
+        deps.cache.remove(key);
+        return false;
+      }
+
+      if (constantTimeEquals(deps.hmac(code), entry.codeHmac)) {
+        deps.cache.remove(key);
+        return true;
+      }
+
+      entry.attempts += 1;
+      if (entry.attempts >= OTP_MAX_ATTEMPTS) {
+        deps.cache.remove(key);
+      } else {
+        deps.cache.put(key, JSON.stringify(entry), remaining);
+      }
+      return false;
+    });
   };
 
   return {
@@ -181,37 +237,17 @@ function createOtpService(deps: OtpServiceDeps): OtpService {
       try {
         issue(rawEmail);
       } finally {
-        const remaining = OTP_MIN_RESPONSE_MS - (deps.now() - startedAt);
-        if (remaining > 0) deps.sleep(remaining);
+        padTo(startedAt, OTP_MIN_RESPONSE_MS);
       }
     },
 
     verify(rawEmail, code) {
-      const email = normalizeEmail(rawEmail);
-      const key = cacheKey(email);
-      return GasLock.withLock('user', () => {
-        const raw = deps.cache.get(key);
-        if (!raw) return false;
-        const entry = JSON.parse(raw) as OtpEntry;
-        const remaining = Math.ceil((entry.expiresAt - deps.now()) / 1000);
-        if (remaining <= 0 || entry.attempts >= OTP_MAX_ATTEMPTS) {
-          deps.cache.remove(key);
-          return false;
-        }
-
-        if (constantTimeEquals(deps.hmac(code), entry.codeHmac)) {
-          deps.cache.remove(key);
-          return true;
-        }
-
-        entry.attempts += 1;
-        if (entry.attempts >= OTP_MAX_ATTEMPTS) {
-          deps.cache.remove(key);
-        } else {
-          deps.cache.put(key, JSON.stringify(entry), remaining);
-        }
-        return false;
-      });
+      const startedAt = deps.now();
+      try {
+        return check(rawEmail, code);
+      } finally {
+        padTo(startedAt, VERIFY_MIN_RESPONSE_MS);
+      }
     },
   };
 }

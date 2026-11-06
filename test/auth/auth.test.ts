@@ -5,6 +5,7 @@ import { loadApp } from '../harness';
 const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org']);
 
 function setup(options: { quota?: number; sendFails?: boolean } = {}) {
+  const state = { mailFails: options.sendFails ?? false };
   const sent: {
     to: string;
     subject: string;
@@ -19,7 +20,7 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
       MailApp: {
         getRemainingDailyQuota: () => options.quota ?? 100,
         sendEmail: (message: (typeof sent)[number]) => {
-          if (options.sendFails)
+          if (state.mailFails)
             throw new Error('Service invoked too many times');
           sent.push(message);
         },
@@ -76,6 +77,7 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
 
   return {
     ...env,
+    state,
     sent,
     logged,
     lookups,
@@ -164,6 +166,23 @@ describe('requesting a code', () => {
     expect(s.verify('ana@x.org', WRONG).error).toMatch(/401/);
   });
 
+  it('restores the previous entry when a re-issue fails to send', () => {
+    const s = setup();
+    s.requestCode('ana@x.org');
+    const first = s.lastCode();
+    const wrong = first === WRONG ? '111111' : WRONG;
+    s.verify('ana@x.org', wrong);
+    s.verify('ana@x.org', wrong);
+    s.state.mailFails = true;
+
+    s.requestCode('ana@x.org');
+    s.state.mailFails = false;
+
+    // The old code is live again with its 2 failed attempts kept.
+    for (let i = 0; i < 2; i++) s.verify('ana@x.org', wrong);
+    expect(s.verify('ana@x.org', first).response?.data.token).toBeTruthy();
+  });
+
   it('keeps the failed attempts when a new code is issued', () => {
     const s = setup();
     s.requestCode('ana@x.org');
@@ -189,6 +208,28 @@ describe('verify rate limit', () => {
 
     expect(s.verify('ana@x.org', WRONG).error).toMatch(/429/);
     expect(s.verify('bob@x.org', WRONG).error).toMatch(/401/);
+  });
+
+  it('answers 429 after 20 attempts for the same email in a day', () => {
+    const s = setup();
+    for (let round = 0; round < 2; round++) {
+      for (let i = 0; i < 10; i++) s.verify('ana@x.org', WRONG);
+      s.advance(901);
+    }
+
+    expect(s.verify('ana@x.org', WRONG).error).toMatch(/429/);
+    expect(s.verify('bob@x.org', WRONG).error).toMatch(/401/);
+  });
+
+  it('does not spend the daily budget on attempts the window limit rejected', () => {
+    const s = setup();
+    for (let i = 0; i < 15; i++) s.verify('ana@x.org', WRONG);
+    s.advance(901);
+
+    for (let i = 0; i < 10; i++) {
+      expect(s.verify('ana@x.org', WRONG).error).toMatch(/401/);
+    }
+    expect(s.verify('ana@x.org', WRONG).error).toMatch(/429/);
   });
 
   it('applies a global cap across emails', () => {
@@ -271,6 +312,19 @@ describe('OTP service internals', () => {
 
     expect(fast.sleeps).toEqual([1500]);
     expect(slow.sleeps).toEqual([]);
+  });
+
+  it('pads every verification to the floor, with or without a live code', () => {
+    const s = service('123456ab-cdef-4fff-8fff-0123456789ab');
+    s.otp.request('ana@x.org');
+    s.sleeps.length = 0;
+
+    const live = s.otp.verify('ana@x.org', '000000');
+    const none = s.otp.verify('zed@x.org', '000000');
+    const right = s.otp.verify('ana@x.org', '193046');
+
+    expect([live, none, right]).toEqual([false, false, true]);
+    expect(s.sleeps).toEqual([2500, 2500, 2500]);
   });
 });
 

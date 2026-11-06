@@ -36,9 +36,13 @@ A respondent proves control of their mailbox with a one-time code.
   is removed.
 - Every `/otp` response takes at least 2,500 ms (`OTP_MIN_RESPONSE_MS`),
   measured from the start of the request, for respondents and non-respondents
-  alike.
+  alike. Every verification takes at least 2,500 ms (`VERIFY_MIN_RESPONSE_MS`)
+  by the same mechanism, whether or not a code is live.
 - `POST /api/auth/verify` is rate limited to 10 attempts per email and 200
-  across all emails per 15 minutes.
+  across all emails per 15 minutes, and to 20 attempts per email per day
+  (86,400 s window, keyed by the HMAC of the normalized email). The daily
+  limiter runs after the 15 minute ones, so rejected attempts do not use the
+  daily budget.
 - The rate limiters and the OTP read-modify-write use the `user` lock, not the
   `script` lock. `RespondentScoreSynchronizer` holds the `script` lock for a
   whole sync, which would stall every sign-in. Under
@@ -54,16 +58,24 @@ A respondent proves control of their mailbox with a one-time code.
   in both cases. Verification fails with the same message for an unknown
   email, a wrong code and an expired code. The mail quota check runs before
   the respondent lookup, so an exhausted quota looks the same for every email.
-  A failed send is logged at `error` with a masked email, the pending code is
-  removed, and the same 200 response is returned.
-- **Timing.** The response floor hides the cost of a send. Residual risk: a
-  send slower than the floor still makes that response stand out.
+  A failed send is logged at `error` with a masked email, the previous
+  entry is restored (with its remaining lifetime, so its failed attempts are
+  kept) or removed when there was none, and the same 200 response is returned.
+- **Timing.** The response floor hides the cost of a send, and the verify
+  floor hides whether a code was live. Residual risk: a send or a lock wait
+  slower than the floor still makes that response stand out.
 - **Brute force.** A code has 10^6 values, 5 attempts and a 10 minute life.
   Issuing a new code carries over the failed attempts of the pending one, but
   still voids the live code. Requests are limited to 3 per email per 15
   minutes and verifications to 10 per email per 15 minutes, so a guess budget
   of at most 10 per email per window: a success chance of about 0.001% per
-  window. A global cap of 50 requests per 15 minutes bounds the mail volume and
+  window (10 in 10^6). Without a daily cap, 96 windows a day would allow 960
+  guesses, about 0.1% per day and roughly 30% over a year of sustained
+  attack. The daily cap of 20 per email bounds it to 20 guesses a day: about
+  0.002% per day and about 0.7% over a year. Cache entries live at most 6
+  hours (`CacheService` limit), so a counter can lapse after 6 hours without
+  attempts; in that worst case the cap is 20 per 6 hours, at most 80 guesses
+  a day (about 0.008%). A global cap of 50 requests per 15 minutes bounds the mail volume and
   the lock contention.
 - **Denial of service.** The global cap is also a weakness: 50 requests lock
   everyone out of requesting a code for the rest of the window (200 requests
