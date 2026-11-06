@@ -26,6 +26,21 @@ const CONFIG_SCHEMA = {
     default: 'Score Portal',
     maxLength: 100,
   },
+  primaryColor: {
+    type: 'string',
+    label: 'Primary color',
+    description: 'Accent color of the web app, as a hex code such as #4f46e5.',
+    group: 'general',
+    pattern: '^#[0-9a-fA-F]{6}$',
+    patternMessage: 'Use a hex color such as #4f46e5.',
+  },
+  logoUrl: {
+    type: 'url',
+    label: 'Logo URL',
+    description:
+      'HTTPS address of the web app logo. Empty uses the built-in one.',
+    group: 'general',
+  },
   faviconUrl: {
     type: 'url',
     label: 'Favicon URL',
@@ -54,6 +69,13 @@ const CONFIG_SCHEMA = {
     type: 'text',
     label: 'Excluded Forms',
     description: 'Edit URLs of Forms to ignore, one per line.',
+    group: 'forms',
+  },
+  formTitleStripPatterns: {
+    type: 'text',
+    label: 'Form title clean-up',
+    description:
+      'Regular expressions (case-insensitive), one per line. Matches are removed from the Form titles shown in the web app.',
     group: 'forms',
   },
 } satisfies GasConfigSchema;
@@ -133,6 +155,17 @@ function getExcludedFormUrls(): string[] {
     .split(CONFIG_LIST_SEPARATOR)
     .map((url) => url.trim())
     .filter((url) => url !== '');
+}
+
+/**
+ * Returns the regular expression sources removed from the Form titles.
+ */
+function getFormTitleStripPatterns(): string[] {
+  const raw = getConfig().get('formTitleStripPatterns') ?? '';
+  return raw
+    .split(CONFIG_LIST_SEPARATOR)
+    .map((pattern) => pattern.trim())
+    .filter((pattern) => pattern !== '');
 }
 
 /**

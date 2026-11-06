@@ -17,7 +17,11 @@ interface PortalUserScores {
 interface PortalMeta {
   locale: Locale;
   portalTitle: string;
-  brand: { faviconUrl: string | null };
+  brand: {
+    primaryColor: string | null;
+    logoUrl: string | null;
+    faviconUrl: string | null;
+  };
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -196,6 +200,17 @@ function applyTranslations(): void {
     });
 }
 
+/**
+ * Applies the owner's brand settings over the built-in identity.
+ * @param brand Brand settings from the server.
+ */
+function applyBrand(brand: PortalMeta['brand']): void {
+  if (brand.primaryColor) {
+    document.documentElement.style.setProperty('--primary', brand.primaryColor);
+  }
+  if (brand.logoUrl) byId<HTMLImageElement>('portal-logo').src = brand.logoUrl;
+}
+
 /** Loads the locale and title from the server before the page is used. */
 function loadMeta(): void {
   window.GasWebApp.api
@@ -203,6 +218,7 @@ function loadMeta(): void {
     .then((meta) => {
       locale = resolveLocale(meta.locale);
       byId('portal-title').textContent = meta.portalTitle;
+      applyBrand(meta.brand);
       applyTranslations();
     })
     .catch((error: unknown) => console.error(error));

@@ -79,7 +79,7 @@ describe('GET /api/meta', () => {
       data: {
         locale: 'pt-BR',
         portalTitle: 'Score Portal',
-        brand: { faviconUrl: null },
+        brand: { primaryColor: null, logoUrl: null, faviconUrl: null },
       },
     });
   });

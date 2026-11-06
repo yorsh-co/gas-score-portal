@@ -69,7 +69,11 @@ function createApiRouter(service: ScoresService): GasWebAppRouter {
     res.json({
       locale: getLocale(),
       portalTitle: config.get('portalTitle') ?? 'Score Portal',
-      brand: { faviconUrl: config.get('faviconUrl') ?? null },
+      brand: {
+        primaryColor: config.get('primaryColor') ?? null,
+        logoUrl: config.get('logoUrl') ?? null,
+        faviconUrl: config.get('faviconUrl') ?? null,
+      },
     });
   });
 

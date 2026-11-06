@@ -13,7 +13,7 @@ function readGeneratedLegacyScores(
     ['', '', '', 'u1', 'u2', 'u3'],
     ['', '', '', synced, '', ''],
     ['', '', '', 10, 20, ''],
-    ['', '', '', 'T4 - Alpha', 'Beta', 'Gamma'],
+    ['', '', '', 'Quiz 4 - Alpha', 'Beta', 'Gamma'],
     ['Ana@X.org', 'Ana Souza', '', 10, 0, ''],
     ['bob@x.org', 'Bob', 'ana@x.org', '', 15, 'n/a'],
     ['', 'No email', '', 9, 9, 9],
