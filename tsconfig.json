@@ -4,8 +4,9 @@
     "rootDir": "src",
     "outDir": "dist",
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "declaration": false
   },
   "include": ["src/**/*.ts", "src/**/*.js", "types/**/*.d.ts"],
-  "exclude": ["src/web/**/*"]
+  "exclude": ["src/web/**/*", "src/lib/**"]
 }

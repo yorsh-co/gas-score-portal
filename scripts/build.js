@@ -72,6 +72,10 @@ function build() {
 
   run('rimraf', ['dist']);
   run('tsc', ['-p', 'tsconfig.json']);
+  copy(
+    join(src, 'lib', 'gas-libraries.js'),
+    join(dist, 'lib', 'gas-libraries.js'),
+  );
 
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
   if (pkg.gasDevConfig?.html) {
@@ -91,7 +95,9 @@ if (process.argv.includes('--watch')) {
   const { watch } = await import('node:fs');
   build();
   let timer;
-  watch(src, { recursive: true }, () => {
+  watch(src, { recursive: true }, (_event, filename) => {
+    // The html step writes into src/generated; ignore it to avoid a rebuild loop.
+    if (filename?.replaceAll('\\', '/').startsWith('generated/')) return;
     clearTimeout(timer);
     timer = setTimeout(() => {
       try {
