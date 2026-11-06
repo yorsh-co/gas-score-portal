@@ -77,7 +77,7 @@ describe('GET /api/meta', () => {
         'gasConfig:faviconUrl': '"https://example.org/icon.png"',
       },
     });
-    const webApp = app.createWebApp({ getByUser: () => null });
+    const webApp = app.createWebApp({ getByUser: () => null }, {});
 
     const response = webApp.doGet({ parameter: { route: '/api/meta' } });
 
@@ -96,7 +96,7 @@ describe('GET /api/meta', () => {
 
   it('returns the locale, title and brand', () => {
     const { app } = loadApp({ properties: { 'gasConfig:locale': '"pt-BR"' } });
-    const webApp = app.createWebApp({ getByUser: () => null });
+    const webApp = app.createWebApp({ getByUser: () => null }, {});
 
     const response = webApp.doGet({ parameter: { route: '/api/meta' } });
 

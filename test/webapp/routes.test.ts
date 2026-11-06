@@ -1,23 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { loadApp } from '../harness';
 
-const SCORES = {
-  email: 'ana@x.org',
-  name: 'Ana',
-  alternatives: [],
-  scores: [],
+const AUTH = {
+  hmac: (value: string) => value,
+  otp: { request: () => undefined, verify: () => false },
+  sessions: { create: () => 'token', resolve: () => null },
 };
 
 function setup() {
-  const requested: string[] = [];
   const { app } = loadApp();
-  const webApp = app.createWebApp({
-    getByUser: (userId: string) => {
-      requested.push(userId);
-      return userId === 'ana@x.org' ? SCORES : null;
-    },
-  });
-  return { webApp, requested };
+  const webApp = app.createWebApp({ getByUser: () => null }, AUTH);
+  return { webApp };
 }
 
 /** Runs a simulated `google.script.run` call and returns the response or the thrown error message. */
@@ -34,19 +27,9 @@ function call(
 }
 
 describe('web app routes', () => {
-  it('serves the scores of a respondent', () => {
-    const { webApp, requested } = setup();
+  it('no longer serves scores by email', () => {
+    const { error } = call(setup().webApp, '/api/users/ana@x.org/scores');
 
-    const { response } = call(webApp, '/api/users/ana@x.org/scores');
-
-    expect(requested).toEqual(['ana@x.org']);
-    expect(response).toMatchObject({ ok: true, status: 200, data: SCORES });
-  });
-
-  it('answers 404 for an unknown respondent', () => {
-    const { error } = call(setup().webApp, '/api/users/bob@x.org/scores');
-
-    expect(error).toMatch(/Respondent not found/);
     expect(error).toMatch(/404/);
   });
 

@@ -29,7 +29,6 @@ const MESSAGES_EN = {
     'A synchronization is in progress. Try again in a moment.',
   'error.settingsConflict': 'The settings changed in the meantime. Try again.',
   'error.fileInaccessible': 'Could not access the file',
-  'error.emptyUserId': 'Empty user ID',
   'error.respondentNotFound': 'Respondent not found',
 
   'install.installing': 'Installing the script',
@@ -83,7 +82,16 @@ const MESSAGES_EN = {
     'Enter the URL of the Drive folder that contains the Forms to link to the system.\n\nLeave it empty to import Forms from the whole Drive.\n\n👉 Notes:\n- Only Forms that match the settings are imported.\n- New Forms in the folder are imported automatically within 60 minutes.',
 
   'portal.emailPlaceholder': 'Enter the email used in the quizzes',
-  'portal.loadButton': 'View your scores',
+  'portal.sendCodeButton': 'Send me a code',
+  'portal.emailLabel': 'Email used in the quizzes',
+  'portal.codeLabel': 'Access code',
+  'portal.codeHelp': 'Enter the 6-digit code sent to {email}.',
+  'portal.codeInvalid': 'Enter the 6-digit code.',
+  'portal.verifyButton': 'View your scores',
+  'portal.resendButton': 'Resend code',
+  'portal.resendIn': 'Resend code in {seconds} s',
+  'portal.changeEmail': 'Use another email',
+  'portal.signOut': 'Sign out',
   'portal.labelName': 'Name',
   'portal.labelUsers': 'User(s)',
   'portal.labelResponses': 'Responses',
@@ -98,6 +106,18 @@ const MESSAGES_EN = {
   'portal.emailRequired': 'Enter your email.',
   'portal.emailInvalid': 'Enter a valid email.',
   'portal.serverError': 'Server error. Try again.',
+
+  'auth.otpRequested':
+    'If this email is registered, a code was sent. It expires in {minutes} minutes.',
+  'auth.invalidEmail': 'Enter a valid email.',
+  'auth.invalidCode': 'Invalid or expired code.',
+  'auth.sessionInvalid': 'Your session expired. Sign in again.',
+  'auth.tryLater': 'We could not send the code now. Try again later.',
+
+  'email.otpSubject': '{portalTitle}: your access code',
+  'email.otpIntro': 'Your access code for {portalTitle} is:',
+  'email.otpExpiry':
+    'It expires in {minutes} minutes and works only once. If you did not request it, ignore this email.',
 };
 
 /** The shape every catalogue must satisfy. */

@@ -1,4 +1,4 @@
-/** One form's score, as served by `GET /api/users/:userId/scores`. */
+/** One form's score, as served by `GET /api/me/scores`. */
 interface PortalScore {
   formTitle: string;
   formPoints: number | null;
@@ -137,54 +137,248 @@ function renderResult(data: PortalUserScores): void {
   });
 }
 
+/** Key of the session token in `sessionStorage`. */
+const TOKEN_KEY = 'portal.token';
+
+/** Session token, kept in memory too in case storage is unavailable. */
+let sessionToken: string | null = null;
+
+let state: PortalState = initialPortalState();
+let shownPanel: PortalPanel | null = null;
+let resendTimer: number | undefined;
+
+/** IDs of the buttons with a request in flight. */
+const busyButtons = new Set<string>();
+
 /**
- * Message to show for a failed call.
- * @param error Rejection of the API client.
+ * Bumped when the user leaves the current flow (sign out, change email), so
+ * that late responses of the abandoned flow are dropped.
  */
-function errorMessage(error: unknown): string {
-  const status = (error as { status?: number }).status;
-  const message = (error as { message?: string }).message;
-  if (status && status < 500 && message) {
-    return message.endsWith('.') ? message : `${message}.`;
+let generation = 0;
+
+/**
+ * Reads the stored session token.
+ * @returns The token, or `null` when none is stored or storage is blocked.
+ */
+function loadToken(): string | null {
+  try {
+    return window.sessionStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
   }
-  return tr('portal.serverError');
 }
 
-/** Loads the scores of the email in the input. */
-function loadScores(): void {
-  const button = byId<HTMLButtonElement>('load-btn');
-  if (button.disabled) return;
-
-  const errorBox = byId('error');
-  resetResult();
-  errorBox.textContent = '';
-
-  const email = normalizeEmailInput(byId<HTMLInputElement>('email').value);
-  if (!email) {
-    errorBox.textContent = tr('portal.emailRequired');
-    return;
+/**
+ * Keeps the session token for the tab, or forgets it.
+ * @param token Token to keep, or `null` to forget it.
+ */
+function saveToken(token: string | null): void {
+  sessionToken = token;
+  try {
+    if (token) window.sessionStorage.setItem(TOKEN_KEY, token);
+    else window.sessionStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Storage is blocked; the in-memory token still serves this page.
   }
-  if (!EMAIL_PATTERN.test(email)) {
-    errorBox.textContent = tr('portal.emailInvalid');
-    return;
-  }
+}
 
+/**
+ * Status and message of a failed call.
+ * @param error Rejection of the API client.
+ */
+function failureOf(error: unknown): Extract<PortalEvent, { type: 'failed' }> {
+  const { status, message } = error as { status?: number; message?: string };
+  return {
+    type: 'failed',
+    status: typeof status === 'number' ? status : null,
+    message: message ? (message.endsWith('.') ? message : `${message}.`) : null,
+  };
+}
+
+/** Text of the resend button for the time left. */
+function renderResend(): void {
+  if (busyButtons.has('resend-btn')) return;
+  const button = byId<HTMLButtonElement>('resend-btn');
+  const left = resendSecondsLeft(state, Date.now());
+  button.disabled = left > 0;
+  button.textContent =
+    left > 0
+      ? tr('portal.resendIn', { seconds: left })
+      : tr('portal.resendButton');
+  if (left === 0 && resendTimer !== undefined) {
+    window.clearInterval(resendTimer);
+    resendTimer = undefined;
+  }
+}
+
+/** Moves focus to the main control of a panel. */
+function focusPanel(panel: PortalPanel): void {
+  const target = {
+    email: 'email',
+    code: 'code',
+    results: 'results-panel',
+  }[panel];
+  byId(target).focus();
+}
+
+/** Shows the panel and error of the current state. */
+function render(): void {
+  const panel = portalPanel(state);
+  setHidden(['email-panel'], panel !== 'email');
+  setHidden(['code-panel'], panel !== 'code');
+  setHidden(['results-panel'], panel !== 'results');
+
+  const text = state.errorText ?? (state.errorKey ? tr(state.errorKey) : '');
+  byId('error').textContent = text;
+
+  if (panel === 'code') {
+    byId('code-help').textContent = tr('portal.codeHelp', {
+      email: state.email,
+    });
+    renderResend();
+    if (resendTimer === undefined && resendSecondsLeft(state, Date.now())) {
+      resendTimer = window.setInterval(renderResend, 1000);
+    }
+  }
+  if (panel !== shownPanel) {
+    shownPanel = panel;
+    focusPanel(panel);
+  }
+}
+
+/** Applies an event to the flow state and redraws. */
+function dispatch(event: PortalEvent): void {
+  state = reducePortal(state, event);
+  render();
+}
+
+/**
+ * Runs a call with the button disabled and a spinner on it.
+ * @param buttonId Button that triggered the call.
+ * @param call Starts the call.
+ */
+function withBusyButton(buttonId: string, call: () => Promise<void>): void {
+  const button = byId<HTMLButtonElement>(buttonId);
+  if (busyButtons.has(buttonId) || button.disabled) return;
+  busyButtons.add(buttonId);
   button.disabled = true;
   const spinner = document.createElement('span');
   spinner.className = 'spinner';
   button.appendChild(spinner);
+  call().finally(() => {
+    spinner.remove();
+    busyButtons.delete(buttonId);
+    button.disabled = false;
+    if (buttonId === 'resend-btn') renderResend();
+  });
+}
 
-  window.GasWebApp.api
-    .get<PortalUserScores>(`/api/users/${encodeURIComponent(email)}/scores`)
-    .then(renderResult)
-    .catch((error: unknown) => {
-      errorBox.textContent = errorMessage(error);
-      console.error(error);
+/**
+ * Requests a code for an email.
+ * @param email Normalized email.
+ */
+function requestCode(email: string): Promise<void> {
+  const started = generation;
+  return window.GasWebApp.api
+    .post('/api/auth/otp', { email })
+    .then(() => {
+      if (started !== generation) return;
+      byId<HTMLInputElement>('code').value = '';
+      dispatch({ type: 'otpSent', email, now: Date.now() });
     })
-    .finally(() => {
-      spinner.remove();
-      button.disabled = false;
+    .catch((error: unknown) => {
+      console.error(error);
+      if (started === generation) dispatch(failureOf(error));
     });
+}
+
+/** Submits the email form. */
+function submitEmail(): void {
+  if (byId<HTMLButtonElement>('send-btn').disabled) return;
+  const email = normalizeEmailInput(byId<HTMLInputElement>('email').value);
+  if (!email) {
+    dispatch({ type: 'invalidInput', key: 'portal.emailRequired' });
+  } else if (!EMAIL_PATTERN.test(email)) {
+    dispatch({ type: 'invalidInput', key: 'portal.emailInvalid' });
+  } else {
+    withBusyButton('send-btn', () => requestCode(email));
+  }
+}
+
+/** Loads the scores of the signed-in respondent. */
+function loadScores(): Promise<void> {
+  resetResult();
+  const started = generation;
+  return window.GasWebApp.api
+    .get<PortalUserScores>('/api/me/scores', {
+      params: { token: sessionToken ?? '' },
+    })
+    .then((data) => {
+      if (started === generation) renderResult(data);
+    })
+    .catch((error: unknown) => {
+      console.error(error);
+      if (started !== generation) return;
+      const failure = failureOf(error);
+      if (failure.status === 401) saveToken(null);
+      dispatch(failure);
+    });
+}
+
+/** Submits the code form. */
+function submitCode(): void {
+  if (byId<HTMLButtonElement>('verify-btn').disabled) return;
+  const code = normalizeCodeInput(byId<HTMLInputElement>('code').value);
+  if (code.length !== OTP_LENGTH) {
+    dispatch({ type: 'invalidInput', key: 'portal.codeInvalid' });
+    return;
+  }
+  const started = generation;
+  withBusyButton('verify-btn', () =>
+    window.GasWebApp.api
+      .post<{ token: string }>('/api/auth/verify', {
+        email: state.email,
+        code,
+      })
+      .then(({ token }) => {
+        if (started !== generation) return;
+        saveToken(token);
+        byId<HTMLInputElement>('code').value = '';
+        dispatch({ type: 'verified' });
+        return loadScores();
+      })
+      .catch((error: unknown) => {
+        console.error(error);
+        if (started === generation) dispatch(failureOf(error));
+      }),
+  );
+}
+
+/** Returns to the email form, dropping responses still in flight. */
+function changeEmail(): void {
+  generation++;
+  dispatch({ type: 'changeEmail' });
+}
+
+/**
+ * Forgets the session and returns to the email form. Client-side only: the
+ * token is not revoked on the server.
+ */
+function signOut(): void {
+  generation++;
+  saveToken(null);
+  resetResult();
+  byId<HTMLInputElement>('email').value = '';
+  dispatch({ type: 'signOut' });
+}
+
+/** Resumes the session stored for this tab, if any. */
+function restoreSession(): void {
+  const token = loadToken();
+  if (!token) return;
+  saveToken(token);
+  dispatch({ type: 'restore' });
+  loadScores();
 }
 
 /** Translates the elements that carry a `data-i18n*` attribute. */
@@ -213,7 +407,7 @@ function applyBrand(brand: PortalMeta['brand']): void {
 
 /** Loads the locale and title from the server before the page is used. */
 function loadMeta(): void {
-  const button = byId<HTMLButtonElement>('load-btn');
+  const button = byId<HTMLButtonElement>('send-btn');
   button.disabled = true;
   window.GasWebApp.api
     .get<PortalMeta>('/api/meta')
@@ -222,6 +416,7 @@ function loadMeta(): void {
       byId('portal-title').textContent = meta.portalTitle;
       applyBrand(meta.brand);
       applyTranslations();
+      render();
     })
     .catch((error: unknown) => console.error(error))
     .finally(() => {
@@ -230,13 +425,30 @@ function loadMeta(): void {
 }
 
 loadMeta();
-byId('load-btn').addEventListener('click', loadScores);
-byId('email').addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    loadScores();
-  }
+restoreSession();
+byId('email-panel').addEventListener('submit', (event) => {
+  event.preventDefault();
+  submitEmail();
 });
+byId('code-panel').addEventListener('submit', (event) => {
+  event.preventDefault();
+  submitCode();
+});
+byId('code').addEventListener('input', (event) => {
+  const input = event.target as HTMLInputElement;
+  input.value = normalizeCodeInput(input.value);
+});
+byId('email').addEventListener('input', () =>
+  dispatch({ type: 'dismissError' }),
+);
+byId('code').addEventListener('input', () =>
+  dispatch({ type: 'dismissError' }),
+);
+byId('resend-btn').addEventListener('click', () => {
+  withBusyButton('resend-btn', () => requestCode(state.email));
+});
+byId('change-email-btn').addEventListener('click', changeEmail);
+byId('sign-out-btn').addEventListener('click', signOut);
 document.addEventListener('click', (event) => {
   const target = event.target as HTMLElement;
   if (target.classList.contains('cell-ellipsis')) {
