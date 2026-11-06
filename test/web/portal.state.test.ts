@@ -32,6 +32,10 @@ interface StateApi {
   portalPanel(state: State): Exclude<Step, 'error'>;
   resendSecondsLeft(state: State, now: number): number;
   normalizeCodeInput(value: string): string;
+  scoreOutOfTen(score: number, formPoints: number | null): number;
+  averageOutOfTen(
+    scores: { score: number; formPoints: number | null }[],
+  ): number;
 }
 
 /** Loads the browser script, which has no exports, in an isolated context. */
@@ -49,6 +53,8 @@ function loadState(): StateApi {
     'portalPanel',
     'resendSecondsLeft',
     'normalizeCodeInput',
+    'scoreOutOfTen',
+    'averageOutOfTen',
   ];
   return runInNewContext(`${js}\n({ ${names.join(', ')} })`) as StateApi;
 }
@@ -252,5 +258,30 @@ describe('normalizeCodeInput', () => {
     expect(api.normalizeCodeInput('123 456')).toBe('123456');
     expect(api.normalizeCodeInput('12-34-56-78')).toBe('123456');
     expect(api.normalizeCodeInput('ab')).toBe('');
+  });
+});
+
+describe('scoreOutOfTen', () => {
+  it('rescales to 10 points, keeping 10-point and unknown totals as is', () => {
+    expect(api.scoreOutOfTen(18, 20)).toBe(9);
+    expect(api.scoreOutOfTen(12, 15)).toBe(8);
+    expect(api.scoreOutOfTen(7.5, 10)).toBe(7.5);
+    expect(api.scoreOutOfTen(6, null)).toBe(6);
+  });
+});
+
+describe('averageOutOfTen', () => {
+  it('averages the rescaled scores, not the raw points', () => {
+    const scores = [
+      { score: 9, formPoints: 10 },
+      { score: 18, formPoints: 20 },
+      { score: 12, formPoints: 15 },
+    ];
+
+    expect(api.averageOutOfTen(scores)).toBeCloseTo(26 / 3);
+  });
+
+  it('is zero for no scores', () => {
+    expect(api.averageOutOfTen([])).toBe(0);
   });
 });

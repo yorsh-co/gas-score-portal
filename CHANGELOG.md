@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Project renamed to gas-app-score-portal.
 - Legacy sources moved under `src/`; legacy HTML docs moved to `docs/legacy/`.
 
+### Fixed
+
+- The portal's average score now uses the same 10-point scale as each row. It summed raw points, so forms worth more than 10 points could push it past 10.
+- Portal buttons use the page font, and "Not answered" no longer hyphenates in the score column.
+
 ### Removed
 
 - **BREAKING:** the unauthenticated `/api/users/:userId/scores` route. Use `GET /api/me/scores` with a session token.

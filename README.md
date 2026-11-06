@@ -70,7 +70,15 @@ checando a aprendizagem
 
 ## Screenshots
 
-<!-- TODO: add screenshots of the web app (light, dark and 360 px layouts) to docs/screenshots. Pending approval to run against a dev instance. -->
+Captured with sample data.
+
+| Sign-in                                        | Results                                        |
+| ---------------------------------------------- | ---------------------------------------------- |
+| ![Sign-in](docs/screenshots/sign-in-light.png) | ![Results](docs/screenshots/results-light.png) |
+
+| Dark mode                                       | 360 px                                                |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| ![Dark mode](docs/screenshots/results-dark.png) | ![360 px layout](docs/screenshots/results-mobile.png) |
 
 ## Testing
 
