@@ -5,9 +5,12 @@ interface TestTables {
   scores: _GasSheetDbTable;
 }
 
+let testTablesCount = 0;
+
 /**
  * Creates the `Forms`, `Respondents` and `Scores` tables on sheets named with
- * the run prefix, so the real tables of the spreadsheet are never touched.
+ * the run prefix and a per-call number, so the real tables of the spreadsheet
+ * are never touched and tests of one run do not share rows.
  * @param ctx Test context.
  */
 function createTestTables(ctx: GasTestContext): TestTables {
@@ -15,10 +18,11 @@ function createTestTables(ctx: GasTestContext): TestTables {
     spreadsheet: ctx.spreadsheet,
     lockScope: 'script',
   });
+  const prefix = `${ctx.prefix}${++testTablesCount}_`;
   return {
-    forms: db.table({ sheetName: `${ctx.prefix}Forms` }),
-    respondents: db.table({ sheetName: `${ctx.prefix}Respondents` }),
-    scores: db.table({ sheetName: `${ctx.prefix}Scores` }),
+    forms: db.table({ sheetName: `${prefix}Forms` }),
+    respondents: db.table({ sheetName: `${prefix}Respondents` }),
+    scores: db.table({ sheetName: `${prefix}Scores` }),
   };
 }
 

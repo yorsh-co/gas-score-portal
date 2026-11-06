@@ -1,8 +1,13 @@
 /**
  * Writes a generated `💯 Notas` matrix to a prefixed sheet and reads it back,
  * so the migration sees the types that Sheets really returns.
+ * @param ctx Test context.
+ * @param name Sheet name after the run prefix; unique per test.
  */
-function readGeneratedLegacyScores(ctx: GasTestContext): unknown[][] {
+function readGeneratedLegacyScores(
+  ctx: GasTestContext,
+  name: string,
+): unknown[][] {
   const synced = new Date('2025-05-05T10:00:00Z');
   const rows = [
     ['', '', '', 'u1', 'u2', 'u3'],
@@ -13,14 +18,14 @@ function readGeneratedLegacyScores(ctx: GasTestContext): unknown[][] {
     ['bob@x.org', 'Bob', 'ana@x.org', '', 15, 'n/a'],
     ['', 'No email', '', 9, 9, 9],
   ];
-  const sheet = ctx.spreadsheet.insertSheet(`${ctx.prefix}legacy`);
+  const sheet = ctx.spreadsheet.insertSheet(`${ctx.prefix}${name}`);
   sheet.getRange(1, 1, rows.length, rows[0]!.length).setValues(rows);
   return sheet.getDataRange().getValues();
 }
 
 test('migrates a generated legacy matrix into the real tables', (ctx) => {
   const repos = createTestRepos(createTestTables(ctx));
-  const scores = readGeneratedLegacyScores(ctx);
+  const scores = readGeneratedLegacyScores(ctx, 'legacy_migrate');
   const forms = [['u1', 'Alpha', 'Vinculado ao sistema', '']];
 
   const counts = migrateLegacyData({ forms, scores }, repos);
@@ -35,7 +40,7 @@ test('migrates a generated legacy matrix into the real tables', (ctx) => {
 
 test('migration is idempotent on the real tables', (ctx) => {
   const repos = createTestRepos(createTestTables(ctx));
-  const scores = readGeneratedLegacyScores(ctx);
+  const scores = readGeneratedLegacyScores(ctx, 'legacy_rerun');
 
   migrateLegacyData({ forms: [], scores }, repos);
   const again = migrateLegacyData({ forms: [], scores }, repos);

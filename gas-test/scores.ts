@@ -3,6 +3,7 @@ test('scores service serves a respondent end to end', (ctx) => {
   repos.forms.upsert({ url: 'u1', title: 'Alpha', maxPoints: 10 });
   repos.forms.upsert({ url: 'u2', title: 'Beta', maxPoints: 20 });
   repos.forms.upsert({ url: 'u3', title: 'Hidden', status: 'excluded' });
+  repos.forms.upsert({ url: 'u4', title: 'Listed' });
   repos.respondents.upsert({
     email: 'ana@x.org',
     name: 'Ana Maria Souza',
@@ -18,14 +19,14 @@ test('scores service serves a respondent end to end', (ctx) => {
 
   const service = createScoresService(() => ({
     ...repos,
-    getExcludedUrls: () => [],
+    getExcludedUrls: () => ['u4'],
     getLocale: () => 'en',
   }));
   const result = service.getByUser('ANA@x.org');
 
   assert(result !== null, 'the respondent must be found');
   assert(result?.name === 'Ana ... S.', `name: ${result?.name}`);
-  assert(result?.scores.length === 2, 'excluded forms are hidden');
+  assert(result?.scores.length === 2, 'excluded and listed forms are hidden');
   assert(result?.scores[0]?.score === 0, 'a zero score is served as 0');
   assert(result?.scores[1]?.score === 15, 'alternative email fills the gap');
   assert(service.getByUser('nobody@x.org') === null, 'unknown email');
