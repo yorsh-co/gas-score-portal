@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Deploy workflow calling the shared `gas-dev-ci` reusable workflow: `develop` deploys to `dev`, `main` to `live`.
+- `gas-dev-ci` CLI as a devDependency, run by the deploy workflow.
 - Tooling scaffold: TypeScript, ESLint, Prettier, Vitest and the gas-dev-\* toolchain.
 - Build pipeline: `scripts/build.js` cleans `dist/`, compiles `src/` with tsc, inlines the web UI, and copies HTML assets and `appsscript.json`; supports `--watch`. The web UI sources under `src/web/` are inlined only and not copied as pages.
 - Bundled gas-\* libraries in `src/lib/gas-libraries.js`, copied verbatim to `dist/lib/`, with typings in `types/gas-libraries.d.ts`.
