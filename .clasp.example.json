@@ -1,0 +1,7 @@
+{
+  "scriptId": "",
+  "scriptExtensions": [".js", ".gs"],
+  "htmlExtensions": [".html", ".md"],
+  "jsonExtensions": ["json"],
+  "filePushOrder": []
+}
