@@ -71,6 +71,12 @@
       "core/logger.ts",
       "core/config.ts",
       "core/errors.ts",
+      "infra/db/db.ts",
+      "infra/db/forms.repo.ts",
+      "infra/db/respondents.repo.ts",
+      "infra/db/scores.repo.ts",
+      "infra/db/overview.ts",
+      "infra/db/migrate-legacy.ts",
       "ui/menu/display.ts",
       "ui/menu/handlers/forms.ts",
       "ui/menu/handlers/install.ts"

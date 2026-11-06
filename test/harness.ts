@@ -17,6 +17,85 @@ export interface AppExports {
   saveExcludedFormUrls(urls: string[]): void;
   runMenuAction(logger: unknown, action: () => void): void;
   createCancelledError(): Error;
+  createFormsRepo(table: object): FormsRepoApi;
+  createRespondentsRepo(table: object): RespondentsRepoApi;
+  createScoresRepo(table: object): ScoresRepoApi;
+  migrateLegacyData(
+    legacy: { forms: unknown[][]; scores: unknown[][] },
+    repos: { forms: object; respondents: object; scores: object },
+    now?: Date,
+  ): MigrationCountsApi;
+  runLegacyMigration(
+    spreadsheet: object,
+    repos: { forms: object; respondents: object; scores: object },
+    refresh: () => void,
+  ): MigrationCountsApi;
+  columnLetter(index: number): string;
+  buildOverviewFormula(
+    forms: object,
+    respondents: object,
+    scores: object,
+  ): string;
+  refreshOverview(
+    spreadsheet: object,
+    forms: object,
+    respondents: object,
+    scores: object,
+  ): unknown;
+}
+
+export interface FormRecordApi {
+  url: string;
+  title: string;
+  maxPoints: number | null;
+  status: string;
+  syncedAt: Date | null;
+  error: string;
+}
+
+export interface FormsRepoApi {
+  list(): FormRecordApi[];
+  get(url: string): FormRecordApi | null;
+  upsert(form: Partial<FormRecordApi> & { url: string }): FormRecordApi;
+  updateStatus(url: string, status: string, error?: string): FormRecordApi;
+}
+
+export interface RespondentRecordApi {
+  email: string;
+  name: string;
+  alternatives: string;
+}
+
+export interface RespondentsRepoApi {
+  findByEmail(email: string): RespondentRecordApi | null;
+  findByAlternative(email: string): RespondentRecordApi[];
+  upsert(
+    respondent: Partial<RespondentRecordApi> & { email: string },
+  ): RespondentRecordApi;
+  insertMissing(respondents: RespondentRecordApi[]): number;
+}
+
+export interface ScoresRepoApi {
+  getByForm(formUrl: string): Map<string, number>;
+  getByEmails(
+    emails: string[],
+  ): { email: string; formUrl: string; score: number }[];
+  insertMissing(
+    scores: { email: string; formUrl: string; score: number }[],
+    now?: Date,
+  ): number;
+  upsertMany(
+    formUrl: string,
+    scores: { email: string; score: number }[],
+    now?: Date,
+  ): { inserted: number; updated: number; unchanged: number };
+}
+
+export interface MigrationCountsApi {
+  forms: number;
+  respondents: number;
+  scores: number;
+  invalidScores: number;
 }
 
 const EXPORTS: (keyof AppExports)[] = [
@@ -28,6 +107,14 @@ const EXPORTS: (keyof AppExports)[] = [
   'saveExcludedFormUrls',
   'runMenuAction',
   'createCancelledError',
+  'createFormsRepo',
+  'createRespondentsRepo',
+  'createScoresRepo',
+  'migrateLegacyData',
+  'runLegacyMigration',
+  'columnLetter',
+  'buildOverviewFormula',
+  'refreshOverview',
 ];
 
 const load = createGasLoader<AppExports>({

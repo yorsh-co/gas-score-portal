@@ -1,6 +1,36 @@
 const formsMenuLogger = createModuleLogger('menu.forms');
 
 /**
+ * Returns the URLs of the forms in the rows selected on the `Forms` sheet.
+ * Throws when the active sheet is another one or nothing is selected.
+ */
+function getSelectedFormUrls(): string[] {
+  const table = getFormsTable();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  if (spreadsheet.getActiveSheet().getName() !== table.sheetName)
+    throw new GasValidationError(
+      `Esta ação é possível apenas a partir da aba ${table.sheetName}`,
+    );
+
+  table.schema.ensureColumns(['url']);
+  const urlCol = table.schema.columnKeys.indexOf('url') + 1;
+  const urls = new Set<string>();
+  for (const range of table.sheet.getActiveRangeList()?.getRanges() ?? []) {
+    const first = Math.max(range.getRow(), table.rowNumbers.firstData);
+    const count = range.getLastRow() - first + 1;
+    if (count < 1) continue;
+    for (const [value] of table.sheet
+      .getRange(first, urlCol, count, 1)
+      .getValues()) {
+      const url = String(value).trim();
+      if (url) urls.add(url);
+    }
+  }
+  if (!urls.size) throw new GasValidationError('Nenhum Forms selecionado');
+  return [...urls];
+}
+
+/**
  * Imports the Forms found in the configured Drive folder.
  */
 function menuImportDriveForms(): void {
@@ -48,8 +78,12 @@ function menuLinkNewForm(): void {
 
     const formTitle = form.getTitle();
     Toast.busy(`Vinculando "${formTitle}"...`);
-    const linkedForm = new LinkedForm().initializeFromForm(form);
-    FormsSheet.insertNewLinkedForms([linkedForm]);
+    createFormsRepo(getFormsTable()).upsert({
+      url: formUrl,
+      title: formTitle,
+      status: 'linked',
+      error: '',
+    });
     Toast.success(`"${formTitle}" vinculado`);
   });
 }
@@ -61,18 +95,13 @@ function menuRemoveForms(): void {
   runMenuAction(formsMenuLogger, () => {
     Toast.loading();
 
-    if (!FormsSheet.isActive())
-      throw new GasValidationError(
-        `Esta ação é possível apenas a partir da aba ${SHEETS.forms.name}`,
-      );
-
-    const activeRows = FormsSheet.getActiveFormRows();
-    if (!activeRows.length)
+    const forms = createFormsRepo(getFormsTable());
+    const stored = new Map(forms.list().map((form) => [form.url, form]));
+    const linkedForms = getSelectedFormUrls()
+      .filter((url) => stored.has(url))
+      .map((url) => ({ url, title: stored.get(url)?.title || url }));
+    if (!linkedForms.length)
       throw new GasValidationError('Nenhum Forms selecionado');
-
-    const linkedForms = activeRows.map((rowNum) =>
-      FormsSheet.getLinkedForm({ rowNum }),
-    );
 
     const ui = SpreadsheetApp.getUi();
     const selectedButton = ui.alert(
@@ -88,7 +117,7 @@ function menuRemoveForms(): void {
     saveExcludedFormUrls([...excludedUrls]);
 
     linkedForms.forEach((linkedForm) =>
-      FormsSheet.updateFormStatus(linkedForm, LinkedForm.statusEnum.excluded),
+      forms.updateStatus(linkedForm.url, 'excluded'),
     );
 
     Toast.success('Forms removidos');
