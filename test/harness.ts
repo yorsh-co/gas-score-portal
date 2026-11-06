@@ -56,7 +56,9 @@ export interface AppExports {
     forms: object,
     respondents: object,
     scores: object,
+    separators?: { arg: string; column: string },
   ): string;
+  detectFormulaSeparators(sheet: object): { arg: string; column: string };
   refreshOverview(
     spreadsheet: object,
     forms: object,
@@ -185,6 +187,7 @@ const EXPORTS: (keyof AppExports)[] = [
   'runLegacyMigration',
   'columnLetter',
   'buildOverviewFormula',
+  'detectFormulaSeparators',
   'refreshOverview',
   'createScoresService',
   'createWebApp',

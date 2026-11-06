@@ -30,6 +30,37 @@ function tableColumnRange(table: OverviewSource, key: string): string {
   return `'${table.sheetName}'!${letter}${first}:${letter}`;
 }
 
+/** The separators that a spreadsheet locale expects inside a formula. */
+interface FormulaSeparators {
+  /** Between function arguments. */
+  arg: string;
+  /** Between the columns of an array literal. */
+  column: string;
+}
+
+/** Separators of locales with a decimal point. */
+const FORMULA_SEPARATORS_POINT: FormulaSeparators = { arg: ',', column: ',' };
+
+/** Separators of locales with a decimal comma, such as `pt_BR`. */
+const FORMULA_SEPARATORS_COMMA: FormulaSeparators = { arg: ';', column: '\\' };
+
+/**
+ * Finds which separators the spreadsheet locale accepts. `setFormula` parses
+ * the formula in the spreadsheet locale, so `IF(a, b, c)` is a parse error
+ * in locales with a decimal comma. Writes to the top-left cell of the sheet.
+ * @param sheet Sheet to probe.
+ */
+function detectFormulaSeparators(
+  sheet: GoogleAppsScript.Spreadsheet.Sheet,
+): FormulaSeparators {
+  const cell = sheet.getRange(1, 1);
+  cell.setFormula('=IF(TRUE, 1, 0)');
+  SpreadsheetApp.flush();
+  return cell.getDisplayValue() === '#ERROR!'
+    ? FORMULA_SEPARATORS_COMMA
+    : FORMULA_SEPARATORS_POINT;
+}
+
 /**
  * Builds the formula that pivots scores into one row per respondent and one
  * column per form. Columns are labelled by title, with a URL suffix when
@@ -37,12 +68,16 @@ function tableColumnRange(table: OverviewSource, key: string): string {
  * @param forms `Forms` table.
  * @param respondents `Respondents` table.
  * @param scores `Scores` table.
+ * @param separators Separators of the spreadsheet locale.
  */
 function buildOverviewFormula(
   forms: OverviewSource,
   respondents: OverviewSource,
   scores: OverviewSource,
+  separators: FormulaSeparators = FORMULA_SEPARATORS_POINT,
 ): string {
+  const a = `${separators.arg} `;
+  const c = `${separators.column} `;
   const scoreEmail = tableColumnRange(scores, 'email');
   const scoreForm = tableColumnRange(scores, 'formUrl');
   const scoreValue = tableColumnRange(scores, 'score');
@@ -54,23 +89,29 @@ function buildOverviewFormula(
   const scoreDeleted = tableColumnRange(scores, '_isDeleted');
   const formDeleted = tableColumnRange(forms, '_isDeleted');
 
-  const flag = (range: string) => `ARRAYFORMULA(IF(${range}=TRUE, 1, 0))`;
+  const flag = (range: string) => `ARRAYFORMULA(IF(${range}=TRUE${a}1${a}0))`;
   const lookup = (key: string, table: string, fallback: string) =>
-    `ARRAYFORMULA(IFERROR(VLOOKUP(${key}, ${table}, 2, FALSE), ${fallback}))`;
+    `ARRAYFORMULA(IFERROR(VLOOKUP(${key}${a}${table}${a}2${a}FALSE)${a}${fallback}))`;
 
-  const label = `ARRAYFORMULA(IF(${formTitle}="", ${formUrl}, IF(COUNTIF(${formTitle}, ${formTitle})>1, ${formTitle}&" ("&RIGHT(${formUrl}, 6)&")", ${formTitle})))`;
+  const label = `ARRAYFORMULA(IF(${formTitle}=""${a}${formUrl}${a}IF(COUNTIF(${formTitle}${a}${formTitle})>1${a}${formTitle}&" ("&RIGHT(${formUrl}${a}6)&")"${a}${formTitle})))`;
   const name = lookup(
     scoreEmail,
-    `{${respondentEmail}, ${respondentName}}`,
+    `{${respondentEmail}${c}${respondentName}}`,
     '""',
   );
-  const title = lookup(scoreForm, `{${formUrl}, ${label}}`, scoreForm);
+  const title = lookup(scoreForm, `{${formUrl}${c}${label}}`, scoreForm);
   const scoreGone = flag(scoreDeleted);
-  const formGone = lookup(scoreForm, `{${formUrl}, ${flag(formDeleted)}}`, '0');
+  const formGone = lookup(
+    scoreForm,
+    `{${formUrl}${c}${flag(formDeleted)}}`,
+    '0',
+  );
+  // The query language keeps its own comma syntax in every locale.
   const query =
     "select Col1, Col2, max(Col4) where Col1 <> '' and Col5 = 0 and Col6 = 0 group by Col1, Col2 pivot Col3 label Col1 'Email', Col2 'Name'";
+  const data = `{${[scoreEmail, name, title, scoreValue, scoreGone, formGone].join(c)}}`;
 
-  return `=IFERROR(QUERY({${scoreEmail}, ${name}, ${title}, ${scoreValue}, ${scoreGone}, ${formGone}}, "${query}", 0), "")`;
+  return `=IFERROR(QUERY(${data}${a}"${query}"${a}0)${a}"")`;
 }
 
 /**
@@ -92,9 +133,10 @@ function refreshOverview(
     spreadsheet.insertSheet(DB_SHEET_NAMES.overview);
 
   sheet.clear();
+  const separators = detectFormulaSeparators(sheet);
   sheet
     .getRange(1, 1)
-    .setFormula(buildOverviewFormula(forms, respondents, scores));
+    .setFormula(buildOverviewFormula(forms, respondents, scores, separators));
   sheet.setFrozenRows(1);
 
   if (!sheet.getProtections(SpreadsheetApp.ProtectionType.SHEET).length) {

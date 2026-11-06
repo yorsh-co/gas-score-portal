@@ -67,13 +67,66 @@ describe('buildOverviewFormula', () => {
   });
 });
 
+describe('buildOverviewFormula in a decimal-comma locale', () => {
+  const commaLocale = { arg: ';', column: '\\' };
+
+  it('uses the locale separators outside the query string', () => {
+    const { app } = loadApp();
+
+    const formula = app.buildOverviewFormula(
+      forms(),
+      respondents(),
+      scores(),
+      commaLocale,
+    );
+    const withoutQuery = formula.replace(/"select [^"]*"/, '');
+
+    expect(withoutQuery).toContain(
+      "VLOOKUP('Scores'!B2:B; {'Respondents'!B2:B\\ 'Respondents'!C2:C}; 2; FALSE)",
+    );
+    expect(withoutQuery).not.toContain(',');
+    expect(formula).toContain('select Col1, Col2, max(Col4)');
+  });
+});
+
+describe('detectFormulaSeparators', () => {
+  function probeSheet(display: string) {
+    const cell = {
+      setFormula: vi.fn(),
+      getDisplayValue: () => display,
+    };
+    return { cell, sheet: { getRange: () => cell } };
+  }
+  const globals = { SpreadsheetApp: { flush: vi.fn() } };
+
+  it('keeps commas when the probe formula parses', () => {
+    const { app } = loadApp({ globals });
+    const { sheet, cell } = probeSheet('1');
+
+    expect(app.detectFormulaSeparators(sheet)).toEqual({
+      arg: ',',
+      column: ',',
+    });
+    expect(cell.setFormula).toHaveBeenCalledWith('=IF(TRUE, 1, 0)');
+  });
+
+  it('switches to semicolons when the probe is a parse error', () => {
+    const { app } = loadApp({ globals });
+
+    expect(app.detectFormulaSeparators(probeSheet('#ERROR!').sheet)).toEqual({
+      arg: ';',
+      column: '\\',
+    });
+  });
+});
+
 describe('refreshOverview', () => {
   function fakeSheet(protections: unknown[] = []) {
     const protection = {
       setWarningOnly: vi.fn().mockReturnThis(),
       setDescription: vi.fn().mockReturnThis(),
     };
-    const range = { setFormula: vi.fn() };
+    const range = { setFormula: vi.fn(), getDisplayValue: () => '1' };
     return {
       protection,
       range,
@@ -87,7 +140,9 @@ describe('refreshOverview', () => {
     };
   }
 
-  const globals = { SpreadsheetApp: { ProtectionType: { SHEET: 'SHEET' } } };
+  const globals = {
+    SpreadsheetApp: { ProtectionType: { SHEET: 'SHEET' }, flush: vi.fn() },
+  };
 
   it('creates the sheet, sets the formula and adds a warning protection', () => {
     const { app } = loadApp({ globals });
@@ -100,7 +155,10 @@ describe('refreshOverview', () => {
     app.refreshOverview(spreadsheet, forms(), respondents(), scores());
 
     expect(spreadsheet.insertSheet).toHaveBeenCalledWith('Overview');
-    expect(range.setFormula).toHaveBeenCalledOnce();
+    expect(range.setFormula).toHaveBeenCalledTimes(2);
+    expect(range.setFormula).toHaveBeenLastCalledWith(
+      expect.stringContaining('=IFERROR(QUERY('),
+    );
     expect(protection.setWarningOnly).toHaveBeenCalledWith(true);
   });
 
