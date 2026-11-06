@@ -40,29 +40,112 @@ function createWebAppLogger(): GasLogger {
   } as unknown as GasLogger;
 }
 
+/** Requests allowed per email in each OTP rate limit window. */
+const OTP_EMAIL_LIMIT = 3;
+
+/** Rate limit window of the auth routes, in seconds. */
+const OTP_WINDOW_SECONDS = 900;
+
+/** OTP requests allowed across all emails in each window. */
+const OTP_GLOBAL_LIMIT = 50;
+
+/** Verification attempts allowed per email in each window. */
+const VERIFY_EMAIL_LIMIT = 10;
+
+/** Verification attempts allowed across all emails in each window. */
+const VERIFY_GLOBAL_LIMIT = 200;
+
+/** Request log keys that are always masked, on top of the library defaults. */
+const LOG_REDACT_KEYS = [
+  'token',
+  'password',
+  'secret',
+  'key',
+  'auth',
+  'authorization',
+  'code',
+];
+
 /**
- * Logs each request.
+ * Reads the request email, rejecting a malformed one.
  * @param req Request.
- * @param _res Response.
- * @param next Continues the stack.
  */
-function logRequest(
-  req: GasWebAppRequest,
-  _res: GasWebAppResponse,
-  next: GasWebAppNext,
-): void {
-  createModuleLogger('webapp').info(
-    `${req.method} ${redactEmails(req.originalPath) as string}`,
+function requireBodyEmail(req: GasWebAppRequest): string {
+  const email = bodyEmail(req);
+  if (!isValidEmail(email)) {
+    throw new GasValidationError(tr('auth.invalidEmail'));
+  }
+  return email;
+}
+
+/**
+ * Creates the unauthenticated auth router.
+ * @param auth Auth services.
+ */
+function createAuthRouter(auth: AuthServices): GasWebAppRouter {
+  const router = new GasWebAppRouter();
+  const validateEmail: GasWebAppHandler = (req, _res, next) => {
+    requireBodyEmail(req);
+    next();
+  };
+  // The counters are shared across visitors. Under USER_DEPLOYING the user
+  // lock is global too, and it does not contend with the synchronizer's
+  // script lock.
+  const limiter = (key: (req: GasWebAppRequest) => string, limit: number) =>
+    createRateLimiter({
+      limit,
+      windowSeconds: OTP_WINDOW_SECONDS,
+      lockScope: 'user',
+      lockService: GasLock,
+      keyFn: key,
+    });
+  const emailKey = (prefix: string) => (req: GasWebAppRequest) =>
+    `${prefix}:${auth.hmac(`limit:${bodyEmail(req)}`)}`;
+  const globalLimit = limiter(() => 'otp:global', OTP_GLOBAL_LIMIT);
+  const emailLimit = limiter(emailKey('otp'), OTP_EMAIL_LIMIT);
+  const verifyGlobalLimit = limiter(() => 'verify:global', VERIFY_GLOBAL_LIMIT);
+  const verifyEmailLimit = limiter(emailKey('verify'), VERIFY_EMAIL_LIMIT);
+
+  router.post('/otp', validateEmail, globalLimit, emailLimit, (req, res) => {
+    auth.otp.request(requireBodyEmail(req));
+    res.json({
+      message: tr('auth.otpRequested', { minutes: OTP_TTL_SECONDS / 60 }),
+    });
+  });
+
+  router.post(
+    '/verify',
+    validateEmail,
+    verifyGlobalLimit,
+    verifyEmailLimit,
+    (req, res) => {
+      const email = requireBodyEmail(req);
+      const code = (req.body as { code?: unknown }).code;
+      if (
+        typeof code !== 'string' ||
+        !/^\d{6}$/.test(code) ||
+        !auth.otp.verify(email, code)
+      ) {
+        throw new GasUnauthorizedError(tr('auth.invalidCode'));
+      }
+      res.json({ token: auth.sessions.create(email) });
+    },
   );
-  next();
+
+  return router;
 }
 
 /**
  * Creates the API router.
  * @param service Scores service.
+ * @param auth Auth services.
  */
-function createApiRouter(service: ScoresService): GasWebAppRouter {
+function createApiRouter(
+  service: ScoresService,
+  auth: AuthServices,
+): GasWebAppRouter {
   const api = new GasWebAppRouter();
+  const requireSession = createSessionAuth(auth.sessions, getLocale);
 
   api.get('/meta', (_req, res) => {
     const config = getConfig();
@@ -77,15 +160,14 @@ function createApiRouter(service: ScoresService): GasWebAppRouter {
     });
   });
 
-  api.get('/users/:userId/scores', (req, res) => {
-    const userId = req.params.userId;
-    if (!userId) throw new GasValidationError(tr('error.emptyUserId'));
-
-    const scores = service.getByUser(userId);
+  api.get('/me/scores', requireSession, (req, res) => {
+    const scores = service.getByUser(req.user?.email ?? '');
     if (!scores) throw new GasNotFoundError(tr('error.respondentNotFound'));
 
     res.json(scores);
   });
+
+  api.use('/auth', createAuthRouter(auth));
 
   return api;
 }
@@ -93,13 +175,18 @@ function createApiRouter(service: ScoresService): GasWebAppRouter {
 /**
  * Creates the web app with its middleware and routes.
  * @param service Scores service.
+ * @param auth Auth services.
  */
-function createWebApp(service: ScoresService): GasWebApp {
+function createWebApp(service: ScoresService, auth: AuthServices): GasWebApp {
   const webApp = new GasWebApp({ logger: createWebAppLogger() });
   const ack = createAckTracker();
   webApp.use(ack.middleware);
   webApp.get('/ack', ack.handler);
-  webApp.use(logRequest);
-  webApp.use('/api', createApiRouter(service));
+  webApp.use(
+    createLoggingMiddleware(createWebAppLogger(), {
+      redact: LOG_REDACT_KEYS,
+    }),
+  );
+  webApp.use('/api', createApiRouter(service, auth));
   return webApp;
 }

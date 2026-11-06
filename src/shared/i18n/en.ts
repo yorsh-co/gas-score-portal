@@ -29,7 +29,6 @@ const MESSAGES_EN = {
     'A synchronization is in progress. Try again in a moment.',
   'error.settingsConflict': 'The settings changed in the meantime. Try again.',
   'error.fileInaccessible': 'Could not access the file',
-  'error.emptyUserId': 'Empty user ID',
   'error.respondentNotFound': 'Respondent not found',
 
   'install.installing': 'Installing the script',
@@ -98,6 +97,18 @@ const MESSAGES_EN = {
   'portal.emailRequired': 'Enter your email.',
   'portal.emailInvalid': 'Enter a valid email.',
   'portal.serverError': 'Server error. Try again.',
+
+  'auth.otpRequested':
+    'If this email is registered, a code was sent. It expires in {minutes} minutes.',
+  'auth.invalidEmail': 'Enter a valid email.',
+  'auth.invalidCode': 'Invalid or expired code.',
+  'auth.sessionInvalid': 'Your session expired. Sign in again.',
+  'auth.tryLater': 'We could not send the code now. Try again later.',
+
+  'email.otpSubject': '{portalTitle}: your access code',
+  'email.otpIntro': 'Your access code for {portalTitle} is:',
+  'email.otpExpiry':
+    'It expires in {minutes} minutes and works only once. If you did not request it, ignore this email.',
 };
 
 /** The shape every catalogue must satisfy. */

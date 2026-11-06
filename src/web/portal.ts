@@ -1,4 +1,4 @@
-/** One form's score, as served by `GET /api/users/:userId/scores`. */
+/** One form's score, as served by `GET /api/me/scores`. */
 interface PortalScore {
   formTitle: string;
   formPoints: number | null;

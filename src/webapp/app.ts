@@ -17,6 +17,10 @@ function getApp(): GasWebApp {
         getTitleStripPatterns: getFormTitleStripPatterns,
         getLocale,
       })),
+      createAuthServices(
+        () => createRespondentsRepo(getRespondentsTable()),
+        createModuleLogger('auth'),
+      ),
     );
   }
   return app;

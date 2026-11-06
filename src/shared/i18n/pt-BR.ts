@@ -27,7 +27,6 @@ const MESSAGES_PT_BR: Messages = {
   'error.settingsConflict':
     'As configurações foram alteradas nesse meio tempo. Tente novamente.',
   'error.fileInaccessible': 'Não foi possível acessar o arquivo',
-  'error.emptyUserId': 'ID de usuário vazio',
   'error.respondentNotFound': 'Respondente não encontrado',
 
   'install.installing': 'Instalando o Script',
@@ -96,4 +95,17 @@ const MESSAGES_PT_BR: Messages = {
   'portal.emailRequired': 'Insira seu e-mail.',
   'portal.emailInvalid': 'Insira um e-mail válido.',
   'portal.serverError': 'Erro do servidor. Tente novamente.',
+
+  'auth.otpRequested':
+    'Se este email estiver cadastrado, um código foi enviado. Ele expira em {minutes} minutos.',
+  'auth.invalidEmail': 'Informe um email válido.',
+  'auth.invalidCode': 'Código inválido ou expirado.',
+  'auth.sessionInvalid': 'Sua sessão expirou. Entre novamente.',
+  'auth.tryLater':
+    'Não foi possível enviar o código agora. Tente novamente mais tarde.',
+
+  'email.otpSubject': '{portalTitle}: seu código de acesso',
+  'email.otpIntro': 'Seu código de acesso ao {portalTitle} é:',
+  'email.otpExpiry':
+    'Ele expira em {minutes} minutos e só pode ser usado uma vez. Se você não o solicitou, ignore este email.',
 };

@@ -1,3 +1,4 @@
+import { createHmac, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createGasLoader, loadOrderFiles } from 'gas-dev-config/test';
@@ -78,10 +79,25 @@ export interface AppExports {
   createScoresService(getDeps: () => object): {
     getByUser(userId: string): UserScoresApi | null;
   };
-  createWebApp(service: object): {
+  createWebApp(
+    service: object,
+    auth: object,
+  ): {
     doGet(e: object): unknown;
     doPost(e: object): unknown;
   };
+  createOtpService(deps: object): {
+    request(email: string): void;
+    verify(email: string, code: string): boolean;
+  };
+  createSessionService(deps: object): {
+    create(email: string): string;
+    resolve(token: string): string | null;
+  };
+  createAuthServices(
+    respondents: () => object,
+    logger: object,
+  ): { otp: object; sessions: object; hmac(value: string): string };
   getApp(): { doGet(e: object): unknown; doPost(e: object): unknown };
   doGet(e: object): unknown;
   doPost(e: object): unknown;
@@ -210,6 +226,9 @@ const EXPORTS: (keyof AppExports)[] = [
   'refreshOverview',
   'createScoresService',
   'createWebApp',
+  'createOtpService',
+  'createSessionService',
+  'createAuthServices',
   'getApp',
   'doGet',
   'doPost',
@@ -283,6 +302,8 @@ export interface FakeEnvironmentOptions {
   activeUser?: string;
   /** Extra or overriding globals, such as spies. */
   globals?: Record<string, unknown>;
+  /** Uses random UUIDs instead of a counter. */
+  realUuids?: boolean;
   /** Loads the files in the order clasp pushes them. */
   claspOrder?: boolean;
 }
@@ -348,14 +369,21 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
     },
   };
 
-  const cacheStore = new Map<string, string>();
+  let clock = Date.now();
+  const cacheStore = new Map<string, { value: string; expiresAt: number }>();
+  const live = (key: string) => {
+    const entry = cacheStore.get(key);
+    if (entry && entry.expiresAt <= clock) cacheStore.delete(key);
+    return cacheStore.get(key);
+  };
   const cache = {
-    put: (key: string, value: string) => void cacheStore.set(key, value),
+    put: (key: string, value: string, ttl = 600) =>
+      void cacheStore.set(key, { value, expiresAt: clock + ttl * 1000 }),
+    get: (key: string) => live(key)?.value ?? null,
+    remove: (key: string) => void cacheStore.delete(key),
     getAll: (keys: string[]) =>
       Object.fromEntries(
-        keys
-          .filter((k) => cacheStore.has(k))
-          .map((k) => [k, cacheStore.get(k)]),
+        keys.filter((k) => live(k)).map((k) => [k, live(k)?.value]),
       ),
     removeAll: (keys: string[]) => keys.forEach((k) => cacheStore.delete(k)),
   };
@@ -376,9 +404,26 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
     },
     ScriptApp: scriptApp,
     CacheService: { getScriptCache: () => cache },
-    Utilities: { getUuid: () => `uuid-${++uuid}` },
+    Utilities: {
+      sleep: () => undefined,
+      getUuid: options.realUuids ? randomUUID : () => `uuid-${++uuid}`,
+      computeHmacSha256Signature: (value: string, key: string) =>
+        [...createHmac('sha256', key).update(value).digest()].map((b) =>
+          b > 127 ? b - 256 : b,
+        ),
+    },
     ...options.globals,
   });
 
-  return { app, properties, locks, toasts, triggers };
+  return {
+    app,
+    properties,
+    locks,
+    toasts,
+    triggers,
+    cache,
+    cacheKeys: () => [...cacheStore.keys()],
+    /** Moves the fake cache clock forward. */
+    advance: (seconds: number) => void (clock += seconds * 1000),
+  };
 }

@@ -20,6 +20,7 @@ A Google Apps Script web app that syncs Google Forms quiz scores into a spreadsh
 
 - `src/app`, `src/domain`, `src/infra`: synchronization, Forms and Drive access, and the gas-sheetdb tables.
 - `src/webapp`: entry points, router and scores service.
+- `src/auth`: email one-time codes, sessions and the mailer ([ADR 4](docs/adr/0004-email-otp-access.md)).
 - `src/web`: the single-page app (`portal.{html,css,ts}`), inlined into `src/generated/portal.html.ts` at build time.
 - `src/shared/i18n`: message catalogue shared by the server and the page.
 
@@ -64,7 +65,8 @@ checando a aprendizagem
 
 - Apps Script stops an execution after 6 minutes. The synchronization saves a cursor and schedules a continuation before the limit.
 - Triggers and the web app are subject to the Apps Script daily quotas of the account that owns the script.
-- `MailApp` limits the daily number of email recipients: 100 on consumer accounts and 1,500 on Google Workspace. The remaining quota is available from `MailApp.getRemainingDailyQuota()`.
+- `MailApp` limits the daily number of email recipients: 100 on consumer accounts and 1,500 on Google Workspace. The remaining quota is available from `MailApp.getRemainingDailyQuota()`. Each access code sent to a respondent uses one recipient, so the quota caps the sign-ins per day. When it is exhausted, requesting a code fails with a generic "try later" message and the failure is logged at `error`.
+- Access codes: 3 requests per email and 50 in total per 15 minutes; a code lasts 10 minutes, allows 5 attempts and works once; a session lasts 30 minutes.
 
 ## Screenshots
 
