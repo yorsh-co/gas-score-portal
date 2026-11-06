@@ -1,22 +1,19 @@
 /**
- *
- * @param {*} e
+ * Adds the custom menu when the spreadsheet opens.
  */
-function onOpen(e) {
+function onOpen(): void {
   displayMenu();
 }
 
 /**
- *
+ * Builds the custom menu.
  */
-const displayMenu = () => {
+function displayMenu(): void {
   const ui = SpreadsheetApp.getUi();
 
   const settingsMenu = ui
     .createMenu('⚙️ Configurações')
-    .addItem('💾 Salvar as configurações', 'menuSaveConfig')
-    .addSeparator()
-    .addItem('📲 Publicar ou atualizar o WebApp', 'menuDeploy')
+    .addItem('🛠️ Abrir as configurações', 'menuSettings')
     .addSeparator()
     .addItem('💽 Instalar o Script', 'menuInstall')
     .addItem('💿 Desinstalar o Script', 'menuUninstall')
@@ -34,5 +31,12 @@ const displayMenu = () => {
     .addSubMenu(settingsMenu)
     .addToUi();
 
-  Logger.log('Custom menu added to the UI');
-};
+  createModuleLogger('menu').info('Custom menu added to the UI');
+}
+
+/**
+ * Opens the settings dialog.
+ */
+function menuSettings(): void {
+  getConfig().showDialog(SpreadsheetApp.getUi());
+}

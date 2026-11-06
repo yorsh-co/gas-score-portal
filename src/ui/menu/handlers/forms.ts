@@ -1,27 +1,25 @@
+const formsMenuLogger = createModuleLogger('menu.forms');
+
 /**
- *
+ * Imports the Forms found in the configured Drive folder.
  */
-const menuImportDriveForms = () => {
-  try {
+function menuImportDriveForms(): void {
+  runMenuAction(formsMenuLogger, () => {
     Toast.loading();
     new FormsImporter({ allowPrompt: true }).run();
     Toast.success('Forms importados');
-  } catch (err) {
-    console.error(err);
-    Toast.error(err);
-    throw new Error(err);
-  }
-};
+  });
+}
 
 /**
- *
+ * Links a single Form, reactivating it if it was excluded.
  */
-const menuLinkNewForm = () => {
-  try {
+function menuLinkNewForm(): void {
+  runMenuAction(formsMenuLogger, () => {
     Toast.loading();
-    // Prompt for the form.
-    let form;
-    let warning;
+
+    let form: GoogleAppsScript.Forms.Form | null = null;
+    let warning = '';
     while (!form) {
       const inputUrl = GSheetsUiUtils.promptForValue(
         '➕ Adicionar Forms individual',
@@ -29,96 +27,70 @@ const menuLinkNewForm = () => {
         warning,
       );
 
-      form = GForms.forms.get({ url: inputUrl });
+      form = GForms.forms.get({ url: inputUrl, id: '' });
       if (!form)
         warning = `Não foi possível acessar o Forms "${inputUrl}". Verifique se você tem permissão para acessar a arquivo.`;
     }
 
-    // Check if it is in the block list
     const formUrl = form.getEditUrl();
-    if (String(Config.data.gForms.excludedUrls).includes(formUrl)) {
+    const excludedUrls = getExcludedFormUrls();
+    if (excludedUrls.includes(formUrl)) {
       const ui = SpreadsheetApp.getUi();
       const selectedButton = ui.alert(
         '➕ Reativar Forms',
         `O Forms "${form.getTitle()}" consta na lista de Forms removidos.\n\n👉 Clique em OK para reativar esse Forms.`,
         ui.ButtonSet.OK_CANCEL,
       );
-      if (selectedButton !== ui.Button.OK)
-        throw new Error('Cancelado pelo usuário');
+      if (selectedButton !== ui.Button.OK) throw createCancelledError();
 
-      Config.data.gForms.excludedUrls = String(Config.data.gForms.excludedUrls)
-        .split(',')
-        .map((str) => str.trim())
-        .filter((str) => str !== formUrl)
-        .join(',');
-
-      Config.save();
+      saveExcludedFormUrls(excludedUrls.filter((url) => url !== formUrl));
     }
 
-    // Insert the form to the sheet.
     const formTitle = form.getTitle();
     Toast.busy(`Vinculando "${formTitle}"...`);
     const linkedForm = new LinkedForm().initializeFromForm(form);
     FormsSheet.insertNewLinkedForms([linkedForm]);
     Toast.success(`"${formTitle}" vinculado`);
-  } catch (err) {
-    console.error(err);
-    Toast.error(err);
-    throw new Error(err);
-  }
-};
+  });
+}
 
 /**
- *
+ * Removes the selected Forms from the system and excludes them from sync.
  */
-const menuRemoveForms = () => {
-  try {
+function menuRemoveForms(): void {
+  runMenuAction(formsMenuLogger, () => {
     Toast.loading();
 
-    // Get the selected linked forms.
     if (!FormsSheet.isActive())
-      throw new Error(
+      throw new GasValidationError(
         `Esta ação é possível apenas a partir da aba ${SHEETS.forms.name}`,
       );
 
     const activeRows = FormsSheet.getActiveFormRows();
-    if (!activeRows.length) throw new Error('Nenhum Forms selecionado');
+    if (!activeRows.length)
+      throw new GasValidationError('Nenhum Forms selecionado');
 
     const linkedForms = activeRows.map((rowNum) =>
       FormsSheet.getLinkedForm({ rowNum }),
     );
 
-    // Prompt for confirmation.
     const ui = SpreadsheetApp.getUi();
     const selectedButton = ui.alert(
       '➖ Remover Forms',
       `Os Forms abaixo serão removidos do sistema e ignorados durante a sincronização das notas:\n\n${linkedForms.map((linkedForm, i) => `${i + 1}. ${linkedForm.title}\n`)}\nPara reativar um desses Forms, utilize o botão "➕ Adicionar Forms individual".\n\n👉 Clique em OK para continuar.`,
       ui.ButtonSet.OK_CANCEL,
     );
-    if (selectedButton !== ui.Button.OK)
-      throw new Error('Cancelado pelo usuário');
+    if (selectedButton !== ui.Button.OK) throw createCancelledError();
 
-    // Add the URLs to the exclusion list.
     Toast.busy(`Removendo ${linkedForms.length} Forms...`);
-    const excludedUrls = new Set(
-      Config.data.gForms.excludedUrls
-        ? String(Config.data.gForms.excludedUrls)
-            .split(',')
-            .map((str) => str.trim())
-        : [],
-    );
-    excludedUrls.add(...linkedForms.map((linkedForm) => linkedForm.url));
-    Config.data.gForms.excludedUrls = [...excludedUrls].join(',');
-    Config.save();
+    const excludedUrls = new Set(getExcludedFormUrls());
+    linkedForms.forEach((linkedForm) => excludedUrls.add(linkedForm.url));
+    saveExcludedFormUrls([...excludedUrls]);
 
     linkedForms.forEach((linkedForm) =>
       FormsSheet.updateFormStatus(linkedForm, LinkedForm.statusEnum.excluded),
     );
 
-    Toast.success(`Forms removidos`);
-  } catch (err) {
-    console.error(err);
-    Toast.error(err);
-    throw new Error(err);
-  }
-};
+    Toast.success('Forms removidos');
+  });
+}

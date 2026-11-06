@@ -36,6 +36,5 @@ const SHEETS = {
     'TEMPLATE 📌 Instruções',
     'TEMPLATE 🟪 Forms',
     'TEMPLATE 💯 Notas',
-    'TEMPLATE ⚙️ Config',
   ]
 };
