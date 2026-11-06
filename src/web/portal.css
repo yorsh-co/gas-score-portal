@@ -274,3 +274,45 @@ td {
     transition: none;
   }
 }
+
+#user-scores label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+#user-scores .hint {
+  margin: 0;
+  font-size: 14px;
+  color: var(--subtle);
+}
+.code-input {
+  font-size: 24px;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+}
+.link-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+.link-row.end {
+  justify-content: flex-end;
+  margin-top: 0;
+}
+button.link {
+  padding: 4px 0;
+  background: none;
+  color: var(--primary);
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: underline;
+}
+button.link:hover {
+  background: none;
+  text-decoration: none;
+}
+button.link:disabled {
+  color: var(--subtle);
+  text-decoration: none;
+}

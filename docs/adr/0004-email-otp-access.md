@@ -85,4 +85,7 @@ A respondent proves control of their mailbox with a one-time code.
 
 - The manifest gains the `script.send_mail` scope.
 - Sign-ins per day are capped by the mail quota.
-- Sessions are not renewable and there is no logout; the token simply expires.
+- Sessions are not renewable and there is no server-side logout; the token expires.
+- Sign-out is client-side only: the page forgets the token, but the server does
+  not revoke it. A token copied before sign-out stays valid until its 30-minute
+  server TTL.
