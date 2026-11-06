@@ -24,9 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Neutral Score Portal web UI with dark mode.
 - MIT licence.
 - `.clasp.example.json` pins `core/logger.js` after the library bundle in `filePushOrder`, because clasp loads the other files alphabetically.
+- Email one-time-code sign-in (`POST /api/auth/otp`, `POST /api/auth/verify`), `GET /api/me/scores` for the signed-in respondent, and the portal email-and-code flow. Requests and verifications are rate limited per email and globally, and verifications also per email per day (ADR 0004).
 
 ### Changed
 
+- **BREAKING:** the manifest adds the `script.send_mail` OAuth scope to mail the codes, so owners must re-authorize the script after updating.
 - Domain, Drive/Forms discovery, Forms importer, score synchronizer, triggers and utilities migrated to strict TypeScript.
 - A failing form no longer stalls the synchronization: its error is stored as the form status and the next form is processed.
 - `menuSystemReset` clears the `Forms`, `Respondents` and `Scores` tables instead of restoring template sheets.
@@ -40,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **BREAKING:** the unauthenticated `/api/users/:userId/scores` route. Use `GET /api/me/scores` with a session token.
 - `WebAppDeployer`, the `AppsScript` library and the deploy menu items; deployment is handled outside the app (ADR 0003).
 - The `script.projects`, `script.deployments` and `script.external_request` OAuth scopes.
 - The legacy framework and client.
@@ -48,3 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `docs/legacy/`, the legacy HTML docs.
 - The hard-coded Form title clean-up. **Upgrade note:** set `formTitleStripPatterns` to keep a clean-up; see "Upgrading from the legacy app" in the README.
 - `.claspignore`, replaced by `.clasp.json` with `rootDir: dist`.
+
+### Security
+
+- Access to scores now requires proof of mailbox control through a one-time code. See [ADR 0004](docs/adr/0004-email-otp-access.md) for the threat model, rate limits and residual risks.
