@@ -49,6 +49,7 @@
   "scripts": {
     "build": "node scripts/build.js",
     "build:watch": "node scripts/build.js --watch",
+    "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gas-dev-config html",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "bundle:libs": "gas-dev-bundle",
     "deploy:setup": "gas-dev-deploy",
@@ -94,7 +95,19 @@
       "triggers/handlers/syncScores.ts",
       "ui/menu/display.ts",
       "ui/menu/handlers/forms.ts",
-      "ui/menu/handlers/install.ts"
+      "ui/menu/handlers/install.ts",
+      "generated/portal.html.ts",
+      "webapp/scores.service.ts",
+      "webapp/routes.ts",
+      "webapp/app.ts",
+      "webapp/main.ts"
+    ],
+    "html": [
+      {
+        "entry": "src/web/portal.html",
+        "out": "src/generated/portal.html.ts",
+        "name": "_PORTAL_HTML"
+      }
     ]
   }
 }

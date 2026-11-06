@@ -61,6 +61,23 @@ export interface AppExports {
     respondents: object,
     scores: object,
   ): unknown;
+  createScoresService(getDeps: () => object): {
+    getByUser(userId: string): UserScoresApi | null;
+  };
+  createWebApp(service: object): {
+    doGet(e: object): unknown;
+    doPost(e: object): unknown;
+  };
+  app: { doGet(e: object): unknown; doPost(e: object): unknown };
+  doGet(e: object): unknown;
+  doPost(e: object): unknown;
+}
+
+export interface UserScoresApi {
+  email: string;
+  name: string;
+  alternatives: string[];
+  scores: { formTitle: string; formPoints: number | null; score: number }[];
 }
 
 export interface FormsCursorApi {
@@ -167,6 +184,11 @@ const EXPORTS: (keyof AppExports)[] = [
   'columnLetter',
   'buildOverviewFormula',
   'refreshOverview',
+  'createScoresService',
+  'createWebApp',
+  'app',
+  'doGet',
+  'doPost',
 ];
 
 const load = createGasLoader<AppExports>({

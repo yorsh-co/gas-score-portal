@@ -1,0 +1,245 @@
+:root {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --primary: #d0716f;
+  --primary-hover: #b65a59;
+  --text: #242338;
+  --muted: #5c5e79;
+  --border: #e5e7eb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  min-width: 360px;
+}
+
+.align-center {
+  text-align: center !important;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 24px;
+}
+
+main {
+  flex: 1;
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+@media (min-width: 768px) {
+  main {
+    padding: 24px;
+  }
+}
+
+footer {
+  width: 100%;
+  height: 30px;
+  padding: 5px 10px;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  text-align: right;
+  font-size: 0.8em;
+  color: #9d9d9d;
+}
+footer a {
+  color: #9d9d9d;
+}
+
+input {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.button-container {
+  width: 100%;
+  display: flex;
+  justify-content: end;
+}
+
+button {
+  position: relative;
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+button.spinner-padding {
+  padding: 10px 40px;
+}
+button.full-width {
+  width: 100% !important;
+}
+button.lg {
+  height: 40px;
+  width: auto;
+}
+button:hover {
+  background: var(--primary-hover);
+}
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spinner {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 20px;
+  height: 20px;
+  border: 3px solid #fff;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-top: 24px;
+}
+tr th:first-child,
+tr td:first-child {
+  text-align: left !important;
+}
+tr th:last-child,
+tr td:last-child {
+  text-align: right !important;
+}
+th,
+td {
+  text-align: left;
+  padding: 12px;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+.tr-border-bottom th,
+.tr-border-bottom td {
+  border-bottom: 1px solid var(--border);
+}
+th {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+td {
+  overflow: hidden;
+}
+.cell-ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.cell-ellipsis.expanded {
+  white-space: normal;
+}
+
+#user-scores .title-container {
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+#user-scores h1 {
+  margin: 0;
+}
+#user-scores.card {
+  width: 100%;
+  max-width: 600px;
+  background-color: var(--card);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  align-items: center;
+}
+#user-scores .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+#user-scores .error {
+  margin-top: 16px;
+  color: #b91c1c;
+  font-size: 14px;
+}
+#user-scores .empty {
+  margin: 24px 0;
+  color: var(--muted);
+  font-size: 1em;
+  text-align: center;
+}
+#summary-table th,
+#summary-table td {
+  padding: 6px 12px;
+}
+#user-scores th.form-score,
+#user-scores td.form-score {
+  width: 80px;
+}
+#scores-note {
+  margin-top: 15px;
+  font-size: 0.9em;
+  color: #7c7c7c;
+  text-align: center;
+}
+#scores-note p {
+  margin: 10px 0;
+}
+#last-update-timestamp {
+  font-size: 0.85em;
+  font-style: italic;
+}
