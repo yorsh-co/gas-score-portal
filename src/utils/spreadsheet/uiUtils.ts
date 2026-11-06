@@ -21,7 +21,7 @@ const GSheetsUiUtils = {
     { acceptBlank = false }: PromptOptions = {},
   ): string {
     const ui = SpreadsheetApp.getUi();
-    let prompt = body ? body : `Insira o ${title}`;
+    let prompt = body ? body : tr('prompt.default', { title });
     prompt = warning ? `${prompt}\n\n⚠️ ${warning}` : prompt;
 
     const response = ui.prompt(title, prompt, ui.ButtonSet.OK_CANCEL);
@@ -31,12 +31,9 @@ const GSheetsUiUtils = {
 
     const input = response.getResponseText().trim();
     if (!acceptBlank && !input)
-      return GSheetsUiUtils.promptForValue(
-        title,
-        body,
-        'Esse campo não pode ficar vazio',
-        { acceptBlank },
-      );
+      return GSheetsUiUtils.promptForValue(title, body, tr('prompt.notBlank'), {
+        acceptBlank,
+      });
 
     return input;
   },

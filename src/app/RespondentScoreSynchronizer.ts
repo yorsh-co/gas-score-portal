@@ -175,8 +175,7 @@ class RespondentScoreSynchronizer {
     const { deps } = this;
     const linked = LinkedForm.fromRecord(record);
     linked.form = deps.openForm(record.url);
-    if (!linked.form)
-      throw new GasNotFoundError('Não foi possível acessar o arquivo');
+    if (!linked.form) throw new GasNotFoundError(tr('error.fileInaccessible'));
 
     const maxPoints = linked.getMaxPoints();
     const formScores = deps.getFormScores(

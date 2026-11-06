@@ -9,6 +9,7 @@ function setup(
     forms?: Record<string, unknown>[];
     scores?: Record<string, unknown>[];
     excluded?: string[];
+    strip?: string[];
     locale?: string;
   } = {},
 ) {
@@ -23,13 +24,14 @@ function setup(
     respondents,
     scores,
     getExcludedUrls: () => options.excluded ?? [],
+    getTitleStripPatterns: () => options.strip ?? ['\\bdraft\\b'],
     getLocale: () => options.locale ?? 'en',
   }));
 }
 
 const FORMS = [
-  { url: 'f1', title: 'Módulo B - T4', maxPoints: 5, status: 'linked' },
-  { url: 'f2', title: 'Módulo A', maxPoints: 10, status: 'linked' },
+  { url: 'f1', title: 'Module B - Draft', maxPoints: 5, status: 'linked' },
+  { url: 'f2', title: 'Module A', maxPoints: 10, status: 'linked' },
   { url: 'f3', title: 'Excluded', maxPoints: 10, status: 'linked' },
 ];
 
@@ -59,8 +61,8 @@ describe('ScoresService.getByUser', () => {
       name: 'Ana ... L.',
       alternatives: ['an...@x.org'],
       scores: [
-        { formTitle: 'Módulo A', formPoints: 10, score: 0 },
-        { formTitle: 'Módulo B', formPoints: 5, score: 4 },
+        { formTitle: 'Module A', formPoints: 10, score: 0 },
+        { formTitle: 'Module B', formPoints: 5, score: 4 },
       ],
     });
   });
@@ -110,8 +112,8 @@ describe('ScoresService.getByUser', () => {
     });
 
     expect(service.getByUser('a@x.org')?.scores).toEqual([
-      { formTitle: 'Módulo A', formPoints: 10, score: null },
-      { formTitle: 'Módulo B', formPoints: 5, score: 4 },
+      { formTitle: 'Module A', formPoints: 10, score: null },
+      { formTitle: 'Module B', formPoints: 5, score: 4 },
       { formTitle: 'Open', formPoints: null, score: null },
     ]);
   });
@@ -133,5 +135,41 @@ describe('ScoresService.getByUser', () => {
     expect(
       service.getByUser('a@x.org')?.scores.map((s) => s.formTitle),
     ).toEqual(['Álamo', 'Zebra']);
+  });
+
+  it('removes the configured title patterns and ignores invalid ones', () => {
+    const service = setup({
+      strip: ['(', 'quiz \\d+'],
+      forms: [
+        {
+          url: 'f1',
+          title: 'Unit 2 - Quiz 4',
+          maxPoints: 10,
+          status: 'linked',
+        },
+      ],
+      respondents: [{ email: 'a@x.org', name: 'A', alternatives: '' }],
+    });
+
+    expect(service.getByUser('a@x.org')?.scores[0]?.formTitle).toBe('Unit 2');
+  });
+
+  it('keeps the title when no pattern is configured', () => {
+    const service = setup({
+      strip: [],
+      forms: [
+        {
+          url: 'f1',
+          title: 'Module B - Draft',
+          maxPoints: 10,
+          status: 'linked',
+        },
+      ],
+      respondents: [{ email: 'a@x.org', name: 'A', alternatives: '' }],
+    });
+
+    expect(service.getByUser('a@x.org')?.scores[0]?.formTitle).toBe(
+      'Module B - Draft',
+    );
   });
 });

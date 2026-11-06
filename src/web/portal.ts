@@ -13,7 +13,29 @@ interface PortalUserScores {
   scores: PortalScore[];
 }
 
+/** The response of `GET /api/meta`. */
+interface PortalMeta {
+  locale: Locale;
+  portalTitle: string;
+  brand: {
+    primaryColor: string | null;
+    logoUrl: string | null;
+    faviconUrl: string | null;
+  };
+}
+
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+let locale: Locale = DEFAULT_LOCALE;
+
+/**
+ * Translates a message into the portal locale.
+ * @param key Message key.
+ * @param params Values for the `{name}` placeholders.
+ */
+function tr(key: MessageKey, params?: MessageParams): string {
+  return t(locale, key, params);
+}
 
 /**
  * Looks up an element that the page is known to contain.
@@ -53,7 +75,7 @@ function averageScore(scores: PortalScore[]): string {
  * @param entry Form score.
  */
 function scoreOutOfTen(entry: PortalScore): string {
-  if (entry.score === null) return 'Não respondido';
+  if (entry.score === null) return tr('portal.notAnswered');
   const scaled =
     entry.formPoints && entry.formPoints !== 10
       ? (entry.score / entry.formPoints) * 10
@@ -110,10 +132,9 @@ function renderResult(data: PortalUserScores): void {
   });
   setHidden(['scores-table'], false);
 
-  byId('last-update-timestamp').textContent =
-    `Atualizada em ${new Date().toLocaleString(
-      navigator.languages?.[0] || navigator.language,
-    )}.`;
+  byId('last-update-timestamp').textContent = tr('portal.updatedAt', {
+    date: new Date().toLocaleString(locale),
+  });
 }
 
 /**
@@ -126,7 +147,7 @@ function errorMessage(error: unknown): string {
   if (status && status < 500 && message) {
     return message.endsWith('.') ? message : `${message}.`;
   }
-  return 'Erro do servidor. Tente novamente.';
+  return tr('portal.serverError');
 }
 
 /** Loads the scores of the email in the input. */
@@ -140,11 +161,11 @@ function loadScores(): void {
 
   const email = normalizeEmailInput(byId<HTMLInputElement>('email').value);
   if (!email) {
-    errorBox.textContent = 'Insira seu e-mail.';
+    errorBox.textContent = tr('portal.emailRequired');
     return;
   }
   if (!EMAIL_PATTERN.test(email)) {
-    errorBox.textContent = 'Insira um e-mail válido.';
+    errorBox.textContent = tr('portal.emailInvalid');
     return;
   }
 
@@ -166,6 +187,49 @@ function loadScores(): void {
     });
 }
 
+/** Translates the elements that carry a `data-i18n*` attribute. */
+function applyTranslations(): void {
+  document.documentElement.lang = locale;
+  document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((element) => {
+    element.textContent = tr(element.dataset.i18n as MessageKey);
+  });
+  document
+    .querySelectorAll<HTMLInputElement>('[data-i18n-placeholder]')
+    .forEach((element) => {
+      element.placeholder = tr(element.dataset.i18nPlaceholder as MessageKey);
+    });
+}
+
+/**
+ * Applies the owner's brand settings over the built-in identity.
+ * @param brand Brand settings from the server.
+ */
+function applyBrand(brand: PortalMeta['brand']): void {
+  if (brand.primaryColor) {
+    document.documentElement.style.setProperty('--primary', brand.primaryColor);
+  }
+  if (brand.logoUrl) byId<HTMLImageElement>('portal-logo').src = brand.logoUrl;
+}
+
+/** Loads the locale and title from the server before the page is used. */
+function loadMeta(): void {
+  const button = byId<HTMLButtonElement>('load-btn');
+  button.disabled = true;
+  window.GasWebApp.api
+    .get<PortalMeta>('/api/meta')
+    .then((meta) => {
+      locale = resolveLocale(meta.locale);
+      byId('portal-title').textContent = meta.portalTitle;
+      applyBrand(meta.brand);
+      applyTranslations();
+    })
+    .catch((error: unknown) => console.error(error))
+    .finally(() => {
+      button.disabled = false;
+    });
+}
+
+loadMeta();
 byId('load-btn').addEventListener('click', loadScores);
 byId('email').addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {

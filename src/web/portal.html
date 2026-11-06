@@ -1,10 +1,16 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
   <head>
     <base target="_top" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="mobile-web-app-capable" content="no" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234f46e5'/%3E%3Crect x='7' y='17' width='4' height='8' rx='1' fill='%23fff' opacity='.6'/%3E%3Crect x='14' y='12' width='4' height='13' rx='1' fill='%23fff' opacity='.8'/%3E%3Crect x='21' y='7' width='4' height='18' rx='1' fill='%23fff'/%3E%3C/svg%3E"
+    />
+    <meta name="color-scheme" content="light dark" />
     <link rel="stylesheet" href="portal.css" />
   </head>
 
@@ -13,26 +19,32 @@
       <div id="user-scores" class="card">
         <div class="title-container">
           <img
-            src="https://res.cloudinary.com/dsbaiaeqs/image/upload/v1772483417/banner_1_rh8fon.png"
-            alt="logo"
-            width="100"
-            height="100"
+            id="portal-logo"
+            src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64' role='img' aria-label='Score Portal'%3E%3Crect width='64' height='64' rx='14' fill='%234f46e5'/%3E%3Crect x='14' y='34' width='8' height='16' rx='2' fill='%23fff' opacity='.6'/%3E%3Crect x='28' y='24' width='8' height='26' rx='2' fill='%23fff' opacity='.8'/%3E%3Crect x='42' y='14' width='8' height='36' rx='2' fill='%23fff'/%3E%3C/svg%3E"
+            alt=""
+            width="72"
+            height="72"
           />
-          <h1>Checando a Aprendizagem</h1>
+          <h1 id="portal-title">Score Portal</h1>
         </div>
 
         <div class="form-group">
           <input
             id="email"
             type="email"
-            placeholder="Insira o e-mail utilizado nas checagens"
+            placeholder="Enter the email used in the quizzes"
+            data-i18n-placeholder="portal.emailPlaceholder"
             class="align-center"
           />
         </div>
 
         <div class="button-container">
-          <button id="load-btn" class="lg full-width spinner-padding">
-            Visualize suas notas
+          <button
+            id="load-btn"
+            class="lg full-width spinner-padding"
+            data-i18n="portal.loadButton"
+          >
+            View your scores
           </button>
         </div>
 
@@ -41,19 +53,19 @@
         <table id="summary-table" hidden>
           <tbody>
             <tr>
-              <th>Nome</th>
+              <th data-i18n="portal.labelName">Name</th>
               <td id="user-name" class="cell-ellipsis"></td>
             </tr>
             <tr>
-              <th>Usuário(s)</th>
+              <th data-i18n="portal.labelUsers">User(s)</th>
               <td id="user-ids" class="cell-ellipsis"></td>
             </tr>
             <tr>
-              <th>Respostas</th>
+              <th data-i18n="portal.labelResponses">Responses</th>
               <td id="user-num-responses"></td>
             </tr>
             <tr>
-              <th>Nota média</th>
+              <th data-i18n="portal.labelAverage">Average score</th>
               <td id="user-average-score"></td>
             </tr>
           </tbody>
@@ -64,22 +76,22 @@
         <table id="scores-table" class="tr-border-bottom" hidden>
           <thead>
             <tr>
-              <th>Módulo</th>
-              <th class="form-score">Nota</th>
+              <th data-i18n="portal.labelForm">Module</th>
+              <th class="form-score" data-i18n="portal.labelScore">Score</th>
             </tr>
           </thead>
           <tbody id="scores-tbody"></tbody>
         </table>
 
-        <div id="empty-state" class="empty" hidden>
-          Nenhuma nota encontrada.
+        <div id="empty-state" class="empty" data-i18n="portal.empty" hidden>
+          No scores found.
         </div>
 
         <div id="scores-note">
           <p id="last-update-timestamp"></p>
-          <p>
-            Novas notas poderão ser visualizadas em até uma hora após o envio do
-            formulário.
+          <p data-i18n="portal.note">
+            New scores may take up to an hour to appear after a form is
+            submitted.
           </p>
         </div>
       </div>
@@ -92,12 +104,9 @@
       </template>
     </main>
 
-    <footer>
-      <a href="https://jspworkspacesolutions.com/" target="_blank"
-        >© 2026 Yorsh</a
-      >
-    </footer>
-
+    <script src="../shared/i18n/en.js"></script>
+    <script src="../shared/i18n/pt-BR.js"></script>
+    <script src="../shared/i18n/i18n.js"></script>
     <script src="vendor/gas-webapp/gas-webapp.config.js"></script>
     <script src="vendor/gas-webapp/gas-webapp.errors.js"></script>
     <script src="vendor/gas-webapp/gas-webapp.client.js"></script>

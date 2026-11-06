@@ -15,7 +15,7 @@ const CONFIG_SCHEMA = {
     required: true,
     options: [
       { value: 'en', label: 'English' },
-      { value: 'pt-BR', label: 'Português (Brasil)' },
+      { value: 'pt-BR', label: 'Portugu\u00eas (Brasil)' },
     ],
   },
   portalTitle: {
@@ -25,6 +25,23 @@ const CONFIG_SCHEMA = {
     group: 'general',
     default: 'Score Portal',
     maxLength: 100,
+  },
+  primaryColor: {
+    type: 'string',
+    label: 'Primary color',
+    description: 'Accent color of the web app, as a hex code such as #4f46e5.',
+    group: 'general',
+    pattern: '^#[0-9a-fA-F]{6}$',
+    patternMessage: 'Use a hex color such as #4f46e5.',
+  },
+  logoUrl: {
+    type: 'url',
+    label: 'Logo URL',
+    description:
+      'HTTPS address of the web app logo. Empty uses the built-in one.',
+    group: 'general',
+    pattern: '^https://',
+    patternMessage: 'Use an address that starts with https://.',
   },
   faviconUrl: {
     type: 'url',
@@ -56,7 +73,33 @@ const CONFIG_SCHEMA = {
     description: 'Edit URLs of Forms to ignore, one per line.',
     group: 'forms',
   },
+  formTitleStripPatterns: {
+    type: 'text',
+    label: 'Form title clean-up',
+    description:
+      'Regular expressions (case-insensitive), one per line. Matches are removed from the Form titles shown in the web app.',
+    group: 'forms',
+    validate: (value) => findInvalidPattern(value),
+  },
 } satisfies GasConfigSchema;
+
+/**
+ * Returns an error message naming the first line of a multi-line setting that
+ * is not a valid regular expression, or null when all are valid.
+ * @param value Setting value, one pattern per line.
+ */
+function findInvalidPattern(value: string): string | null {
+  for (const line of value.split(CONFIG_LIST_SEPARATOR)) {
+    const pattern = line.trim();
+    if (pattern === '') continue;
+    try {
+      new RegExp(pattern, 'i');
+    } catch {
+      return `Invalid regular expression: ${pattern}`;
+    }
+  }
+  return null;
+}
 
 /** The typed settings object. */
 type AppConfig = GasConfig<typeof CONFIG_SCHEMA>;
@@ -104,6 +147,27 @@ function getConfig(): AppConfig {
 }
 
 /**
+ * Returns the locale of the menu, messages and web app. Falls back to the
+ * default when the settings cannot be read.
+ */
+function getLocale(): Locale {
+  try {
+    return resolveLocale(getConfig().get('locale'));
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
+/**
+ * Translates a message into the configured locale.
+ * @param key Message key.
+ * @param params Values for the `{name}` placeholders.
+ */
+function tr(key: MessageKey, params?: MessageParams): string {
+  return t(getLocale(), key, params);
+}
+
+/**
  * Returns the URLs of the Forms excluded from synchronization.
  */
 function getExcludedFormUrls(): string[] {
@@ -112,6 +176,17 @@ function getExcludedFormUrls(): string[] {
     .split(CONFIG_LIST_SEPARATOR)
     .map((url) => url.trim())
     .filter((url) => url !== '');
+}
+
+/**
+ * Returns the regular expression sources removed from the Form titles.
+ */
+function getFormTitleStripPatterns(): string[] {
+  const raw = getConfig().get('formTitleStripPatterns') ?? '';
+  return raw
+    .split(CONFIG_LIST_SEPARATOR)
+    .map((pattern) => pattern.trim())
+    .filter((pattern) => pattern !== '');
 }
 
 /**
@@ -130,9 +205,7 @@ function saveConfigValues(changes: Record<string, string>): void {
   if (outcome.reason === 'invalid') {
     throw new GasValidationError(Object.values(outcome.errors).join(' '));
   }
-  throw new GasConflictError(
-    'The settings changed in the meantime. Try again.',
-  );
+  throw new GasConflictError(tr('error.settingsConflict'));
 }
 
 /**

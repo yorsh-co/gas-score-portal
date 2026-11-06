@@ -21,24 +21,24 @@ function menuInstall(): void {
       ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
     }
 
-    Toast.busy('Instalando o Script');
+    Toast.busy(tr('install.installing'));
     installTriggers();
 
-    Toast.busy('Os acionadores foram instalados.');
+    Toast.busy(tr('install.triggersInstalled'));
     Utilities.sleep(TOAST_PAUSE_MS);
 
     const timeZone = Session.getScriptTimeZone();
     SpreadsheetApp.getActiveSpreadsheet().setSpreadsheetTimeZone(timeZone);
     Toast.busy(
-      'Acesse o editor do Apps Script para alterar',
-      `Fuso horário configurado para ${timeZone}`,
+      tr('install.timeZoneBody'),
+      tr('install.timeZoneTitle', { timeZone }),
     );
     Utilities.sleep(TOAST_PAUSE_MS);
 
-    Toast.busy('Criando a planilha Overview');
+    Toast.busy(tr('install.creatingOverview'));
     refreshOverview();
 
-    Toast.success('O Script foi instalado');
+    Toast.success(tr('install.installed'));
   });
 }
 
@@ -49,24 +49,24 @@ function menuUninstall(): void {
   runMenuAction(installMenuLogger, () => {
     const ui = SpreadsheetApp.getUi();
     const confirmation = ui.alert(
-      '⚠️ Uninstall',
-      'This will remove all triggers and delete all stored values like API keys and configuration values.\n\nThis action can only be reversed by re-installing the script from the menu.\n\n🆗 Click OK to uninstall.',
+      tr('uninstall.title'),
+      tr('uninstall.body'),
       ui.ButtonSet.OK_CANCEL,
     );
     if (confirmation !== ui.Button.OK) throw createCancelledError();
 
-    Toast.warning('Removing triggers', 'Uninstalling');
+    Toast.warning(tr('uninstall.removingTriggers'), tr('uninstall.toastTitle'));
     ScriptApp.getProjectTriggers().forEach((t) => ScriptApp.deleteTrigger(t));
     Utilities.sleep(UNINSTALL_PAUSE_MS);
 
     Toast.warning(
-      'Deleting stored properties and configurations',
-      'Uninstalling',
+      tr('uninstall.deletingProperties'),
+      tr('uninstall.toastTitle'),
     );
     PropertiesService.getScriptProperties().deleteAllProperties();
     Utilities.sleep(UNINSTALL_PAUSE_MS);
 
-    Toast.warning('', 'Uninstall complete');
+    Toast.warning('', tr('uninstall.complete'));
   });
 }
 
@@ -77,13 +77,13 @@ function menuSystemReset(): void {
   runMenuAction(installMenuLogger, () => {
     const ui = SpreadsheetApp.getUi();
     const selectedButton = ui.alert(
-      '⛔ Reset do Sistema',
-      `⚠️ Zona de perigo!\n\nTodos os Forms e as Notas serão removidos do sistema. Além disso, as permissões do script serão revertidas. Para reinicar o sistema, você deverá seguir todas as etapas de instalação, após o reset.\n\n👉 Clique em OK para continuar.`,
+      tr('reset.title'),
+      tr('reset.body'),
       ui.ButtonSet.OK_CANCEL,
     );
     if (selectedButton !== ui.Button.OK) throw createCancelledError();
 
-    Toast.busy('Resetando...');
+    Toast.busy(tr('reset.resetting'));
     GasLock.withLock('script', () => {
       for (const table of [
         getScoresTable(),

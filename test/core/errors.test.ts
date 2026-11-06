@@ -59,7 +59,7 @@ describe('lock timeouts in menu actions', () => {
     ).not.toThrow();
 
     expect(toasts).toHaveLength(1);
-    expect(toasts[0]?.message).toMatch(/sincronização em andamento/);
+    expect(toasts[0]?.message).toMatch(/synchronization is in progress/);
     expect(sink.error).not.toHaveBeenCalled();
   });
 

@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Score synchronization in TypeScript: it runs under the script lock, reads each form's scores once and continues in a new execution through a URL-based continuation when the time runs out.
 - `gas-webapp` portal: a routed web app with an inlined single-page UI (ADR 0001), the `/api/users/:userId/scores` route, and an acknowledgement tracker on `/ack`. Respondent emails are masked in the logs. The vendored gas-webapp browser client is included.
 - `gas-test` suites that run in Apps Script (`npm run test:gas:build`, `npm run test:gas`), alongside the Vitest unit tests.
+- English and Brazilian Portuguese (`pt-BR`) message catalogue for the menu, toasts and web app, selected by the new `locale` setting.
+- `GET /api/meta` route that serves the locale, portal title and brand to the web app.
+- Brand settings `portalTitle`, `primaryColor` and `logoUrl`, and `formTitleStripPatterns`, a list of case-insensitive regular expressions removed from the Form titles. Invalid patterns are rejected when saving.
+- Neutral Score Portal web UI with dark mode.
+- MIT licence.
 - `.clasp.example.json` pins `core/logger.js` after the library bundle in `filePushOrder`, because clasp loads the other files alphabetically.
 
 ### Changed
@@ -30,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The scores lookup answers 404 for an unknown respondent.
 - Alternative emails of a respondent are matched exactly (separated by commas, semicolons or whitespace) instead of by substring.
 - The web app is created on first request, so that file load order does not matter.
+- Project renamed to gas-app-score-portal.
 - Legacy sources moved under `src/`; legacy HTML docs moved to `docs/legacy/`.
 
 ### Removed
@@ -39,4 +45,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The legacy framework and client.
 - The `Config` sheet, replaced by the `gas-config` settings.
 - Unused legacy utilities: `csvDb`, `arrayUtils`, `dateUtils`, `objectUtils`, `timedLoopToggle`, the unused trigger installers and `src/config/Sheets.js`.
+- `docs/legacy/`, the legacy HTML docs.
+- The hard-coded Form title clean-up. **Upgrade note:** set `formTitleStripPatterns` to keep a clean-up; see "Upgrading from the legacy app" in the README.
 - `.claspignore`, replaced by `.clasp.json` with `rootDir: dist`.

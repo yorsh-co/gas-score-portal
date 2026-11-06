@@ -20,6 +20,7 @@ test('scores service serves a respondent end to end', (ctx) => {
   const service = createScoresService(() => ({
     ...repos,
     getExcludedUrls: () => ['u4'],
+    getTitleStripPatterns: () => [],
     getLocale: () => 'en',
   }));
   const result = service.getByUser('ANA@x.org');

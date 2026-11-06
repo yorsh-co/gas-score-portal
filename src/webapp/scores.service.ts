@@ -21,6 +21,8 @@ interface ScoresServiceDeps {
   respondents: RespondentsRepo;
   scores: ScoresRepo;
   getExcludedUrls(): string[];
+  /** Regular expression sources removed from the form titles. */
+  getTitleStripPatterns(): string[];
   getLocale(): string;
 }
 
@@ -43,18 +45,34 @@ function maskRespondentName(name: string): string {
 }
 
 /**
+ * Compiles the title strip patterns, case-insensitively. Invalid patterns are
+ * skipped.
+ * @param sources Regular expression sources.
+ */
+function compileTitleStripPatterns(sources: readonly string[]): RegExp[] {
+  const compiled: RegExp[] = [];
+  sources.forEach((source) => {
+    try {
+      compiled.push(new RegExp(source, 'gi'));
+    } catch {
+      // Settings validation rejects these; an old stored value is ignored.
+    }
+  });
+  return compiled;
+}
+
+/**
  * Cleans a form title for display.
  * @param title Stored form title.
+ * @param strip Patterns whose matches are removed from each title segment.
  */
-function normalizeFormTitle(title: string): string {
+function normalizeFormTitle(title: string, strip: readonly RegExp[]): string {
   return StringUtils.toProperCase(
     title
       .split(/\s*[-–—]\s*/)
       .map((part) =>
-        part
-          .toLowerCase()
-          .replace('t4', '')
-          .replace('checando a aprendizagem', '')
+        strip
+          .reduce((text, re) => text.replace(re, ''), part.toLowerCase())
           .trim(),
       )
       .filter(Boolean)
@@ -69,8 +87,14 @@ function normalizeFormTitle(title: string): string {
 function createScoresService(getDeps: () => ScoresServiceDeps): ScoresService {
   return {
     getByUser(userId) {
-      const { forms, respondents, scores, getExcludedUrls, getLocale } =
-        getDeps();
+      const {
+        forms,
+        respondents,
+        scores,
+        getExcludedUrls,
+        getTitleStripPatterns,
+        getLocale,
+      } = getDeps();
       const respondent = respondents.findByEmail(userId);
       if (!respondent) return null;
 
@@ -96,11 +120,12 @@ function createScoresService(getDeps: () => ScoresServiceDeps): ScoresService {
         });
 
       const excluded = new Set(getExcludedUrls());
+      const strip = compileTitleStripPatterns(getTitleStripPatterns());
       const entries: UserScoreEntry[] = forms
         .list()
         .filter((f) => f.status !== 'excluded' && !excluded.has(f.url))
         .map((f) => ({
-          formTitle: normalizeFormTitle(f.title),
+          formTitle: normalizeFormTitle(f.title, strip),
           formPoints: f.maxPoints,
           score: byForm.get(f.url) ?? null,
         }));
