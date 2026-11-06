@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <base target="_top" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="mobile-web-app-capable" content="no" />
+    <link rel="stylesheet" href="portal.css" />
+  </head>
+
+  <body>
+    <main>
+      <div id="user-scores" class="card">
+        <div class="title-container">
+          <img
+            src="https://res.cloudinary.com/dsbaiaeqs/image/upload/v1772483417/banner_1_rh8fon.png"
+            alt="logo"
+            width="100"
+            height="100"
+          />
+          <h1>Checando a Aprendizagem</h1>
+        </div>
+
+        <div class="form-group">
+          <input
+            id="email"
+            type="email"
+            placeholder="Insira o e-mail utilizado nas checagens"
+            class="align-center"
+          />
+        </div>
+
+        <div class="button-container">
+          <button id="load-btn" class="lg full-width spinner-padding">
+            Visualize suas notas
+          </button>
+        </div>
+
+        <div id="error" class="error align-center"></div>
+
+        <table id="summary-table" hidden>
+          <tbody>
+            <tr>
+              <th>Nome</th>
+              <td id="user-name" class="cell-ellipsis"></td>
+            </tr>
+            <tr>
+              <th>Usuário(s)</th>
+              <td id="user-ids" class="cell-ellipsis"></td>
+            </tr>
+            <tr>
+              <th>Respostas</th>
+              <td id="user-num-responses"></td>
+            </tr>
+            <tr>
+              <th>Nota média</th>
+              <td id="user-average-score"></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <hr />
+
+        <table id="scores-table" class="tr-border-bottom" hidden>
+          <thead>
+            <tr>
+              <th>Módulo</th>
+              <th class="form-score">Nota</th>
+            </tr>
+          </thead>
+          <tbody id="scores-tbody"></tbody>
+        </table>
+
+        <div id="empty-state" class="empty" hidden>
+          Nenhuma nota encontrada.
+        </div>
+
+        <div id="scores-note">
+          <p id="last-update-timestamp"></p>
+          <p>
+            Novas notas poderão ser visualizadas em até uma hora após o envio do
+            formulário.
+          </p>
+        </div>
+      </div>
+
+      <template id="row-template">
+        <tr>
+          <td class="form-name cell-ellipsis"></td>
+          <td class="form-score"></td>
+        </tr>
+      </template>
+    </main>
+
+    <footer>
+      <a href="https://jspworkspacesolutions.com/" target="_blank"
+        >© 2026 Yorsh</a
+      >
+    </footer>
+
+    <script src="vendor/gas-webapp/gas-webapp.config.js"></script>
+    <script src="vendor/gas-webapp/gas-webapp.errors.js"></script>
+    <script src="vendor/gas-webapp/gas-webapp.client.js"></script>
+    <script src="portal.js"></script>
+  </body>
+</html>

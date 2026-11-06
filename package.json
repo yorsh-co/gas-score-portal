@@ -49,7 +49,8 @@
   "scripts": {
     "build": "node scripts/build.js",
     "build:watch": "node scripts/build.js --watch",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gas-dev-config html",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit",
     "bundle:libs": "gas-dev-bundle",
     "deploy:setup": "gas-dev-deploy",
     "clasp:push": "npm run build && clasp push --force",
@@ -64,6 +65,66 @@
     "format:check": "prettier . --check",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && gas-dev-config check",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:gas:build": "gas-dev-config gas-test build",
+    "test:gas": "gas-dev-config gas-test run"
+  },
+  "gasDevConfig": {
+    "loadOrder": [
+      "core/logger.ts",
+      "core/config.ts",
+      "core/errors.ts",
+      "utils/types/stringUtils.ts",
+      "utils/drive/DriveUtils.ts",
+      "utils/form/FormUtils.ts",
+      "utils/spreadsheet/toastUtil.ts",
+      "utils/spreadsheet/uiUtils.ts",
+      "utils/apps_script/executionTimer.ts",
+      "utils/apps_script/triggerUtils.ts",
+      "infra/db/db.ts",
+      "infra/db/forms.repo.ts",
+      "infra/db/respondents.repo.ts",
+      "infra/db/scores.repo.ts",
+      "infra/db/overview.ts",
+      "infra/db/migrate-legacy.ts",
+      "domain/LinkedForm.ts",
+      "infra/drive/GDrive.ts",
+      "infra/forms/GForms.ts",
+      "infra/forms/Cursor.ts",
+      "app/FormsImporter.ts",
+      "app/RespondentScoreSynchronizer.ts",
+      "triggers/install.ts",
+      "triggers/handlers/syncScores.ts",
+      "ui/menu/display.ts",
+      "ui/menu/handlers/forms.ts",
+      "ui/menu/handlers/install.ts",
+      "generated/portal.html.ts",
+      "webapp/scores.service.ts",
+      "webapp/routes.ts",
+      "webapp/app.ts",
+      "webapp/main.ts"
+    ],
+    "html": [
+      {
+        "entry": "src/web/portal.html",
+        "out": "src/generated/portal.html.ts",
+        "name": "_PORTAL_HTML"
+      }
+    ],
+    "peers": {
+      "gas-webapp": "^1.0.4",
+      "gas-sheetdb": "^2.1.5",
+      "gas-config": "^2.0.4",
+      "gas-error": "^1.2.5",
+      "gas-logger": "^2.0.4",
+      "gas-lock": "^1.2.4"
+    },
+    "gasTest": {
+      "scopes": [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/script.storage",
+        "https://www.googleapis.com/auth/forms"
+      ]
+    }
   }
 }
