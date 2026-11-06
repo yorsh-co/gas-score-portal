@@ -34,6 +34,7 @@ build/
 *.log
 *.zip
 *.sh
+!scripts/*.sh
 *.txt
 
 # =========================
@@ -41,3 +42,8 @@ build/
 # =========================
 .DS_Store
 Thumbs.db
+.worktrees/
+.claude/worktrees/
+.claude/plans/
+.claude/handoff/
+.env

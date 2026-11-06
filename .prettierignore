@@ -1,0 +1,16 @@
+node_modules
+.worktrees
+.claude/worktrees
+.claude/plans
+.claude/handoff
+
+# Legacy sources, removed as the migration to TypeScript progresses
+src/**/*.js
+src/web/legacy-client
+docs/legacy
+
+# Vendored and generated
+src/web/vendor
+src/lib
+types/gas-libraries.d.ts
+dist
