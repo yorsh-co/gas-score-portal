@@ -2,8 +2,10 @@
   "extends": "gas-dev-config/tsconfig/gas.json",
   "compilerOptions": {
     "rootDir": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "allowJs": true,
+    "checkJs": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.js", "types/**/*.d.ts"],
   "exclude": ["src/web/**/*"]
 }

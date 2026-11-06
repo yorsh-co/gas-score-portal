@@ -47,6 +47,12 @@
     "title": "gas-app-score-portal"
   },
   "scripts": {
+    "build": "node scripts/build.js",
+    "build:watch": "node scripts/build.js --watch",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "bundle:libs": "gas-dev-bundle",
+    "deploy:setup": "gas-dev-deploy",
+    "clasp:push": "npm run build && clasp push --force",
     "clean": "rimraf dist",
     "release": "gas-dev-release",
     "build:format": "npm run check && npm run build && npm run format:dist",

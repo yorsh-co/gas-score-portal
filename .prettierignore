@@ -4,14 +4,13 @@ node_modules
 .claude/plans
 .claude/handoff
 
-# Legacy sources, removed as the migration to src/ progresses
-/app
-/domain
-/infra
-/triggers
-/ui
-/utils
-/webapp
-/CHANGELOG.html
-/README.html
-/TODO.html
+# Legacy sources, removed as the migration to TypeScript progresses
+src/**/*.js
+src/web/legacy-client
+docs/legacy
+
+# Vendored and generated
+src/web/vendor
+src/lib
+types/gas-libraries.d.ts
+dist

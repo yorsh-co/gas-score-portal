@@ -34,6 +34,7 @@ build/
 *.log
 *.zip
 *.sh
+!scripts/*.sh
 *.txt
 
 # =========================
