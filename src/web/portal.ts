@@ -61,26 +61,20 @@ function normalizeEmailInput(value: string): string {
 }
 
 /**
- * Average score on a 0-10 scale, with one decimal when not an integer.
- * @param scores Scores to average.
+ * Formats a 0-10 value with at most one decimal.
+ * @param value Value to format.
  */
-function averageScore(scores: PortalScore[]): string {
-  const total = scores.reduce((sum, s) => sum + (s.score ?? 0), 0);
-  const average = scores.length ? total / scores.length : 0;
-  return Number.isInteger(average) ? String(average) : average.toFixed(1);
+function formatOutOfTen(value: number): string {
+  return `${Number(value.toFixed(1))} / 10`;
 }
 
 /**
- * Score of a form on a 0-10 scale.
+ * Score of a form on a 0-10 scale, or the "not answered" label.
  * @param entry Form score.
  */
-function scoreOutOfTen(entry: PortalScore): string {
+function scoreLabel(entry: PortalScore): string {
   if (entry.score === null) return tr('portal.notAnswered');
-  const scaled =
-    entry.formPoints && entry.formPoints !== 10
-      ? (entry.score / entry.formPoints) * 10
-      : entry.score;
-  return `${Number(scaled.toFixed(1))} / 10`;
+  return formatOutOfTen(scoreOutOfTen(entry.score, entry.formPoints));
 }
 
 /** Shows or hides the elements, by ID. */
@@ -107,12 +101,16 @@ function resetResult(): void {
  */
 function renderResult(data: PortalUserScores): void {
   const scores = data.scores;
-  const answered = scores.filter((s) => s.score !== null);
+  const answered = scores.flatMap((s) =>
+    s.score === null ? [] : [{ score: s.score, formPoints: s.formPoints }],
+  );
 
   byId('user-name').textContent = data.name;
   byId('user-ids').textContent = data.alternatives.join(', ');
   byId('user-num-responses').textContent = String(answered.length);
-  byId('user-average-score').textContent = `${averageScore(answered)} / 10`;
+  byId('user-average-score').textContent = formatOutOfTen(
+    averageOutOfTen(answered),
+  );
   setHidden(['summary-table'], false);
 
   if (scores.length === 0) {
@@ -127,7 +125,7 @@ function renderResult(data: PortalUserScores): void {
     const name = row.querySelector('.form-name');
     const score = row.querySelector('.form-score');
     if (name) name.textContent = entry.formTitle;
-    if (score) score.textContent = scoreOutOfTen(entry);
+    if (score) score.textContent = scoreLabel(entry);
     tbody.appendChild(row);
   });
   setHidden(['scores-table'], false);

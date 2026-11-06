@@ -155,3 +155,28 @@ function resendSecondsLeft(state: PortalState, now: number): number {
 function normalizeCodeInput(value: string): string {
   return value.replace(/\D/g, '').slice(0, OTP_LENGTH);
 }
+
+/**
+ * Score rescaled to 10 points. Forms worth 10 points, or of unknown worth,
+ * are returned as they are.
+ * @param score Points scored.
+ * @param formPoints Points the form is worth.
+ */
+function scoreOutOfTen(score: number, formPoints: number | null): number {
+  return formPoints && formPoints !== 10 ? (score / formPoints) * 10 : score;
+}
+
+/**
+ * Average of the scores rescaled to 10 points, or 0 when there are none.
+ * @param scores Answered scores.
+ */
+function averageOutOfTen(
+  scores: { score: number; formPoints: number | null }[],
+): number {
+  if (scores.length === 0) return 0;
+  const total = scores.reduce(
+    (sum, s) => sum + scoreOutOfTen(s.score, s.formPoints),
+    0,
+  );
+  return total / scores.length;
+}
