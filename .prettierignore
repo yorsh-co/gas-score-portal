@@ -1,0 +1,17 @@
+node_modules
+.worktrees
+.claude/worktrees
+.claude/plans
+.claude/handoff
+
+# Legacy sources, removed as the migration to src/ progresses
+/app
+/domain
+/infra
+/triggers
+/ui
+/utils
+/webapp
+/CHANGELOG.html
+/README.html
+/TODO.html
