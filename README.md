@@ -95,6 +95,17 @@ Tests create sheets named `__gt_<epochMs>_...` and delete them afterwards.
 
 `npm run check` is the quality gate: formatting, lint, typecheck, the vitest suite and the `gas-dev-config` check. Deployment workflows are provided by the shared `gas-dev-ci` repository.
 
+### Deployment
+
+`.github/workflows/deploy.yml` calls the reusable workflow in [`yorsh-co/gas-dev-ci`](https://github.com/yorsh-co/gas-dev-ci) (`@v0.1`) on every push: `develop` deploys to the `dev` environment and `main` to `live`. Configure these GitHub environments:
+
+| Environment | Variables                                                                                                                            | Secret         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
+| `dev`       | `GAS_SCRIPT_ID=1GmyVNNJAZe7MyZ-IQwoT7XpUiVYoL1Q03gw6_K7PrJabtU2ZftmTeb3n`, `GAS_DEPLOYMENT_ID` (the versioned web-app deployment ID) | `CLASPRC_JSON` |
+| `live`      | Created later by `npm run deploy:setup` on the live sheet copy                                                                       | `CLASPRC_JSON` |
+
+See the [gas-dev-ci README](https://github.com/yorsh-co/gas-dev-ci#readme) for how to obtain `CLASPRC_JSON`, token expiry, and re-consent when the OAuth scopes change.
+
 ## License
 
 [MIT](LICENSE.md)

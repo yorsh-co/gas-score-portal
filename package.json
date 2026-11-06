@@ -19,6 +19,7 @@
     "@types/node": "^22.20.5",
     "eslint": "^10.7.0",
     "gas-dev-bundle": "github:yorsh-co/gas-dev-bundle#semver:^2.0.0",
+    "gas-dev-ci": "github:yorsh-co/gas-dev-ci#semver:^0.1.0",
     "gas-dev-config": "github:yorsh-co/gas-dev-config#semver:^2.1.0",
     "gas-dev-deploy": "github:yorsh-co/gas-dev-deploy#semver:^0.1.0",
     "gas-dev-release": "github:yorsh-co/gas-dev-release#semver:^2.0.0",
