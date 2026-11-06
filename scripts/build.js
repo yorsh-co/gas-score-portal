@@ -64,6 +64,15 @@ function copy(from, to) {
   cpSync(from, to);
 }
 
+/**
+ * Whether a file is a web UI source, which is inlined into the generated
+ * module instead of being pushed as a page.
+ * @param {string} file Absolute path.
+ */
+function isWebSource(file) {
+  return relative(src, file).replaceAll('\\', '/').startsWith('web/');
+}
+
 function build() {
   const manifest = join(root, 'appsscript.json');
   requireInput(src);
@@ -83,7 +92,7 @@ function build() {
   }
 
   for (const file of walk(src)) {
-    if (file.endsWith('.html')) {
+    if (file.endsWith('.html') && !isWebSource(file)) {
       copy(file, join(dist, relative(src, file)));
     }
   }

@@ -3,12 +3,12 @@ const LOG_SHEET_NAME = 'Log';
 
 /**
  * Application-wide logger. Writes `info` and above to the execution log and
- * `warn` and above to the `Log` sheet. The sheet is resolved lazily, so
+ * `error` to the `Log` sheet. The sheet is resolved lazily, so
  * creating the logger touches no Apps Script service.
  */
 const appLogger = new GasLogger({
   level: 'info',
-  sheetLevel: 'warn',
+  sheetLevel: 'error',
   sheetConfig: {
     spreadsheet: () => SpreadsheetApp.getActiveSpreadsheet(),
     sheetName: LOG_SHEET_NAME,

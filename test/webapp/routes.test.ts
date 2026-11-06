@@ -21,9 +21,13 @@ function setup() {
 }
 
 /** Runs a simulated `google.script.run` call and returns the response or the thrown error message. */
-function call(webApp: { doGet(e: object): unknown }, route: string) {
+function call(
+  webApp: { doGet(e: object): unknown },
+  route: string,
+  callId?: string,
+) {
   try {
-    return { response: webApp.doGet({ parameter: { route } }) };
+    return { response: webApp.doGet({ parameter: { route, callId } }) };
   } catch (err) {
     return { error: (err as Error).message };
   }
@@ -90,5 +94,25 @@ describe('entry points', () => {
     expect(() =>
       app.doPost({ parameter: { route: '/nope' }, postData: { contents: '' } }),
     ).toThrow(/404/);
+  });
+});
+
+describe('ack tracker', () => {
+  it('records the callId of a request and reports it on /ack', () => {
+    const { webApp } = setup();
+
+    call(webApp, '/nope', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    const ack = webApp.doGet({
+      parameter: {
+        route: '/ack',
+        callIds:
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa,bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      },
+    });
+
+    expect(ack).toMatchObject({
+      ok: true,
+      data: ['aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'],
+    });
   });
 });

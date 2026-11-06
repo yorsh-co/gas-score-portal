@@ -67,6 +67,20 @@ describe('respondents repository', () => {
     ).toEqual(['b@x.org']);
   });
 
+  it('matches alternatives exactly, not by substring', () => {
+    const { app } = loadApp();
+    const respondents = app.createRespondentsRepo(
+      new FakeTable([
+        { email: 'b@x.org', name: 'B', alternatives: 'ana@x.com' },
+        { email: 'c@x.org', name: 'C', alternatives: 'x@y.org;\n Na@X.com' },
+      ]),
+    );
+
+    expect(
+      respondents.findByAlternative('na@x.com').map((r) => r.email),
+    ).toEqual(['c@x.org']);
+  });
+
   it('upserts by normalized email and inserts only missing ones in a batch', () => {
     const { app } = loadApp();
     const table = new FakeTable();

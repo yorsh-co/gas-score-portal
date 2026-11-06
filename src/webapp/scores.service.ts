@@ -76,18 +76,24 @@ function createScoresService(getDeps: () => ScoresServiceDeps): ScoresService {
 
       const byForm = new Map<string, number>();
       const emails = new Set<string>([respondent.email]);
-      const stored = scores.getByEmails([respondent.email]);
-      stored.forEach((s) => byForm.set(s.formUrl, s.score));
+      const alternatives = respondents.findByAlternative(respondent.email);
+      const stored = scores.getByEmails([
+        respondent.email,
+        ...alternatives.map((alt) => alt.email),
+      ]);
 
       // Responses made with an alternative email fill the forms that the
       // respondent has no score for.
-      respondents.findByAlternative(respondent.email).forEach((alt) => {
-        scores.getByEmails([alt.email]).forEach((s) => {
+      stored
+        .filter((s) => s.email === respondent.email)
+        .forEach((s) => byForm.set(s.formUrl, s.score));
+      stored
+        .filter((s) => s.email !== respondent.email)
+        .forEach((s) => {
           if (byForm.has(s.formUrl)) return;
           byForm.set(s.formUrl, s.score);
-          emails.add(alt.email);
+          emails.add(s.email);
         });
-      });
 
       const excluded = new Set(getExcludedUrls());
       const entries: UserScoreEntry[] = forms

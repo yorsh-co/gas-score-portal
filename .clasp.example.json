@@ -1,5 +1,5 @@
 {
   "scriptId": "",
   "rootDir": "dist",
-  "filePushOrder": ["dist/lib/gas-libraries.js"]
+  "filePushOrder": ["dist/lib/gas-libraries.js", "dist/core/logger.js"]
 }

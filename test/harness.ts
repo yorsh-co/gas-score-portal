@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createGasLoader, loadOrderFiles } from 'gas-dev-config/test';
 
 const ROOT = process.cwd();
@@ -68,7 +70,7 @@ export interface AppExports {
     doGet(e: object): unknown;
     doPost(e: object): unknown;
   };
-  app: { doGet(e: object): unknown; doPost(e: object): unknown };
+  getApp(): { doGet(e: object): unknown; doPost(e: object): unknown };
   doGet(e: object): unknown;
   doPost(e: object): unknown;
 }
@@ -186,13 +188,40 @@ const EXPORTS: (keyof AppExports)[] = [
   'refreshOverview',
   'createScoresService',
   'createWebApp',
-  'app',
+  'getApp',
   'doGet',
   'doPost',
 ];
 
 const load = createGasLoader<AppExports>({
   files: [BUNDLE, ...loadOrderFiles(ROOT)],
+  exports: EXPORTS,
+  root: ROOT,
+});
+
+/**
+ * Files in the order clasp pushes them with `filePushOrder` from
+ * `.clasp.example.json`: those first, then the rest alphabetically.
+ */
+function claspPushOrder(): string[] {
+  const config = JSON.parse(
+    readFileSync(join(ROOT, '.clasp.example.json'), 'utf8'),
+  ) as { filePushOrder: string[] };
+  const toSource = (path: string) =>
+    path === 'dist/lib/gas-libraries.js'
+      ? BUNDLE
+      : path.replace(/^dist\//, 'src/').replace(/\.js$/, '.ts');
+  const pinned = config.filePushOrder.map(toSource);
+  const rest = loadOrderFiles(ROOT)
+    .filter((file) => !pinned.includes(file))
+    .sort((a, b) =>
+      a.replace(/\.ts$/, '.js') < b.replace(/\.ts$/, '.js') ? -1 : 1,
+    );
+  return [...pinned, ...rest];
+}
+
+const loadInClaspOrder = createGasLoader<AppExports>({
+  files: claspPushOrder(),
   exports: EXPORTS,
   root: ROOT,
 });
@@ -232,6 +261,8 @@ export interface FakeEnvironmentOptions {
   activeUser?: string;
   /** Extra or overriding globals, such as spies. */
   globals?: Record<string, unknown>;
+  /** Loads the files in the order clasp pushes them. */
+  claspOrder?: boolean;
 }
 
 /** Records the lock operations of the fake `LockService`. */
@@ -295,7 +326,19 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
     },
   };
 
-  const app = load({
+  const cacheStore = new Map<string, string>();
+  const cache = {
+    put: (key: string, value: string) => void cacheStore.set(key, value),
+    getAll: (keys: string[]) =>
+      Object.fromEntries(
+        keys
+          .filter((k) => cacheStore.has(k))
+          .map((k) => [k, cacheStore.get(k)]),
+      ),
+    removeAll: (keys: string[]) => keys.forEach((k) => cacheStore.delete(k)),
+  };
+
+  const app = (options.claspOrder ? loadInClaspOrder : load)({
     console,
     Error,
     PropertiesService: { getScriptProperties: () => properties },
@@ -310,6 +353,7 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
       getEffectiveUser: () => user(options.activeUser ?? ''),
     },
     ScriptApp: scriptApp,
+    CacheService: { getScriptCache: () => cache },
     Utilities: { getUuid: () => `uuid-${++uuid}` },
     ...options.globals,
   });

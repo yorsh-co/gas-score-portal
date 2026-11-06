@@ -44,6 +44,18 @@ function toRespondentRecord(entry: GasSheetDbEntry): RespondentRecord {
 }
 
 /**
+ * Splits the free-text `alternatives` cell into normalized emails. Entries are
+ * separated by commas, semicolons or whitespace, including line breaks.
+ * @param text Cell content.
+ */
+function parseAlternatives(text: string): string[] {
+  return text
+    .split(/[\s,;]+/)
+    .map(normalizeEmail)
+    .filter((email) => email !== '');
+}
+
+/**
  * Creates the respondents repository.
  * @param table Backing table.
  */
@@ -63,7 +75,9 @@ function createRespondentsRepo(table: DbTable): RespondentsRepo {
         .findWhere(
           (entry) =>
             normalizeEmail(entry.email) !== needle &&
-            cellToString(entry.alternatives).toLowerCase().includes(needle),
+            parseAlternatives(cellToString(entry.alternatives)).includes(
+              needle,
+            ),
         )
         .map(toRespondentRecord);
     },

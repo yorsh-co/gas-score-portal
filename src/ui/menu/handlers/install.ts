@@ -35,6 +35,9 @@ function menuInstall(): void {
     );
     Utilities.sleep(TOAST_PAUSE_MS);
 
+    Toast.busy('Criando a planilha Overview');
+    refreshOverview();
+
     Toast.success('O Script foi instalado');
   });
 }

@@ -4,7 +4,7 @@
  * @param e Request event.
  */
 function doGet(e: GoogleAppsScript.Events.DoGet) {
-  if (e?.parameter?.route) return app.doGet(e);
+  if (e?.parameter?.route) return getApp().doGet(e);
 
   const config = getConfig();
   const output = HtmlService.createHtmlOutput(_PORTAL_HTML)
@@ -20,5 +20,5 @@ function doGet(e: GoogleAppsScript.Events.DoGet) {
  * @param e Request event.
  */
 function doPost(e: GoogleAppsScript.Events.DoPost) {
-  return app.doPost(e);
+  return getApp().doPost(e);
 }
