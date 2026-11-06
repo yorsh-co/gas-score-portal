@@ -115,14 +115,14 @@ function getExcludedFormUrls(): string[] {
 }
 
 /**
- * Stores the URLs of the Forms excluded from synchronization.
- * Requires the active user to be an editor of the settings.
- * @param urls Edit URLs, without duplicates.
+ * Stores setting values. Requires the active user to be an editor of the
+ * settings.
+ * @param changes Values by setting key.
  */
-function saveExcludedFormUrls(urls: readonly string[]): void {
+function saveConfigValues(changes: Record<string, string>): void {
   const config = getConfig();
   const outcome = config._saveChanges({
-    changes: { excludedFormUrls: urls.join(CONFIG_LIST_SEPARATOR) },
+    changes,
     version: config._readSnapshot().version,
     saveId: Utilities.getUuid(),
   });
@@ -133,6 +133,24 @@ function saveExcludedFormUrls(urls: readonly string[]): void {
   throw new GasConflictError(
     'The settings changed in the meantime. Try again.',
   );
+}
+
+/**
+ * Stores the URLs of the Forms excluded from synchronization.
+ * Requires the active user to be an editor of the settings.
+ * @param urls Edit URLs, without duplicates.
+ */
+function saveExcludedFormUrls(urls: readonly string[]): void {
+  saveConfigValues({ excludedFormUrls: urls.join(CONFIG_LIST_SEPARATOR) });
+}
+
+/**
+ * Stores the Drive folder that is searched for Forms.
+ * Requires the active user to be an editor of the settings.
+ * @param url Folder URL.
+ */
+function saveDriveFolderUrl(url: string): void {
+  saveConfigValues({ driveFolderUrl: url });
 }
 
 // GasConfigRpc, called by the settings dialog, starts from a blank global

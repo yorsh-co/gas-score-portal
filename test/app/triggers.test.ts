@@ -1,0 +1,84 @@
+import { describe, expect, it } from 'vitest';
+import { loadApp } from '../harness';
+
+describe('FormsCursor', () => {
+  it('initialize saves a new cursor and removes the earlier ones of the user', () => {
+    const prefix = 'cursor:FORMS_RESPONSES:me@x.org:';
+    const { app, properties } = loadApp({
+      activeUser: 'me@x.org',
+      properties: {
+        [`${prefix}2020-01-01T00:00:00.000Z`]: '{}',
+        'cursor:FORMS_RESPONSES:other@x.org:2020': '{}',
+        unrelated: 'keep',
+      },
+    });
+
+    const cursor = app.FormsCursor.initialize();
+
+    expect(cursor.key.startsWith(prefix)).toBe(true);
+    expect(properties.getKeys().sort()).toEqual(
+      [
+        cursor.key,
+        'cursor:FORMS_RESPONSES:other@x.org:2020',
+        'unrelated',
+      ].sort(),
+    );
+  });
+
+  it('deleteTrailing keeps the given key', () => {
+    const { app, properties } = loadApp({
+      properties: { 'cursor:a': '1', 'cursor:b': '2' },
+    });
+
+    app.FormsCursor.deleteTrailing('cursor:', 'cursor:b');
+
+    expect(properties.getKeys()).toEqual(['cursor:b']);
+  });
+});
+
+describe('TriggerUtils continuations', () => {
+  it('stores the data under the trigger ID and removes it when consumed', () => {
+    const { app, properties, triggers } = loadApp();
+
+    const id = app.TriggerUtils.createContinuation('continueSyncScores', {
+      dataString: 'cursor:key',
+    });
+
+    expect(properties.getProperty(`continuation:${id}`)).toBe('cursor:key');
+    expect(triggers).toHaveLength(1);
+
+    expect(app.TriggerUtils.consumeContinuation(id)).toBe('cursor:key');
+    expect(properties.getKeys()).toEqual([]);
+    expect(triggers).toHaveLength(0);
+  });
+
+  it('deleteContinuations removes the pending triggers and all stored data', () => {
+    const { app, properties, triggers } = loadApp();
+    app.TriggerUtils.createContinuation('continueSyncScores', {
+      dataString: 'a',
+    });
+    app.TriggerUtils.createContinuation('continueSyncScores', {
+      dataString: 'b',
+    });
+    properties.setProperty('continuation:stale', 'c');
+
+    app.TriggerUtils.deleteContinuations('continueSyncScores');
+
+    expect(triggers).toHaveLength(0);
+    expect(properties.getKeys()).toEqual([]);
+  });
+});
+
+describe('continueSyncScores', () => {
+  it('returns without error when the cursor is missing, and consumes the trigger', () => {
+    const { app, properties, triggers } = loadApp();
+    const id = app.TriggerUtils.createContinuation('continueSyncScores', {
+      dataString: 'cursor:gone',
+    });
+
+    expect(() => app.continueSyncScores({ triggerUid: id })).not.toThrow();
+
+    expect(triggers).toHaveLength(0);
+    expect(properties.getKeys()).toEqual([]);
+  });
+});

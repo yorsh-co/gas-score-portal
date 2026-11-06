@@ -28,7 +28,7 @@ function menuInstall(): void {
     Utilities.sleep(TOAST_PAUSE_MS);
 
     const timeZone = Session.getScriptTimeZone();
-    SS.setSpreadsheetTimeZone(timeZone);
+    SpreadsheetApp.getActiveSpreadsheet().setSpreadsheetTimeZone(timeZone);
     Toast.busy(
       'Acesse o editor do Apps Script para alterar',
       `Fuso horário configurado para ${timeZone}`,
@@ -68,7 +68,7 @@ function menuUninstall(): void {
 }
 
 /**
- * Restores the template sheets and revokes the script permissions.
+ * Clears the data tables and revokes the script permissions.
  */
 function menuSystemReset(): void {
   runMenuAction(installMenuLogger, () => {
@@ -80,38 +80,17 @@ function menuSystemReset(): void {
     );
     if (selectedButton !== ui.Button.OK) throw createCancelledError();
 
-    const missing = SHEETS.templates.filter(
-      (sheetName) => !SS.getSheetByName(sheetName),
-    );
-    if (missing.length)
-      throw new GasNotFoundError(
-        `Abas de reset não encontradas: ${JSON.stringify(missing)}`,
-      );
-
     Toast.busy('Resetando...');
-    const tempSheet = SS.insertSheet().setName('Resetando...');
-    SpreadsheetApp.flush();
-
-    SS.getSheets().forEach((sheet) => {
-      const sheetName = sheet.getName();
-      if (
-        !SHEETS.templates.includes(sheetName) &&
-        sheetName !== tempSheet.getName()
-      ) {
-        SS.deleteSheet(sheet);
-      }
+    GasLock.withLock('script', () => {
+      for (const table of [
+        getScoresTable(),
+        getRespondentsTable(),
+        getFormsTable(),
+      ])
+        table.deleteWhere(() => true);
+      FormsCursor.deleteTrailing('cursor:', '');
+      TriggerUtils.deleteContinuations(CONTINUATION_HANDLER);
     });
-
-    SHEETS.templates.forEach((sheetName, i) => {
-      const template = SS.getSheetByName(sheetName);
-      if (!template) return;
-      const newSheet = template
-        .copyTo(SS)
-        .setName(sheetName.replace('TEMPLATE', '').trim());
-      SS.setActiveSheet(newSheet);
-      SS.moveActiveSheet(i + 1);
-    });
-    SS.deleteSheet(tempSheet);
 
     ScriptApp.invalidateAuth();
 

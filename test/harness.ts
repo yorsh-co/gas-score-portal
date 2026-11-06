@@ -30,6 +30,25 @@ export interface AppExports {
     repos: { forms: object; respondents: object; scores: object },
     refresh: () => void,
   ): MigrationCountsApi;
+  FormsCursor: {
+    new (options?: { key?: string; lastFormUrl?: string }): FormsCursorApi;
+    initialize(): FormsCursorApi;
+    deleteTrailing(prefix: string, keepKey: string): void;
+  };
+  TriggerUtils: {
+    createContinuation(
+      handler: string,
+      options?: { interval?: number; dataString?: string | null },
+    ): string;
+    consumeContinuation(triggerId: string): string | null;
+    deleteContinuations(handler: string): void;
+  };
+  continueSyncScores(e: { triggerUid: string }): void;
+  isLockTimeoutError(err: unknown): boolean;
+  RespondentScoreSynchronizer: new (
+    cursor: FormsCursorApi,
+    deps: SyncDepsApi,
+  ) => { run(): void };
   columnLetter(index: number): string;
   buildOverviewFormula(
     forms: object,
@@ -42,6 +61,34 @@ export interface AppExports {
     respondents: object,
     scores: object,
   ): unknown;
+}
+
+export interface FormsCursorApi {
+  key: string;
+  lastFormUrl: string;
+  complete: boolean;
+  save(): void;
+  delete(): void;
+}
+
+export interface SyncDepsApi {
+  forms: FormsRepoApi;
+  respondents: RespondentsRepoApi;
+  scores: ScoresRepoApi;
+  timer: {
+    start(): number;
+    setSafetyMargin(ms: number): void;
+    hasTimeLeft(): boolean;
+    getTimeRemainingSafe(): number;
+  };
+  getExcludedUrls(): string[];
+  openForm(url: string): unknown;
+  getFormScores(
+    form: unknown,
+    after: Date | undefined,
+  ): { email: string; name: string; score: number }[];
+  scheduleContinuation(cursorKey: string): void;
+  now(): Date;
 }
 
 export interface FormRecordApi {
@@ -107,6 +154,11 @@ const EXPORTS: (keyof AppExports)[] = [
   'saveExcludedFormUrls',
   'runMenuAction',
   'createCancelledError',
+  'FormsCursor',
+  'TriggerUtils',
+  'continueSyncScores',
+  'isLockTimeoutError',
+  'RespondentScoreSynchronizer',
   'createFormsRepo',
   'createRespondentsRepo',
   'createScoresRepo',
@@ -187,11 +239,39 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
     hasLock: () => locks.acquired > locks.released,
   };
   const user = (email: string) => ({ getEmail: () => email });
+  const toasts: { message: string; title: string; timeout: number }[] = [];
   const spreadsheet = {
+    toast: (message: string, title: string, timeout: number) => {
+      toasts.push({ message, title, timeout });
+    },
     getOwner: () => (options.owner === null ? null : user(options.owner ?? '')),
     getEditors: () => (options.editors ?? []).map(user),
   };
   let uuid = 0;
+  const triggers: { id: string; handler: string }[] = [];
+  let triggerSeq = 0;
+  const wrapTrigger = (t: { id: string; handler: string }) => ({
+    getUniqueId: () => t.id,
+    getHandlerFunction: () => t.handler,
+  });
+  const scriptApp = {
+    newTrigger: (handler: string) => ({
+      timeBased: () => ({
+        after: () => ({
+          create: () => {
+            const t = { id: `trigger-${++triggerSeq}`, handler };
+            triggers.push(t);
+            return wrapTrigger(t);
+          },
+        }),
+      }),
+    }),
+    getProjectTriggers: () => triggers.map(wrapTrigger),
+    deleteTrigger: (trigger: { getUniqueId(): string }) => {
+      const i = triggers.findIndex((t) => t.id === trigger.getUniqueId());
+      if (i >= 0) triggers.splice(i, 1);
+    },
+  };
 
   const app = load({
     console,
@@ -207,10 +287,10 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
       getActiveUser: () => user(options.activeUser ?? ''),
       getEffectiveUser: () => user(options.activeUser ?? ''),
     },
+    ScriptApp: scriptApp,
     Utilities: { getUuid: () => `uuid-${++uuid}` },
-    Toast: { error: () => undefined },
     ...options.globals,
   });
 
-  return { app, properties, locks };
+  return { app, properties, locks, toasts, triggers };
 }
