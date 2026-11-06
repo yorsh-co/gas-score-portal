@@ -213,6 +213,8 @@ function applyBrand(brand: PortalMeta['brand']): void {
 
 /** Loads the locale and title from the server before the page is used. */
 function loadMeta(): void {
+  const button = byId<HTMLButtonElement>('load-btn');
+  button.disabled = true;
   window.GasWebApp.api
     .get<PortalMeta>('/api/meta')
     .then((meta) => {
@@ -221,7 +223,10 @@ function loadMeta(): void {
       applyBrand(meta.brand);
       applyTranslations();
     })
-    .catch((error: unknown) => console.error(error));
+    .catch((error: unknown) => console.error(error))
+    .finally(() => {
+      button.disabled = false;
+    });
 }
 
 loadMeta();

@@ -40,6 +40,8 @@ const CONFIG_SCHEMA = {
     description:
       'HTTPS address of the web app logo. Empty uses the built-in one.',
     group: 'general',
+    pattern: '^https://',
+    patternMessage: 'Use an address that starts with https://.',
   },
   faviconUrl: {
     type: 'url',
@@ -77,8 +79,27 @@ const CONFIG_SCHEMA = {
     description:
       'Regular expressions (case-insensitive), one per line. Matches are removed from the Form titles shown in the web app.',
     group: 'forms',
+    validate: (value) => findInvalidPattern(value),
   },
 } satisfies GasConfigSchema;
+
+/**
+ * Returns an error message naming the first line of a multi-line setting that
+ * is not a valid regular expression, or null when all are valid.
+ * @param value Setting value, one pattern per line.
+ */
+function findInvalidPattern(value: string): string | null {
+  for (const line of value.split(CONFIG_LIST_SEPARATOR)) {
+    const pattern = line.trim();
+    if (pattern === '') continue;
+    try {
+      new RegExp(pattern, 'i');
+    } catch {
+      return `Invalid regular expression: ${pattern}`;
+    }
+  }
+  return null;
+}
 
 /** The typed settings object. */
 type AppConfig = GasConfig<typeof CONFIG_SCHEMA>;

@@ -51,6 +51,15 @@ Settings are stored in Script Properties and edited in the settings dialog, open
 | `excludedFormUrls`       | Edit URLs of Forms to ignore, one per line.                                                            |
 | `formTitleStripPatterns` | Case-insensitive regular expressions, one per line, removed from the Form titles shown to respondents. |
 
+## Upgrading from the legacy app
+
+The legacy app removed some words from the Form titles with hard-coded rules. That clean-up is now the `formTitleStripPatterns` setting, empty by default. To keep it, add one regular expression per line, for example:
+
+```
+^t4\s*[-–:]?\s*
+checando a aprendizagem
+```
+
 ## Limits
 
 - Apps Script stops an execution after 6 minutes. The synchronization saves a cursor and schedules a continuation before the limit.

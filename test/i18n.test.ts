@@ -68,6 +68,32 @@ describe('tr', () => {
 });
 
 describe('GET /api/meta', () => {
+  it('passes the configured brand through', () => {
+    const { app } = loadApp({
+      properties: {
+        'gasConfig:portalTitle': '"Acme Scores"',
+        'gasConfig:primaryColor': '"#112233"',
+        'gasConfig:logoUrl': '"https://example.org/logo.png"',
+        'gasConfig:faviconUrl': '"https://example.org/icon.png"',
+      },
+    });
+    const webApp = app.createWebApp({ getByUser: () => null });
+
+    const response = webApp.doGet({ parameter: { route: '/api/meta' } });
+
+    expect(response).toMatchObject({
+      ok: true,
+      data: {
+        portalTitle: 'Acme Scores',
+        brand: {
+          primaryColor: '#112233',
+          logoUrl: 'https://example.org/logo.png',
+          faviconUrl: 'https://example.org/icon.png',
+        },
+      },
+    });
+  });
+
   it('returns the locale, title and brand', () => {
     const { app } = loadApp({ properties: { 'gasConfig:locale': '"pt-BR"' } });
     const webApp = app.createWebApp({ getByUser: () => null });

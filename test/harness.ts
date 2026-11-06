@@ -25,6 +25,8 @@ export interface AppExports {
   tr(key: MessageKeyApi, params?: Record<string, string | number>): string;
   getExcludedFormUrls(): string[];
   saveExcludedFormUrls(urls: string[]): void;
+  saveConfigValues(changes: Record<string, string>): void;
+  getFormTitleStripPatterns(): string[];
   runMenuAction(logger: unknown, action: () => void): void;
   createCancelledError(): Error;
   createFormsRepo(table: object): FormsRepoApi;
@@ -188,6 +190,8 @@ const EXPORTS: (keyof AppExports)[] = [
   'tr',
   'getExcludedFormUrls',
   'saveExcludedFormUrls',
+  'saveConfigValues',
+  'getFormTitleStripPatterns',
   'runMenuAction',
   'createCancelledError',
   'FormsCursor',

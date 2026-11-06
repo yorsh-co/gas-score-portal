@@ -15,7 +15,7 @@ function getApp(): GasWebApp {
         scores: createScoresRepo(getScoresTable()),
         getExcludedUrls: getExcludedFormUrls,
         getTitleStripPatterns: getFormTitleStripPatterns,
-        getLocale: () => getConfig().get('locale') ?? 'en',
+        getLocale,
       })),
     );
   }

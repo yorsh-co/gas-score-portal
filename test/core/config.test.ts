@@ -75,3 +75,27 @@ describe('excluded forms', () => {
     expect(() => app.saveExcludedFormUrls(['https://a'])).toThrow();
   });
 });
+
+describe('form title strip patterns', () => {
+  it('rejects an invalid regular expression with a message', () => {
+    const { app } = loadApp({
+      owner: 'owner@example.org',
+      activeUser: 'owner@example.org',
+    });
+
+    expect(() =>
+      app.saveConfigValues({ formTitleStripPatterns: '^ok\n(unclosed' }),
+    ).toThrow(/\(unclosed/);
+  });
+
+  it('stores valid patterns', () => {
+    const { app } = loadApp({
+      owner: 'owner@example.org',
+      activeUser: 'owner@example.org',
+    });
+
+    app.saveConfigValues({ formTitleStripPatterns: '^t4\\s*\n\nquiz' });
+
+    expect(app.getFormTitleStripPatterns()).toEqual(['^t4\\s*', 'quiz']);
+  });
+});
