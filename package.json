@@ -50,7 +50,7 @@
     "build": "node scripts/build.js",
     "build:watch": "node scripts/build.js --watch",
     "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gas-dev-config html",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit",
     "bundle:libs": "gas-dev-bundle",
     "deploy:setup": "gas-dev-deploy",
     "clasp:push": "npm run build && clasp push --force",
@@ -65,7 +65,9 @@
     "format:check": "prettier . --check",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && gas-dev-config check",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:gas:build": "gas-dev-config gas-test build",
+    "test:gas": "gas-dev-config gas-test run"
   },
   "gasDevConfig": {
     "loadOrder": [
@@ -108,6 +110,21 @@
         "out": "src/generated/portal.html.ts",
         "name": "_PORTAL_HTML"
       }
-    ]
+    ],
+    "peers": {
+      "gas-webapp": "^1.0.4",
+      "gas-sheetdb": "^2.1.5",
+      "gas-config": "^2.0.4",
+      "gas-error": "^1.2.5",
+      "gas-logger": "^2.0.4",
+      "gas-lock": "^1.2.4"
+    },
+    "gasTest": {
+      "scopes": [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/script.storage",
+        "https://www.googleapis.com/auth/forms"
+      ]
+    }
   }
 }
