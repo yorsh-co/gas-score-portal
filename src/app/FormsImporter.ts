@@ -27,20 +27,18 @@ class FormsImporter {
   run(): void {
     this.resolveParentFolder();
     this.persistParentFolder();
-    Toast.loading('Buscando Forms no Drive');
+    Toast.loading(tr('importer.searching'));
 
     const newForms = this.filterNewForms(this.fetchForms());
     this.logger.info('Found new forms', { count: newForms.length });
-    Toast.busy(`Importando ${newForms.length} novos Forms`);
+    Toast.busy(tr('importer.importing', { count: newForms.length }));
 
     this.insertForms(newForms);
   }
 
   private resolveParentFolder(): void {
     if (!this.parentFolderUrl && !this.allowPrompt)
-      throw new GasValidationError(
-        'Parent folder URL is required. Set the Drive folder URL in the settings.',
-      );
+      throw new GasValidationError(tr('importer.folderRequired'));
 
     while (!this.parentFolderId) {
       if (!this.parentFolderUrl)
@@ -52,9 +50,9 @@ class FormsImporter {
             this.parentFolderUrl,
           );
         } else {
-          this.warning =
-            `Não foi possível acessar a pasta em "${this.parentFolderUrl}". ` +
-            `Verifique se você tem permissão para acessar a pasta.`;
+          this.warning = tr('importer.folderAccessWarning', {
+            url: this.parentFolderUrl,
+          });
           this.parentFolderUrl = '';
         }
       } else {
@@ -81,14 +79,8 @@ class FormsImporter {
 
   private promptForFolderUrl(): string {
     return GSheetsUiUtils.promptForValue(
-      '🟪 Importar Forms do Drive',
-
-      'Insira o URL da pasta do Drive que contém os Forms a serem vinculados ao sistema.\n\n' +
-        'Deixe vazio para importar Forms de todo o Drive.\n\n' +
-        '👉 Observações:\n' +
-        '- Apenas Forms que correspondam às configurações serão importados.\n' +
-        '- Novos Forms na pasta serão importados automaticamente em até 60 minutos.',
-
+      tr('importer.promptTitle'),
+      tr('importer.promptBody'),
       this.warning,
 
       { acceptBlank: true },

@@ -1,12 +1,9 @@
-/** Message of the error thrown when the user dismisses a confirmation. */
-const CANCELLED_BY_USER_MESSAGE = 'Cancelado pelo usuário';
-
 /**
  * Creates the error thrown when the user cancels a prompt or confirmation.
  * It is an expected failure, so it is logged at `warn`, not `error`.
  */
 function createCancelledError(): GasError {
-  return new GasError(CANCELLED_BY_USER_MESSAGE, { statusCode: 409 });
+  return new GasError(tr('error.cancelled'), { statusCode: 409 });
 }
 
 /**
@@ -45,9 +42,7 @@ function runMenuAction(logger: GasLogger, action: () => void): void {
       logger.warn('Menu action skipped: the script lock is busy', {
         error: getErrorMessage(err),
       });
-      Toast.warning(
-        'Há uma sincronização em andamento. Tente novamente em instantes.',
-      );
+      Toast.warning(tr('error.syncRunning'));
       return;
     }
     GasError.handle(err, { logger, rethrow: false, method: 'menu' });

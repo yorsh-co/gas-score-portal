@@ -16,7 +16,7 @@ interface FormScoresOptions {
 }
 
 /** Placeholder email of a response that did not provide one. */
-const MISSING_RESPONDENT_EMAIL = 'E-mail não fornecido';
+const MISSING_RESPONDENT_EMAIL = 'E-mail n\u00e3o fornecido';
 
 /** Google Forms lookups. */
 const GForms = (() => {

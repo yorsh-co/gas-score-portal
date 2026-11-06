@@ -36,21 +36,21 @@ const Toast = (() => {
   return {
     /** Busy toast, shown until replaced. */
     busy: (message?: string, title?: string) =>
-      show('busy', '🔵', 'Ocupado...', message, title, -1),
+      show('busy', '🔵', tr('toast.busy'), message, title, -1),
     /** Loading toast, shown until replaced. */
     loading: (message?: string, title?: string) =>
-      show('loading', '🔵', 'Carregando...', message, title, -1),
+      show('loading', '🔵', tr('toast.loading'), message, title, -1),
     /** Ready toast. */
     ready: (message?: string, title?: string) =>
-      show('ready', '🟢', 'Pronto', message, title),
+      show('ready', '🟢', tr('toast.ready'), message, title),
     /** Success toast. */
     success: (message?: string, title?: string) =>
-      show('success', '🟢', 'Sucesso', message, title),
+      show('success', '🟢', tr('toast.success'), message, title),
     /** Warning toast. */
     warning: (message?: string, title?: string) =>
-      show('warning', '🟡', 'Alerta', message, title),
+      show('warning', '🟡', tr('toast.warning'), message, title),
     /** Error toast, shown for 15 seconds. */
     error: (message?: string, title?: string) =>
-      show('error', '🔴', 'Erro', message, title, 15),
+      show('error', '🔴', tr('toast.error'), message, title, 15),
   };
 })();

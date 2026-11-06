@@ -12,21 +12,21 @@ function displayMenu(): void {
   const ui = SpreadsheetApp.getUi();
 
   const settingsMenu = ui
-    .createMenu('⚙️ Configurações')
-    .addItem('🛠️ Abrir as configurações', 'menuSettings')
+    .createMenu(tr('menu.settings'))
+    .addItem(tr('menu.openSettings'), 'menuSettings')
     .addSeparator()
-    .addItem('💽 Instalar o Script', 'menuInstall')
-    .addItem('💿 Desinstalar o Script', 'menuUninstall')
+    .addItem(tr('menu.install'), 'menuInstall')
+    .addItem(tr('menu.uninstall'), 'menuUninstall')
     .addSeparator()
-    .addItem('⛔ Reset do Sistema', 'menuSystemReset');
+    .addItem(tr('menu.systemReset'), 'menuSystemReset');
 
   const formsMenu = ui
-    .createMenu('🟪 Forms')
-    .addItem('✔️ Importar do Drive', 'menuImportDriveForms')
-    .addItem('➕ Adicionar Forms individual', 'menuLinkNewForm')
-    .addItem('➖ Remover Forms selecionado(s)', 'menuRemoveForms');
+    .createMenu(tr('menu.forms'))
+    .addItem(tr('menu.importDrive'), 'menuImportDriveForms')
+    .addItem(tr('menu.linkForm'), 'menuLinkNewForm')
+    .addItem(tr('menu.removeForms'), 'menuRemoveForms');
 
-  ui.createMenu('🔶 Sistema de Notas')
+  ui.createMenu(tr('menu.root'))
     .addSubMenu(formsMenu)
     .addSubMenu(settingsMenu)
     .addToUi();

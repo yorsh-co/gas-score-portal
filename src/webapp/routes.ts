@@ -64,12 +64,21 @@ function logRequest(
 function createApiRouter(service: ScoresService): GasWebAppRouter {
   const api = new GasWebAppRouter();
 
+  api.get('/meta', (_req, res) => {
+    const config = getConfig();
+    res.json({
+      locale: getLocale(),
+      portalTitle: config.get('portalTitle') ?? 'Score Portal',
+      brand: { faviconUrl: config.get('faviconUrl') ?? null },
+    });
+  });
+
   api.get('/users/:userId/scores', (req, res) => {
     const userId = req.params.userId;
-    if (!userId) throw new GasValidationError('Empty user ID');
+    if (!userId) throw new GasValidationError(tr('error.emptyUserId'));
 
     const scores = service.getByUser(userId);
-    if (!scores) throw new GasNotFoundError('Respondent not found');
+    if (!scores) throw new GasNotFoundError(tr('error.respondentNotFound'));
 
     res.json(scores);
   });

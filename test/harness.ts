@@ -15,6 +15,14 @@ export interface AppExports {
     getAll(): Record<string, unknown>;
     editors: string[];
   };
+  MESSAGES_EN: Record<string, string>;
+  MESSAGES_PT_BR: Record<string, string>;
+  t(
+    locale: string | undefined,
+    key: MessageKeyApi,
+    params?: Record<string, string | number>,
+  ): string;
+  tr(key: MessageKeyApi, params?: Record<string, string | number>): string;
   getExcludedFormUrls(): string[];
   saveExcludedFormUrls(urls: string[]): void;
   runMenuAction(logger: unknown, action: () => void): void;
@@ -76,6 +84,9 @@ export interface AppExports {
   doGet(e: object): unknown;
   doPost(e: object): unknown;
 }
+
+/** A message key; the catalogues are typed by the app, not by the tests. */
+export type MessageKeyApi = string;
 
 export interface UserScoresApi {
   email: string;
@@ -171,6 +182,10 @@ const EXPORTS: (keyof AppExports)[] = [
   'GasLock',
   'GasError',
   'getConfig',
+  'MESSAGES_EN',
+  'MESSAGES_PT_BR',
+  't',
+  'tr',
   'getExcludedFormUrls',
   'saveExcludedFormUrls',
   'runMenuAction',

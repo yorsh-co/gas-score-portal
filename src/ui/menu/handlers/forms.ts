@@ -9,7 +9,7 @@ function getSelectedFormUrls(): string[] {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   if (spreadsheet.getActiveSheet().getName() !== table.sheetName)
     throw new GasValidationError(
-      `Esta ação é possível apenas a partir da aba ${table.sheetName}`,
+      tr('forms.wrongSheet', { sheetName: table.sheetName }),
     );
 
   table.schema.ensureColumns(['url']);
@@ -26,7 +26,7 @@ function getSelectedFormUrls(): string[] {
       if (url) urls.add(url);
     }
   }
-  if (!urls.size) throw new GasValidationError('Nenhum Forms selecionado');
+  if (!urls.size) throw new GasValidationError(tr('forms.noneSelected'));
   return [...urls];
 }
 
@@ -37,7 +37,7 @@ function menuImportDriveForms(): void {
   runMenuAction(formsMenuLogger, () => {
     Toast.loading();
     new FormsImporter({ allowPrompt: true }).run();
-    Toast.success('Forms importados');
+    Toast.success(tr('forms.imported'));
   });
 }
 
@@ -52,14 +52,13 @@ function menuLinkNewForm(): void {
     let warning = '';
     while (!form) {
       const inputUrl = GSheetsUiUtils.promptForValue(
-        '➕ Adicionar Forms individual',
-        'Insira o URL do arquivo Forms a ser vinculado ao sistema.',
+        tr('forms.linkTitle'),
+        tr('forms.linkPrompt'),
         warning,
       );
 
       form = GForms.forms.get({ url: inputUrl, id: '' });
-      if (!form)
-        warning = `Não foi possível acessar o Forms "${inputUrl}". Verifique se você tem permissão para acessar a arquivo.`;
+      if (!form) warning = tr('forms.accessWarning', { url: inputUrl });
     }
 
     const formUrl = form.getEditUrl();
@@ -67,8 +66,8 @@ function menuLinkNewForm(): void {
     if (excludedUrls.includes(formUrl)) {
       const ui = SpreadsheetApp.getUi();
       const selectedButton = ui.alert(
-        '➕ Reativar Forms',
-        `O Forms "${form.getTitle()}" consta na lista de Forms removidos.\n\n👉 Clique em OK para reativar esse Forms.`,
+        tr('forms.reactivateTitle'),
+        tr('forms.reactivateBody', { title: form.getTitle() }),
         ui.ButtonSet.OK_CANCEL,
       );
       if (selectedButton !== ui.Button.OK) throw createCancelledError();
@@ -77,14 +76,14 @@ function menuLinkNewForm(): void {
     }
 
     const formTitle = form.getTitle();
-    Toast.busy(`Vinculando "${formTitle}"...`);
+    Toast.busy(tr('forms.linking', { title: formTitle }));
     createFormsRepo(getFormsTable()).upsert({
       url: formUrl,
       title: formTitle,
       status: 'linked',
       error: '',
     });
-    Toast.success(`"${formTitle}" vinculado`);
+    Toast.success(tr('forms.linked', { title: formTitle }));
   });
 }
 
@@ -101,17 +100,21 @@ function menuRemoveForms(): void {
       .filter((url) => stored.has(url))
       .map((url) => ({ url, title: stored.get(url)?.title || url }));
     if (!linkedForms.length)
-      throw new GasValidationError('Nenhum Forms selecionado');
+      throw new GasValidationError(tr('forms.noneSelected'));
 
     const ui = SpreadsheetApp.getUi();
     const selectedButton = ui.alert(
-      '➖ Remover Forms',
-      `Os Forms abaixo serão removidos do sistema e ignorados durante a sincronização das notas:\n\n${linkedForms.map((linkedForm, i) => `${i + 1}. ${linkedForm.title}\n`)}\nPara reativar um desses Forms, utilize o botão "➕ Adicionar Forms individual".\n\n👉 Clique em OK para continuar.`,
+      tr('forms.removeTitle'),
+      tr('forms.removeBody', {
+        list: linkedForms
+          .map((linkedForm, i) => `${i + 1}. ${linkedForm.title}\n`)
+          .join(''),
+      }),
       ui.ButtonSet.OK_CANCEL,
     );
     if (selectedButton !== ui.Button.OK) throw createCancelledError();
 
-    Toast.busy(`Removendo ${linkedForms.length} Forms...`);
+    Toast.busy(tr('forms.removing', { count: linkedForms.length }));
     const excludedUrls = new Set(getExcludedFormUrls());
     linkedForms.forEach((linkedForm) => excludedUrls.add(linkedForm.url));
     saveExcludedFormUrls([...excludedUrls]);
@@ -120,6 +123,6 @@ function menuRemoveForms(): void {
       forms.updateStatus(linkedForm.url, 'excluded'),
     );
 
-    Toast.success('Forms removidos');
+    Toast.success(tr('forms.removed'));
   });
 }

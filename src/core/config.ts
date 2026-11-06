@@ -15,7 +15,7 @@ const CONFIG_SCHEMA = {
     required: true,
     options: [
       { value: 'en', label: 'English' },
-      { value: 'pt-BR', label: 'Português (Brasil)' },
+      { value: 'pt-BR', label: 'Portugu\u00eas (Brasil)' },
     ],
   },
   portalTitle: {
@@ -104,6 +104,27 @@ function getConfig(): AppConfig {
 }
 
 /**
+ * Returns the locale of the menu, messages and web app. Falls back to the
+ * default when the settings cannot be read.
+ */
+function getLocale(): Locale {
+  try {
+    return resolveLocale(getConfig().get('locale'));
+  } catch {
+    return DEFAULT_LOCALE;
+  }
+}
+
+/**
+ * Translates a message into the configured locale.
+ * @param key Message key.
+ * @param params Values for the `{name}` placeholders.
+ */
+function tr(key: MessageKey, params?: MessageParams): string {
+  return t(getLocale(), key, params);
+}
+
+/**
  * Returns the URLs of the Forms excluded from synchronization.
  */
 function getExcludedFormUrls(): string[] {
@@ -130,9 +151,7 @@ function saveConfigValues(changes: Record<string, string>): void {
   if (outcome.reason === 'invalid') {
     throw new GasValidationError(Object.values(outcome.errors).join(' '));
   }
-  throw new GasConflictError(
-    'The settings changed in the meantime. Try again.',
-  );
+  throw new GasConflictError(tr('error.settingsConflict'));
 }
 
 /**
