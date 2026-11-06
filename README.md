@@ -104,6 +104,8 @@ Tests create sheets named `__gt_<epochMs>_...` and delete them afterwards.
 | `dev`       | `GAS_SCRIPT_ID=1GmyVNNJAZe7MyZ-IQwoT7XpUiVYoL1Q03gw6_K7PrJabtU2ZftmTeb3n`, `GAS_DEPLOYMENT_ID` (the versioned web-app deployment ID) | `CLASPRC_JSON` |
 | `live`      | Created later by `npm run deploy:setup` on the live sheet copy                                                                       | `CLASPRC_JSON` |
 
+Create the `live` environment, restricted to the `main` branch with required reviewers, before the first push to `main`; otherwise GitHub auto-creates an empty `live` environment and the deploy fails.
+
 See the [gas-dev-ci README](https://github.com/yorsh-co/gas-dev-ci#readme) for how to obtain `CLASPRC_JSON`, token expiry, and re-consent when the OAuth scopes change.
 
 ## License

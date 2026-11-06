@@ -28,8 +28,12 @@ CI/CD lives in a new shared repository, `yorsh-co/gas-dev-ci`.
   deployment ID is configured, creates a version and updates that deployment.
 - This repository calls the workflow from `.github/workflows/deploy.yml`:
   `develop` deploys to the `dev` GitHub environment, `main` to `live`. Each
-  environment holds its own `CLASPRC_JSON`, `GAS_SCRIPT_ID` and optional
-  `GAS_DEPLOYMENT_ID`.
+  environment holds its own secret `CLASPRC_JSON` and the variables
+  `GAS_SCRIPT_ID` and optional `GAS_DEPLOYMENT_ID`. The IDs are variables, not
+  secrets, because GitHub drops job outputs that contain secrets and the web-app
+  URL contains the deployment ID.
+- The CLI is installed as a devDependency because the workflow runs
+  `npx --no-install`.
 - The CLI fails when the pushed manifest's `oauthScopes` differ from the
   deployed version's, because a scope change needs a manual re-consent
   deployment (gas-dev-deploy ADR 0001).
@@ -37,10 +41,9 @@ CI/CD lives in a new shared repository, `yorsh-co/gas-dev-ci`.
 
 ## Consequences
 
-- One implementation serves every gas-\* project, versioned through tags (`@v1`).
+- One implementation serves every gas-\* project, versioned through moving minor tags (`@v0.1` while pre-1.0).
 - `CLASPRC_JSON` is a long-lived user credential stored as a GitHub secret.
   Refresh tokens can expire or be revoked, so deploys can start failing until
   the secret is renewed with `clasp login`.
 - The `live` environment only exists after `npm run deploy:setup` is run on
   the live spreadsheet copy.
-- The caller workflow can only be added once `gas-dev-ci` v1 is released.
