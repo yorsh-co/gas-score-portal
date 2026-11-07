@@ -19,9 +19,8 @@
     "@types/node": "^22.20.5",
     "eslint": "^10.7.0",
     "gas-dev-bundle": "github:yorsh-co/gas-dev-bundle#semver:^2.0.0",
-    "gas-dev-ci": "github:yorsh-co/gas-dev-ci#semver:^0.1.0",
+    "gas-dev-ci": "github:yorsh-co/gas-dev-ci#semver:^0.2.0",
     "gas-dev-config": "github:yorsh-co/gas-dev-config#semver:^2.1.0",
-    "gas-dev-deploy": "github:yorsh-co/gas-dev-deploy#semver:^0.1.0",
     "gas-dev-release": "github:yorsh-co/gas-dev-release#semver:^2.0.0",
     "prettier": "^3.9.6",
     "rimraf": "^6.1.3",
@@ -44,7 +43,7 @@
     "outFile": "src/lib/gas-libraries.js",
     "typesFile": "types/gas-libraries.d.ts"
   },
-  "gasDevDeploy": {
+  "gasDevCi": {
     "title": "gas-app-score-portal"
   },
   "scripts": {
@@ -53,7 +52,7 @@
     "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gas-dev-config html",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit",
     "bundle:libs": "gas-dev-bundle",
-    "deploy:setup": "gas-dev-deploy",
+    "deploy:setup": "gas-dev-ci setup",
     "clasp:push": "npm run build && clasp push --force",
     "clean": "rimraf dist",
     "release": "gas-dev-release",

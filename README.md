@@ -97,7 +97,7 @@ Tests create sheets named `__gt_<epochMs>_...` and delete them afterwards.
 
 ### Deployment
 
-`.github/workflows/deploy.yml` calls the reusable workflow in [`yorsh-co/gas-dev-ci`](https://github.com/yorsh-co/gas-dev-ci) (`@v0.1`) on every push: `develop` deploys to the `dev` environment and `main` to `live`. Configure these GitHub environments:
+`.github/workflows/deploy.yml` calls the reusable workflow in [`yorsh-co/gas-dev-ci`](https://github.com/yorsh-co/gas-dev-ci) (`@v0.2`) on every push: `develop` deploys to the `dev` environment and `main` to `live`. Configure these GitHub environments:
 
 | Environment | Variables                                                                                                                            | Secret         |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------- |

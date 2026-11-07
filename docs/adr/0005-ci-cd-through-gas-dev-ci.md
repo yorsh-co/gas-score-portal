@@ -9,11 +9,11 @@ Accepted
 ## Context
 
 ADR 0003 moved deployment out of the app. The first deployment is interactive
-(`gas-dev-deploy`), but every later push to `develop` or `main` should be
+(`gas-dev-ci setup`), but every later push to `develop` or `main` should be
 checked, built and pushed to Apps Script without manual steps.
 
-Deploy automation could live in `gas-dev-deploy`, but that project is an
-interactive web-app setup wizard, and not every gas-\* project has a web app
+Deploy automation could live in the setup wizard, but that is an
+interactive web-app flow, and not every gas-\* project has a web app
 (libraries and sheet- or form-bound scripts only need `clasp push`).
 
 ## Decision
@@ -36,12 +36,12 @@ CI/CD lives in a new shared repository, `yorsh-co/gas-dev-ci`.
   `npx --no-install`.
 - The CLI fails when the pushed manifest's `oauthScopes` differ from the
   deployed version's, because a scope change needs a manual re-consent
-  deployment (gas-dev-deploy ADR 0001).
+  deployment (gas-dev-ci ADR 0004).
 - Builds run from source; CI does not depend on `gas-dev-release`.
 
 ## Consequences
 
-- One implementation serves every gas-\* project, versioned through moving minor tags (`@v0.1` while pre-1.0).
+- One implementation serves every gas-\* project, versioned through moving minor tags (`@v0.2` while pre-1.0).
 - `CLASPRC_JSON` is a long-lived user credential stored as a GitHub secret.
   Refresh tokens can expire or be revoked, so deploys can start failing until
   the secret is renewed with `clasp login`.

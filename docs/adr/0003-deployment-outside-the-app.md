@@ -22,7 +22,7 @@ The app no longer deploys itself.
 - `WebAppDeployer`, the `AppsScript` library dependency, the Deploy and
   Install-webapp menu items and the two scopes are removed from the code and
   from both manifests.
-- The first deployment is made once by `gas-dev-deploy` (`npm run deploy:setup`).
+- The first deployment is made once by `gas-dev-ci setup` (`npm run deploy:setup`).
 - Later deployments are made by the shared `gas-dev-ci` workflow on every push
   to `develop` and `main`.
 - The deployment ID and web app URL are no longer stored in the settings.
