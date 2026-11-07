@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Migrated the setup wizard to `gas-dev-ci setup`: `deploy:setup` runs it, the `package.json` key is `gasDevCi`, and the deploy workflow calls `gas-dev-ci@v0.2`.
+
 ### Added
 
 - Deploy workflow calling the shared `gas-dev-ci` reusable workflow: `develop` deploys to `dev`, `main` to `live`.
