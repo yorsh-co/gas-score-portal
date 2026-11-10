@@ -6,6 +6,8 @@ Date: 2026-11-06
 
 Accepted
 
+Amended 2026-11-10: tool names updated for gasdev 3.0 (gasdev ADRs 0018, 0019); the decision is unchanged.
+
 ## Context
 
 The legacy web app rendered HTML on the server: a hand-rolled framework
@@ -20,7 +22,7 @@ The UI is one single-page app, edited as `src/web/portal.html`,
 `portal.css` and `portal.ts`, with the gas-webapp browser client vendored in
 `src/web/vendor/gas-webapp/`.
 
-- `gas-dev-config html` inlines the page, its stylesheet and its scripts
+- `gasdev html` inlines the page, its stylesheet and its scripts
   (TypeScript is transpiled) into `src/generated/portal.html.ts`, a single
   string constant `_PORTAL_HTML` that is committed and listed in `loadOrder`.
 - `doGet` serves it with `HtmlService.createHtmlOutput` when the request has no
