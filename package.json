@@ -9,19 +9,16 @@
   },
   "license": "MIT",
   "engines": {
-    "node": "^22.13.0 || ^24.0.0 || >=26.0.0"
+    "node": "^22.15.0 || ^24.0.0 || >=26.0.0"
   },
   "type": "module",
-  "prettier": "gas-dev-config/prettier",
+  "prettier": "gasdev/prettier",
   "devDependencies": {
     "@google/clasp": "^3.4.1",
     "@types/google-apps-script": "^2.0.13",
     "@types/node": "^22.20.5",
     "eslint": "^10.7.0",
-    "gas-dev-bundle": "github:yorsh-co/gas-dev-bundle#semver:^2.0.0",
-    "gas-dev-ci": "github:yorsh-co/gas-dev-ci#semver:^0.2.0",
-    "gas-dev-config": "github:yorsh-co/gas-dev-config#semver:^2.1.0",
-    "gas-dev-release": "github:yorsh-co/gas-dev-release#semver:^2.0.0",
+    "gasdev": "github:yorsh-co/gasdev#semver:^3.0.0-beta.2",
     "prettier": "^3.9.6",
     "rimraf": "^6.1.3",
     "typescript": "^5.9.3",
@@ -31,45 +28,7 @@
     "minimatch": "^11.0.1",
     "gaxios": "^7.3.1"
   },
-  "gasDevBundle": {
-    "libraries": {
-      "gas-webapp": "^1.0.4",
-      "gas-sheetdb": "^2.1.5",
-      "gas-config": "^2.0.4",
-      "gas-error": "^1.2.5",
-      "gas-logger": "^2.0.4",
-      "gas-lock": "^1.2.4"
-    },
-    "outFile": "src/lib/gas-libraries.js",
-    "typesFile": "types/gas-libraries.d.ts"
-  },
-  "gasDevCi": {
-    "title": "gas-app-score-portal"
-  },
-  "scripts": {
-    "build": "node scripts/build.js",
-    "build:watch": "node scripts/build.js --watch",
-    "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gas-dev-config html",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit",
-    "bundle:libs": "gas-dev-bundle",
-    "deploy:setup": "gas-dev-ci setup",
-    "clasp:push": "npm run build && clasp push --force",
-    "clean": "rimraf dist",
-    "release": "gas-dev-release",
-    "build:format": "npm run check && npm run build && npm run format:dist",
-    "build:release": "npm run build:format && npm run release",
-    "lint": "eslint . && echo '✓ Lint passed'",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier . --write",
-    "format:dist": "prettier ./dist --write --ignore-path .prettierignore",
-    "format:check": "prettier . --check",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && gas-dev-config check",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:gas:build": "gas-dev-config gas-test build",
-    "test:gas": "gas-dev-config gas-test run"
-  },
-  "gasDevConfig": {
+  "gasdev": {
     "loadOrder": [
       "core/logger.ts",
       "shared/i18n/en.ts",
@@ -118,6 +77,18 @@
         "name": "_PORTAL_HTML"
       }
     ],
+    "bundle": {
+      "libraries": {
+        "gas-webapp": "^1.0.4",
+        "gas-sheetdb": "^2.1.5",
+        "gas-config": "^2.0.4",
+        "gas-error": "^1.2.5",
+        "gas-logger": "^2.0.4",
+        "gas-lock": "^1.2.4"
+      },
+      "outFile": "src/lib/gas-libraries.js",
+      "typesFile": "types/gas-libraries.d.ts"
+    },
     "peers": {
       "gas-webapp": "^1.0.4",
       "gas-sheetdb": "^2.1.5",
@@ -126,6 +97,9 @@
       "gas-logger": "^2.0.4",
       "gas-lock": "^1.2.4"
     },
+    "ci": {
+      "title": "gas-app-score-portal"
+    },
     "gasTest": {
       "scopes": [
         "https://www.googleapis.com/auth/spreadsheets",
@@ -133,5 +107,28 @@
         "https://www.googleapis.com/auth/forms"
       ]
     }
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "build:watch": "node scripts/build.js --watch",
+    "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gasdev html",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit",
+    "bundle:libs": "gasdev bundle",
+    "deploy:setup": "gasdev setup",
+    "clasp:push": "npm run build && clasp push --force",
+    "clean": "rimraf dist",
+    "release": "gasdev release",
+    "build:format": "npm run check && npm run build && npm run format:dist",
+    "build:release": "npm run build:format && npm run release",
+    "lint": "eslint . && echo '✓ Lint passed'",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --write",
+    "format:dist": "prettier ./dist --write --ignore-path .prettierignore",
+    "format:check": "prettier . --check",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && gasdev check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:gas:build": "gasdev gas-test build",
+    "test:gas": "gasdev gas-test run"
   }
 }

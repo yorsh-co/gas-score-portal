@@ -3,7 +3,7 @@
  * Builds the Apps Script payload into `dist/`.
  *
  * Steps: clean `dist`, compile `src/` with tsc, inline the web UI when
- * `gasDevConfig.html` is configured, then copy non-TS assets (`*.html`)
+ * `gasdev.html` is configured, then copy non-TS assets (`*.html`)
  * and `appsscript.json` into `dist/`, preserving paths relative to `src/`.
  */
 import { execFileSync } from 'node:child_process';
@@ -87,8 +87,8 @@ function build() {
   );
 
   const pkg = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-  if (pkg.gasDevConfig?.html) {
-    run('gas-dev-config', ['html']);
+  if (pkg.gasdev?.html) {
+    run('gasdev', ['html']);
   }
 
   for (const file of walk(src)) {

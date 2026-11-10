@@ -1,7 +1,7 @@
 import { createHmac, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { createGasLoader, loadOrderFiles } from 'gas-dev-config/test';
+import { createGasLoader, loadOrderFiles } from 'gasdev/test';
 
 const ROOT = process.cwd();
 const BUNDLE = 'src/lib/gas-libraries.js';
