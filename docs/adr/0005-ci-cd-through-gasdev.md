@@ -43,7 +43,7 @@ CI/CD lives in the shared repository `yorsh-co/gasdev`.
 
 ## Consequences
 
-- One implementation serves every gas-\* project, versioned through exact release tags (`@v3.0.0-beta.5` until 3.0.0); there is no moving major tag.
+- One implementation serves every gas-\* project, versioned through exact release tags (`@v3.0.0`); there is no moving major tag.
 - `CLASPRC_JSON` is a long-lived user credential stored as a GitHub secret.
   Refresh tokens can expire or be revoked, so deploys can start failing until
   the secret is renewed with `clasp login`.
