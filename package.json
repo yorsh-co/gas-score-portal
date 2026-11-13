@@ -79,7 +79,7 @@
     ],
     "bundle": {
       "libraries": {
-        "gas-webapp": "^1.1.0",
+        "gas-webapp": "^1.1.2",
         "gas-sheetdb": "^2.1.6",
         "gas-config": "^2.2.0",
         "gas-error": "^1.2.6",
@@ -90,7 +90,7 @@
       "typesFile": "types/gas-libraries.d.ts"
     },
     "peers": {
-      "gas-webapp": "^1.1.0",
+      "gas-webapp": "^1.1.2",
       "gas-sheetdb": "^2.1.6",
       "gas-config": "^2.2.0",
       "gas-error": "^1.2.6",

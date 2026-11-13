@@ -5,8 +5,8 @@
 //   https://github.com/yorsh-co/gas-logger/tree/dist/v2.0.5
 // gas-error 1.2.6 (1a326260e8f4ddce8d79373ad740858e4cdd83f9)
 //   https://github.com/yorsh-co/gas-error/tree/dist/v1.2.6
-// gas-webapp 1.1.0 (223bb8c04cbbe9c930969063ef2338ba31c00794)
-//   https://github.com/yorsh-co/gas-webapp/tree/dist/v1.1.0
+// gas-webapp 1.1.2 (843bd663afaeff34511b70a685922bc7f84a8d73)
+//   https://github.com/yorsh-co/gas-webapp/tree/dist/v1.1.2
 // gas-sheetdb 2.1.6 (a2fff2c044813910353df41d33d548aa42fd7c94)
 //   https://github.com/yorsh-co/gas-sheetdb/tree/dist/v2.1.6
 // gas-config 2.2.0 (b0003da372c0e98d49d01df75a9c85cf37107530)
@@ -937,7 +937,7 @@ declare const GAS_WEBAPP_CLIENT_ERROR_KINDS: readonly GasWebAppClientErrorKind[]
 declare const GAS_WEBAPP_CLIENT_ERROR_LIMITS: Required<GasWebAppClientErrorLimits>;
 declare const GAS_WEBAPP_CLIENT_ERROR_TIMESTAMP_MAX = 100;
 declare const GAS_WEBAPP_CLIENT_ERROR_DEFAULT_SCOPE = 'Client';
-declare const CONTROL_CHARS: RegExp;
+declare const GAS_WEBAPP_CONTROL_CHARS: RegExp;
 declare const GAS_WEBAPP_CLIENT_ERROR_CONTEXT_OMITTED = '[context omitted]';
 /**
  * Client error report handler factory.
