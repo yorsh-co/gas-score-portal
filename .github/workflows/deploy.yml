@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   deploy:
-    uses: yorsh-co/gasdev/.github/workflows/gas-deploy.yml@v3.0.0
+    uses: yorsh-co/gasdev/.github/workflows/gas-deploy.yml@v3.1.0
     with:
       environment: ${{ github.ref_name == 'main' && 'live' || 'dev' }}
     secrets: inherit
