@@ -79,23 +79,23 @@
     ],
     "bundle": {
       "libraries": {
-        "gas-webapp": "^1.0.4",
-        "gas-sheetdb": "^2.1.5",
-        "gas-config": "^2.0.4",
-        "gas-error": "^1.2.5",
-        "gas-logger": "^2.0.4",
-        "gas-lock": "^1.2.4"
+        "gas-webapp": "^1.1.0",
+        "gas-sheetdb": "^2.1.6",
+        "gas-config": "^2.2.0",
+        "gas-error": "^1.2.6",
+        "gas-logger": "^2.0.5",
+        "gas-lock": "^1.2.5"
       },
       "outFile": "src/lib/gas-libraries.js",
       "typesFile": "types/gas-libraries.d.ts"
     },
     "peers": {
-      "gas-webapp": "^1.0.4",
-      "gas-sheetdb": "^2.1.5",
-      "gas-config": "^2.0.4",
-      "gas-error": "^1.2.5",
-      "gas-logger": "^2.0.4",
-      "gas-lock": "^1.2.4"
+      "gas-webapp": "^1.1.0",
+      "gas-sheetdb": "^2.1.6",
+      "gas-config": "^2.2.0",
+      "gas-error": "^1.2.6",
+      "gas-logger": "^2.0.5",
+      "gas-lock": "^1.2.5"
     },
     "ci": {
       "title": "gas-app-score-portal"
