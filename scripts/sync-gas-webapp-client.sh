@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Vendor the gas-webapp browser client (published on the `dist-web` branch,
-# which gas-dev-bundle does not cover) into src/web/vendor/gas-webapp/.
+# which `gasdev bundle` does not cover) into src/web/vendor/gas-webapp/.
 #
 # Usage:
 #   scripts/sync-gas-webapp-client.sh

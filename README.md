@@ -93,11 +93,11 @@ Tests create sheets named `__gt_<epochMs>_...` and delete them afterwards.
 
 ## CI
 
-`npm run check` is the quality gate: formatting, lint, typecheck, the vitest suite and the `gas-dev-config` check. Deployment workflows are provided by the shared `gas-dev-ci` repository.
+`npm run check` is the quality gate: formatting, lint, typecheck, the vitest suite and `gasdev check`. Deployment runs through the reusable workflow and the `gasdev setup` and `gasdev deploy` commands from the shared `gasdev` package.
 
 ### Deployment
 
-`.github/workflows/deploy.yml` calls the reusable workflow in [`yorsh-co/gas-dev-ci`](https://github.com/yorsh-co/gas-dev-ci) (`@v0.2`) on every push: `develop` deploys to the `dev` environment and `main` to `live`. Configure these GitHub environments:
+`.github/workflows/deploy.yml` calls the reusable workflow in [`yorsh-co/gasdev`](https://github.com/yorsh-co/gasdev) (`@v3.0.0`) on every push: `develop` deploys to the `dev` environment and `main` to `live`. Configure these GitHub environments:
 
 | Environment | Variables                                                                                                                            | Secret         |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
@@ -106,7 +106,7 @@ Tests create sheets named `__gt_<epochMs>_...` and delete them afterwards.
 
 Create the `live` environment, restricted to the `main` branch with required reviewers, before the first push to `main`; otherwise GitHub auto-creates an empty `live` environment and the deploy fails.
 
-See the [gas-dev-ci README](https://github.com/yorsh-co/gas-dev-ci#readme) for how to obtain `CLASPRC_JSON`, token expiry, and re-consent when the OAuth scopes change.
+See the [gasdev README](https://github.com/yorsh-co/gasdev#readme) for how to obtain `CLASPRC_JSON`, token expiry, and re-consent when the OAuth scopes change.
 
 ## License
 

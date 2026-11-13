@@ -6,6 +6,8 @@ Date: 2026-11-06
 
 Accepted
 
+Amended 2026-11-10: tool names updated for gasdev 3.0 (gasdev ADRs 0018, 0019); the decision is unchanged.
+
 ## Context
 
 The legacy app deployed itself. A `WebAppDeployer` class called the Apps Script
@@ -22,8 +24,8 @@ The app no longer deploys itself.
 - `WebAppDeployer`, the `AppsScript` library dependency, the Deploy and
   Install-webapp menu items and the two scopes are removed from the code and
   from both manifests.
-- The first deployment is made once by `gas-dev-ci setup` (`npm run deploy:setup`).
-- Later deployments are made by the shared `gas-dev-ci` workflow on every push
+- The first deployment is made once by `gasdev setup` (`npm run deploy:setup`).
+- Later deployments are made by the shared `gasdev` deploy workflow on every push
   to `develop` and `main`.
 - The deployment ID and web app URL are no longer stored in the settings.
 

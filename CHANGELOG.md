@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Migrated the setup wizard to `gas-dev-ci setup`: `deploy:setup` runs it, the `package.json` key is `gasDevCi`, and the deploy workflow calls `gas-dev-ci@v0.2`.
+- Migrated the toolchain to `gasdev` 3.0 (`3.0.0`), which replaces `gas-dev-config`, `gas-dev-bundle`, `gas-dev-release` and `gas-dev-ci`: the `package.json` settings are nested under the `gasdev` key, the scripts call `gasdev` (`deploy:setup` runs `gasdev setup`), the deploy workflow calls `yorsh-co/gasdev@v3.0.0`, and Node.js `^22.15.0` is required.
 
 ### Added
 
