@@ -285,7 +285,7 @@ function requestCode(email: string): Promise<void> {
       dispatch({ type: 'otpSent', email, now: Date.now() });
     })
     .catch((error: unknown) => {
-      console.error(error);
+      window.GasWebApp.errors.logServerError(error as Error, 'Portal');
       if (started === generation) dispatch(failureOf(error));
     });
 }
@@ -315,7 +315,7 @@ function loadScores(): Promise<void> {
       if (started === generation) renderResult(data);
     })
     .catch((error: unknown) => {
-      console.error(error);
+      window.GasWebApp.errors.logServerError(error as Error, 'Portal');
       if (started !== generation) return;
       const failure = failureOf(error);
       if (failure.status === 401) saveToken(null);
@@ -346,7 +346,7 @@ function submitCode(): void {
         return loadScores();
       })
       .catch((error: unknown) => {
-        console.error(error);
+        window.GasWebApp.errors.logServerError(error as Error, 'Portal');
         if (started === generation) dispatch(failureOf(error));
       }),
   );
@@ -416,12 +416,19 @@ function loadMeta(): void {
       applyTranslations();
       render();
     })
-    .catch((error: unknown) => console.error(error))
+    .catch((error: unknown) =>
+      window.GasWebApp.errors.logServerError(error as Error, 'Portal'),
+    )
     .finally(() => {
       button.disabled = false;
     });
 }
 
+// The server logs its own errors; the reporter forwards only client-side failures.
+window.GasWebApp.reporter?.install({
+  route: '/api/client-errors',
+  captureGlobal: true,
+});
 loadMeta();
 restoreSession();
 byId('email-panel').addEventListener('submit', (event) => {
