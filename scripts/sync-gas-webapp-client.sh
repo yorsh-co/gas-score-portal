@@ -7,13 +7,13 @@
 #   scripts/sync-gas-webapp-client.sh
 #
 # Overrides:
-#   GAS_WEBAPP_FRONTEND_REF=dist-web/v1.0.4
+#   GAS_WEBAPP_FRONTEND_REF=dist-web/v1.1.0
 #   GAS_WEBAPP_REMOTE=https://github.com/yorsh-co/gas-webapp.git
 #   GAS_WEBAPP_FRONTEND_PREFIX=src/web/vendor/gas-webapp
 
 set -Eeuo pipefail
 
-REF="${GAS_WEBAPP_FRONTEND_REF:-dist-web/v1.0.4}"
+REF="${GAS_WEBAPP_FRONTEND_REF:-dist-web/v1.1.0}"
 REMOTE="${GAS_WEBAPP_REMOTE:-https://github.com/yorsh-co/gas-webapp.git}"
 PREFIX="${GAS_WEBAPP_FRONTEND_PREFIX:-src/web/vendor/gas-webapp}"
 
