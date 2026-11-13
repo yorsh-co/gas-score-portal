@@ -2,7 +2,11 @@
 const EMAIL_PATTERN = /[^\s/@%]+(?:@|%40)[^\s/@%]+\.[^\s/@%]+/gi;
 
 /**
- * Masks every email found in a string, array or object, recursively.
+ * Masks every email found in a string, array or object, recursively. Past the
+ * depth limit, objects are serialized to JSON and masked as a string so deeply
+ * nested untrusted data cannot bypass the masking; a value that cannot be
+ * serialized, such as a circular or BigInt-holding one, becomes
+ * `'[unserializable]'`.
  * @param value Log field.
  * @param depth Remaining nesting depth.
  */
@@ -12,7 +16,14 @@ function redactEmails(value: unknown, depth = 4): unknown {
       StringUtils.maskEmail(match.replace(/%40/i, '@')),
     );
   }
-  if (depth === 0 || value === null || typeof value !== 'object') return value;
+  if (value === null || typeof value !== 'object') return value;
+  if (depth === 0) {
+    try {
+      return redactEmails(JSON.stringify(value));
+    } catch {
+      return '[unserializable]';
+    }
+  }
   if (Array.isArray(value)) return value.map((v) => redactEmails(v, depth - 1));
   return Object.fromEntries(
     Object.entries(value).map(([k, v]) => [k, redactEmails(v, depth - 1)]),
@@ -20,16 +31,17 @@ function redactEmails(value: unknown, depth = 4): unknown {
 }
 
 /**
- * Creates the logger handed to gas-webapp, which logs request paths. The
- * respondent email is part of the lookup path, so it is masked first.
+ * Creates a module logger that masks emails in the message and every log field
+ * before they are logged, such as the respondent email in a lookup path.
+ * @param module Module name of the logger.
  */
-function createWebAppLogger(): GasLogger {
-  const logger = createModuleLogger('webapp');
+function createRedactedLogger(module = 'webapp'): GasLogger {
+  const logger = createModuleLogger(module);
   const redacted =
     (level: 'debug' | 'info' | 'warn' | 'error') =>
     (message: string, meta?: GasLoggerMeta) =>
       logger[level](
-        message,
+        redactEmails(message) as string,
         meta === undefined ? undefined : (redactEmails(meta) as GasLoggerMeta),
       );
   return {
@@ -39,6 +51,12 @@ function createWebAppLogger(): GasLogger {
     error: redacted('error'),
   } as unknown as GasLogger;
 }
+
+/** Client error reports allowed across all visitors in each window. */
+const CLIENT_ERROR_LIMIT = 30;
+
+/** Rate limit window of the client error route, in seconds. */
+const CLIENT_ERROR_WINDOW_SECONDS = 60;
 
 /** Requests allowed per email in each OTP rate limit window. */
 const OTP_EMAIL_LIMIT = 3;
@@ -184,6 +202,20 @@ function createApiRouter(
     res.json(scores);
   });
 
+  // The bucket is global because the visitor is anonymous and has no
+  // identifiable key.
+  api.post(
+    '/client-errors',
+    createRateLimiter({
+      limit: CLIENT_ERROR_LIMIT,
+      windowSeconds: CLIENT_ERROR_WINDOW_SECONDS,
+      lockScope: 'user',
+      lockService: GasLock,
+      keyFn: () => 'client-errors:global',
+    }),
+    createClientErrorHandler(createRedactedLogger('client')),
+  );
+
   api.use('/auth', createAuthRouter(auth));
 
   return api;
@@ -195,12 +227,12 @@ function createApiRouter(
  * @param auth Auth services.
  */
 function createWebApp(service: ScoresService, auth: AuthServices): GasWebApp {
-  const webApp = new GasWebApp({ logger: createWebAppLogger() });
+  const webApp = new GasWebApp({ logger: createRedactedLogger() });
   const ack = createAckTracker();
   webApp.use(ack.middleware);
   webApp.get('/ack', ack.handler);
   webApp.use(
-    createLoggingMiddleware(createWebAppLogger(), {
+    createLoggingMiddleware(createRedactedLogger(), {
       redact: LOG_REDACT_KEYS,
     }),
   );

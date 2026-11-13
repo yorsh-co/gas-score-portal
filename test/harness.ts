@@ -79,6 +79,9 @@ export interface AppExports {
   createScoresService(getDeps: () => object): {
     getByUser(userId: string): UserScoresApi | null;
   };
+  createRedactedLogger(module?: string): {
+    error(message: string, meta?: object): void;
+  };
   createWebApp(
     service: object,
     auth: object,
@@ -225,6 +228,7 @@ const EXPORTS: (keyof AppExports)[] = [
   'detectFormulaSeparators',
   'refreshOverview',
   'createScoresService',
+  'createRedactedLogger',
   'createWebApp',
   'createOtpService',
   'createSessionService',
