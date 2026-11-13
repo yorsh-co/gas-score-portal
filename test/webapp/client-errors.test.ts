@@ -34,10 +34,10 @@ describe('POST /api/client-errors', () => {
     const { report } = setup();
 
     expect(() => report({ kind: 'logged', scope: 'Portal' })).toThrow(
-      'Client error report needs a message',
+      /Client error report needs a message.*"status":400/,
     );
     expect(() => report({ ...VALID, kind: 'nope' })).toThrow(
-      'Invalid client error kind',
+      /Invalid client error kind.*"status":400/,
     );
   });
 
@@ -50,55 +50,28 @@ describe('POST /api/client-errors', () => {
   });
 
   it('masks emails in the logged message and url', () => {
-    const lines: string[] = [];
-    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map(
-      (m) =>
-        vi.spyOn(console, m).mockImplementation((...args: unknown[]) => {
-          lines.push(args.map((a) => JSON.stringify(a)).join(' '));
-        }),
-    );
-    try {
-      const { report } = setup();
+    const { entries, report } = capture();
 
-      report({
-        ...VALID,
-        message: 'failed for ana@x.org',
-        url: 'https://x/?email=ana@x.org',
-        stack: 'Error at ana@x.org',
-        context: { user: 'ana@x.org' },
-      });
-    } finally {
-      spies.forEach((s) => s.mockRestore());
-    }
+    report({
+      ...VALID,
+      message: 'failed for ana@x.org',
+      url: 'https://x/?email=ana@x.org',
+      stack: 'Error at ana@x.org',
+      context: { user: 'ana@x.org' },
+    });
 
-    const out = lines.join('\n');
+    const out = JSON.stringify(findClient(entries));
     expect(out).toContain('"module":"client"');
     expect(out).toContain('@x.org');
     expect(out).not.toContain('ana@x.org');
   });
 
   it('logs the client text as clientMessage, masked', () => {
-    const entries: unknown[] = [];
-    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map(
-      (m) =>
-        vi.spyOn(console, m).mockImplementation((...args: unknown[]) => {
-          entries.push(...args);
-        }),
-    );
-    try {
-      const { report } = setup();
+    const { entries, report } = capture();
 
-      report({ ...VALID, message: 'failed for ana@x.org' });
-    } finally {
-      spies.forEach((s) => s.mockRestore());
-    }
+    report({ ...VALID, message: 'failed for ana@x.org' });
 
-    const entry = entries
-      .map((e) =>
-        typeof e === 'string' && e.startsWith('{') ? JSON.parse(e) : e,
-      )
-      .find((e) => (e as { module?: string })?.module === 'client');
-    expect(entry).toMatchObject({
+    expect(findClient(entries)).toMatchObject({
       message: 'Client error: Portal',
       clientMessage: 'failed for an...@x.org',
     });
@@ -114,6 +87,23 @@ describe('POST /api/client-errors', () => {
     });
   });
 
+  it('does not throw when logging a circular meta beyond the depth limit', () => {
+    const { app } = loadApp();
+    const circular: Record<string, unknown> = {};
+    circular.self = { a: { b: { c: { d: circular } } } };
+    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map(
+      (m) => vi.spyOn(console, m).mockImplementation(() => undefined),
+    );
+
+    try {
+      expect(() =>
+        app.createRedactedLogger().error('boom', { circular }),
+      ).not.toThrow();
+    } finally {
+      spies.forEach((s) => s.mockRestore());
+    }
+  });
+
   it('masks emails nested beyond the depth limit in context', () => {
     const { entries, report } = capture();
 
@@ -127,13 +117,13 @@ describe('POST /api/client-errors', () => {
 });
 
 function capture() {
+  const { report } = setup();
   const entries: unknown[] = [];
   const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) =>
     vi.spyOn(console, m).mockImplementation((...args: unknown[]) => {
       entries.push(...args);
     }),
   );
-  const { report } = setup();
   return {
     entries,
     report: (body: object) => {

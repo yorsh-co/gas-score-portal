@@ -4,7 +4,9 @@ const EMAIL_PATTERN = /[^\s/@%]+(?:@|%40)[^\s/@%]+\.[^\s/@%]+/gi;
 /**
  * Masks every email found in a string, array or object, recursively. Past the
  * depth limit, objects are serialized to JSON and masked as a string so deeply
- * nested untrusted data cannot bypass the masking.
+ * nested untrusted data cannot bypass the masking; a value that cannot be
+ * serialized, such as a circular or BigInt-holding one, becomes
+ * `'[unserializable]'`.
  * @param value Log field.
  * @param depth Remaining nesting depth.
  */
@@ -15,7 +17,13 @@ function redactEmails(value: unknown, depth = 4): unknown {
     );
   }
   if (value === null || typeof value !== 'object') return value;
-  if (depth === 0) return redactEmails(JSON.stringify(value));
+  if (depth === 0) {
+    try {
+      return redactEmails(JSON.stringify(value));
+    } catch {
+      return '[unserializable]';
+    }
+  }
   if (Array.isArray(value)) return value.map((v) => redactEmails(v, depth - 1));
   return Object.fromEntries(
     Object.entries(value).map(([k, v]) => [k, redactEmails(v, depth - 1)]),
