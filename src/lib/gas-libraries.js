@@ -5,8 +5,8 @@
 //   https://github.com/yorsh-co/gas-logger/tree/dist/v2.0.5
 // gas-error 1.2.6 (1a326260e8f4ddce8d79373ad740858e4cdd83f9)
 //   https://github.com/yorsh-co/gas-error/tree/dist/v1.2.6
-// gas-webapp 1.1.0 (223bb8c04cbbe9c930969063ef2338ba31c00794)
-//   https://github.com/yorsh-co/gas-webapp/tree/dist/v1.1.0
+// gas-webapp 1.1.3 (7acd3c3eba3c423096c2ecdf373be7fc9d8504ac)
+//   https://github.com/yorsh-co/gas-webapp/tree/dist/v1.1.3
 // gas-sheetdb 2.1.6 (a2fff2c044813910353df41d33d548aa42fd7c94)
 //   https://github.com/yorsh-co/gas-sheetdb/tree/dist/v2.1.6
 // gas-config 2.2.0 (b0003da372c0e98d49d01df75a9c85cf37107530)
@@ -2027,7 +2027,7 @@ const GAS_WEBAPP_CLIENT_ERROR_LIMITS = {
 };
 const GAS_WEBAPP_CLIENT_ERROR_TIMESTAMP_MAX = 100;
 const GAS_WEBAPP_CLIENT_ERROR_DEFAULT_SCOPE = 'Client';
-const CONTROL_CHARS =
+const GAS_WEBAPP_CONTROL_CHARS =
   // eslint-disable-next-line no-control-regex
   /[\u0000-\u001f\u007f-\u009f\u2028\u2029\u202a-\u202e\u2066-\u2069]/g;
 const GAS_WEBAPP_CLIENT_ERROR_CONTEXT_OMITTED = '[context omitted]';
@@ -2043,6 +2043,9 @@ const GAS_WEBAPP_CLIENT_ERROR_CONTEXT_OMITTED = '[context omitted]';
  * `flush()` throws after the line is logged, the error propagates (the client
  * gets a 500 and the reporter does not retry). Sheet formula injection is escaped by
  * gas-logger itself.
+ *
+ * The client text is logged as `clientMessage`, because gas-logger reserves
+ * `message` and `level` in the entries it builds.
  *
  * The handler keeps no throttling state; mount it behind a rate limiter. To
  * raise a Google Chat alert, pass a logger decorated with gas-chat's
@@ -2097,13 +2100,13 @@ const createClientErrorHandler = (logger = console, config = {}) => {
     const scope =
       text(
         typeof report.scope === 'string'
-          ? report.scope.replace(CONTROL_CHARS, ' ')
+          ? report.scope.replace(GAS_WEBAPP_CONTROL_CHARS, ' ')
           : undefined,
         limits.scope,
       )?.trim() || GAS_WEBAPP_CLIENT_ERROR_DEFAULT_SCOPE;
     logger.error(`Client error: ${scope}`, {
       kind: report.kind,
-      message,
+      clientMessage: message,
       stack: text(report.stack, limits.stack),
       url: text(report.url, limits.url),
       userAgent: text(report.userAgent, limits.userAgent),
