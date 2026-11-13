@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Migrated the toolchain to `gasdev` 3.0 (`3.0.0`), which replaces `gas-dev-config`, `gas-dev-bundle`, `gas-dev-release` and `gas-dev-ci`: the `package.json` settings are nested under the `gasdev` key, the scripts call `gasdev` (`deploy:setup` runs `gasdev setup`), the deploy workflow calls `yorsh-co/gasdev@v3.0.0`, and Node.js `^22.15.0` is required.
-- Bumped the bundled gas-\* libraries to `gas-webapp` 1.1.2 (1.1.0: CSRF gate on preflight-free HTTP `doPost` bodies, which does not affect the portal's `google.script.run` calls; CWE-1333 path-matching fix; 1.1.1: the `CONTROL_CHARS` global is now prefixed as `GAS_WEBAPP_CONTROL_CHARS`; 1.1.2: fixes the version in the peer types; none of these affect the portal), `gas-sheetdb` 2.1.6, `gas-config` 2.2.0, `gas-error` 1.2.6, `gas-logger` 2.0.5 and `gas-lock` 1.2.5, and re-vendored the `gas-webapp` browser client at 1.1.2.
+- Bumped the bundled gas-\* libraries to `gas-webapp` 1.1.3 (1.1.0: CSRF gate on preflight-free HTTP `doPost` bodies, which does not affect the portal's `google.script.run` calls; CWE-1333 path-matching fix; 1.1.1: the `CONTROL_CHARS` global is now prefixed as `GAS_WEBAPP_CONTROL_CHARS`; 1.1.2: fixes the version in the peer types; 1.1.3: the client error handler logs the client's text as `clientMessage`; none of these affect the portal), `gas-sheetdb` 2.1.6, `gas-config` 2.2.0, `gas-error` 1.2.6, `gas-logger` 2.0.5 and `gas-lock` 1.2.5, and re-vendored the `gas-webapp` browser client at 1.1.3.
 
 ### Added
 
