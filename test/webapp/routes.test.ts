@@ -99,3 +99,47 @@ describe('ack tracker', () => {
     });
   });
 });
+
+describe('GET /api/meta', () => {
+  it('defaults to the Yorsh identity', () => {
+    const response = setup().webApp.doGet({
+      parameter: { route: '/api/meta' },
+    });
+
+    expect(response).toMatchObject({
+      ok: true,
+      data: {
+        brand: {
+          primaryColor: null,
+          secondaryColor: null,
+          logoUrl: null,
+          faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+        },
+      },
+    });
+  });
+
+  it('returns the stored brand values', () => {
+    const { app } = loadApp({
+      properties: {
+        'gasConfig:primaryColor': '"#112233"',
+        'gasConfig:secondaryColor': '"#445566"',
+        'gasConfig:logoUrl': '"https://example.org/logo.png"',
+      },
+    });
+    const webApp = app.createWebApp({ getByUser: () => null }, AUTH);
+
+    const response = webApp.doGet({ parameter: { route: '/api/meta' } });
+
+    expect(response).toMatchObject({
+      ok: true,
+      data: {
+        brand: {
+          primaryColor: '#112233',
+          secondaryColor: '#445566',
+          logoUrl: 'https://example.org/logo.png',
+        },
+      },
+    });
+  });
+});

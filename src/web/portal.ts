@@ -19,6 +19,7 @@ interface PortalMeta {
   portalTitle: string;
   brand: {
     primaryColor: string | null;
+    secondaryColor: string | null;
     logoUrl: string | null;
     faviconUrl: string | null;
   };
@@ -393,14 +394,27 @@ function applyTranslations(): void {
 }
 
 /**
- * Applies the owner's brand settings over the built-in identity.
+ * Applies the owner's brand settings over the built-in identity. The primary
+ * colour overrides `--accent` and its derived `--accent-strong`; the secondary
+ * colour overrides `--brand` (links, focus ring).
  * @param brand Brand settings from the server.
  */
 function applyBrand(brand: PortalMeta['brand']): void {
   if (brand.primaryColor) {
-    document.documentElement.style.setProperty('--primary', brand.primaryColor);
+    const { style } = document.documentElement;
+    style.setProperty('--accent', brand.primaryColor);
+    style.setProperty(
+      '--accent-strong',
+      `color-mix(in srgb, ${brand.primaryColor} 85%, black)`,
+    );
   }
-  if (brand.logoUrl) byId<HTMLImageElement>('portal-logo').src = brand.logoUrl;
+  if (brand.secondaryColor) {
+    document.documentElement.style.setProperty('--brand', brand.secondaryColor);
+  }
+  if (brand.logoUrl) {
+    document.getElementById('portal-logo-dark')?.remove();
+    byId<HTMLImageElement>('portal-logo').src = brand.logoUrl;
+  }
 }
 
 /** Loads the locale and title from the server before the page is used. */

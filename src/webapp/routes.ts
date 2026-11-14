@@ -189,6 +189,7 @@ function createApiRouter(
       portalTitle: config.get('portalTitle') ?? 'Score Portal',
       brand: {
         primaryColor: config.get('primaryColor') ?? null,
+        secondaryColor: config.get('secondaryColor') ?? null,
         logoUrl: config.get('logoUrl') ?? null,
         faviconUrl: config.get('faviconUrl') ?? null,
       },

@@ -36,6 +36,7 @@ build/
 *.sh
 !scripts/*.sh
 *.txt
+!src/web/fonts/*.txt
 
 # =========================
 # OS / system files

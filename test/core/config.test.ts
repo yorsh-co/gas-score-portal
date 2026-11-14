@@ -8,6 +8,7 @@ describe('getConfig', () => {
     expect(app.getConfig().getAll()).toMatchObject({
       locale: 'en',
       portalTitle: 'Score Portal',
+      faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
       excludedFormUrls: null,
     });
   });
@@ -98,4 +99,27 @@ describe('form title strip patterns', () => {
 
     expect(app.getFormTitleStripPatterns()).toEqual(['^t4\\s*', 'quiz']);
   });
+});
+
+describe('brand settings validation', () => {
+  const owner = { owner: 'owner@example.org', activeUser: 'owner@example.org' };
+
+  it('rejects a malformed secondaryColor', () => {
+    const { app } = loadApp(owner);
+
+    expect(() => app.saveConfigValues({ secondaryColor: 'red' })).toThrow(
+      expect.objectContaining({ name: 'GasValidationError' }),
+    );
+  });
+
+  it.each(['http://example.com/i.png', 'javascript:alert(1)'])(
+    'rejects the non-https faviconUrl %s',
+    (faviconUrl) => {
+      const { app } = loadApp(owner);
+
+      expect(() => app.saveConfigValues({ faviconUrl })).toThrow(
+        expect.objectContaining({ name: 'GasValidationError' }),
+      );
+    },
+  );
 });
