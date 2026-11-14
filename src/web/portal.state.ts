@@ -4,6 +4,9 @@ type PortalStep = 'email' | 'code' | 'results' | 'error';
 /** Steps that have their own panel. */
 type PortalPanel = Exclude<PortalStep, 'error'>;
 
+/** Colour scheme explicitly chosen by the user. */
+type PortalTheme = 'light' | 'dark';
+
 /** State of the sign-in flow. */
 interface PortalState {
   step: PortalStep;
@@ -192,4 +195,26 @@ function averageOutOfTen(
     0,
   );
   return total / scores.length;
+}
+
+/**
+ * Stored theme choice, or null when the value is missing or not a valid theme.
+ * @param value Raw stored value.
+ */
+function parseStoredTheme(value: string | null): PortalTheme | null {
+  return value === 'light' || value === 'dark' ? value : null;
+}
+
+/**
+ * Opposite of the effective theme, which is the explicit choice or, when
+ * there is none, the OS scheme.
+ * @param current Explicit choice, or null to follow the OS.
+ * @param prefersDark Whether the OS prefers a dark scheme.
+ */
+function toggledTheme(
+  current: PortalTheme | null,
+  prefersDark: boolean,
+): PortalTheme {
+  const effective = current ?? (prefersDark ? 'dark' : 'light');
+  return effective === 'dark' ? 'light' : 'dark';
 }

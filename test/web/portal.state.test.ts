@@ -37,6 +37,11 @@ interface StateApi {
   averageOutOfTen(
     scores: { score: number; formPoints: number | null }[],
   ): number;
+  parseStoredTheme(value: string | null): 'light' | 'dark' | null;
+  toggledTheme(
+    current: 'light' | 'dark' | null,
+    prefersDark: boolean,
+  ): 'light' | 'dark';
 }
 
 /** Loads the browser script, which has no exports, in an isolated context. */
@@ -57,6 +62,8 @@ function loadState(): StateApi {
     'isHttpsUrl',
     'scoreOutOfTen',
     'averageOutOfTen',
+    'parseStoredTheme',
+    'toggledTheme',
   ];
   return runInNewContext(`${js}\n({ ${names.join(', ')} })`, {
     URL,
@@ -301,5 +308,27 @@ describe('isHttpsUrl', () => {
     expect(api.isHttpsUrl('not a url')).toBe(false);
     expect(api.isHttpsUrl('')).toBe(false);
     expect(api.isHttpsUrl(null)).toBe(false);
+  });
+});
+
+describe('theme helpers', () => {
+  it('parses only valid stored themes', () => {
+    expect(api.parseStoredTheme('light')).toBe('light');
+    expect(api.parseStoredTheme('dark')).toBe('dark');
+    expect(api.parseStoredTheme('blue')).toBeNull();
+    expect(api.parseStoredTheme('')).toBeNull();
+    expect(api.parseStoredTheme(null)).toBeNull();
+  });
+
+  it('toggles from the OS scheme when there is no choice', () => {
+    expect(api.toggledTheme(null, false)).toBe('dark');
+    expect(api.toggledTheme(null, true)).toBe('light');
+  });
+
+  it('toggles an explicit choice regardless of the OS', () => {
+    expect(api.toggledTheme('light', true)).toBe('dark');
+    expect(api.toggledTheme('light', false)).toBe('dark');
+    expect(api.toggledTheme('dark', true)).toBe('light');
+    expect(api.toggledTheme('dark', false)).toBe('light');
   });
 });
