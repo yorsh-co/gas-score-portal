@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The access code now appears before the portal title in the email, so a title containing a 6-digit number cannot be mistaken for the code.
 - The access-code email is now a complete, link-free HTML document with a matching plain-text part, a reason line and a footer naming the portal, to reduce Gmail spam flagging. The README gains an "Email deliverability" section (DKIM/SPF/DMARC). See [ADR 0009](docs/adr/0009-otp-email-content.md).
 
 - Unanswered forms show "Not answered" instead of `NaN / 10`, and the average ignores them.
