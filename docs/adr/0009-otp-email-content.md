@@ -20,6 +20,9 @@ authentication are the other.
   title) with a matching plain-text part. `lang` is the resolved locale
   (`en` or `pt-BR`), never the raw config value.
 - It states why the recipient got it and ends with a footer naming the portal.
+- The code comes right after a title-free intro, before any line that
+  interpolates the portal title, so a title containing digits cannot be taken
+  for the code by mail clients that detect codes.
 - It contains no links. `script.google.com` web app URLs are heavily abused in
   phishing and raise the spam score; the user already has the portal open.
 - The code is not in the subject, to keep it out of lock-screen notifications.

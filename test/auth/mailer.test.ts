@@ -9,7 +9,7 @@ interface Sent {
   name: string;
 }
 
-function send(locale: string) {
+function send(locale: string, portalTitle = 'Quiz <Portal>') {
   const sent: Sent[] = [];
   const { app } = loadApp({
     globals: {
@@ -21,7 +21,7 @@ function send(locale: string) {
   });
   app
     .createOtpMailer(
-      () => 'Quiz <Portal>',
+      () => portalTitle,
       () => locale,
     )
     .sendOtp('ana@x.org', '123456', 10);
@@ -43,7 +43,7 @@ describe('OTP mailer', () => {
   it('includes intro, code, expiry, reason and footer in both parts', () => {
     const mail = send('pt-BR');
     for (const part of [mail.body, mail.htmlBody]) {
-      expect(part).toContain('Seu código de acesso ao');
+      expect(part).toContain('Seu código de acesso é:');
       expect(part).toContain('123456');
       expect(part).toContain('expira em 10 minutos');
       expect(part).toContain('Alguém, provavelmente você');
@@ -92,6 +92,17 @@ describe('OTP mailer', () => {
 
   it('keeps the code as the first 6-digit number in the body', () => {
     expect(/\b(\d{6})\b/.exec(send('en').body)?.[1]).toBe('123456');
+  });
+
+  it('puts the code before any portal title that contains digits', () => {
+    for (const locale of ['en', 'pt-BR']) {
+      const mail = send(locale, 'Quiz 202611');
+      expect(/\b(\d{6})\b/.exec(mail.body)?.[1]).toBe('123456');
+      const visibleText = mail.htmlBody
+        .slice(mail.htmlBody.indexOf('<body'))
+        .replace(/<[^>]*>/g, ' ');
+      expect(/\b(\d{6})\b/.exec(visibleText)?.[1]).toBe('123456');
+    }
   });
 
   it('falls back to lang="en" for an unknown locale', () => {

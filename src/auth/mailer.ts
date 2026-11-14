@@ -30,7 +30,8 @@ function escapeHtml(text: string): string {
  *
  * The message is a complete HTML document with a plain-text twin, states why
  * it was sent and by whom, and carries no links, so it does not resemble
- * phishing templates.
+ * phishing templates. The code precedes any text that interpolates the portal
+ * title, so it stays the first 6-digit number in the visible content.
  * @param getPortalTitle Portal title shown in the email.
  * @param getLocale Locale of the email.
  */
@@ -46,7 +47,7 @@ function createOtpMailer(
       const portalTitle = getPortalTitle();
       const subject = t(locale, 'email.otpSubject', { portalTitle });
       const reason = t(locale, 'email.otpReason', { portalTitle });
-      const intro = t(locale, 'email.otpIntro', { portalTitle });
+      const intro = t(locale, 'email.otpIntro');
       const expiry = t(locale, 'email.otpExpiry', { minutes });
       const footer = t(locale, 'email.otpFooter', { portalTitle });
       const paragraph = (text: string) =>
@@ -54,15 +55,15 @@ function createOtpMailer(
       MailApp.sendEmail({
         to,
         subject,
-        body: [reason, intro, code, expiry, footer].join('\n\n'),
+        body: [intro, code, expiry, reason, footer].join('\n\n'),
         htmlBody:
           `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
           `<title>${escapeHtml(subject)}</title></head>` +
           '<body style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Arial,sans-serif;font-size:16px;line-height:1.5;color:#202124">' +
-          paragraph(reason) +
           paragraph(intro) +
           `<p style="margin:0 0 16px;font-size:24px;font-weight:bold;letter-spacing:4px">${escapeHtml(code)}</p>` +
           paragraph(expiry) +
+          paragraph(reason) +
           `<p style="margin:24px 0 0;font-size:12px;color:#5f6368">${escapeHtml(footer)}</p>` +
           '</body></html>',
         name: portalTitle,

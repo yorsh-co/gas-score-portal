@@ -123,7 +123,7 @@ const MESSAGES_EN = {
   'email.otpSubject': '{portalTitle}: your access code',
   'email.otpReason':
     'Someone, hopefully you, asked to sign in to {portalTitle} with this email address.',
-  'email.otpIntro': 'Your access code for {portalTitle} is:',
+  'email.otpIntro': 'Your access code is:',
   'email.otpExpiry':
     'It expires in {minutes} minutes and works only once. If you did not request it, ignore this email.',
   'email.otpFooter':
