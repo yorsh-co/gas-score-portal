@@ -30,3 +30,4 @@ the OS colour scheme. Users asked to pick a theme regardless of the OS.
 - The choice is per browser.
 - When storage is blocked, the choice lasts for the page only.
 - The tab favicon still follows the OS, as it is a static `<link>` media query.
+- The stored theme is applied when `portal.js` runs at the end of `<body>`, so when the choice differs from the OS the first paint can briefly show the OS scheme.
