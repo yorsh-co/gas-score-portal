@@ -16,11 +16,12 @@ describe('demo data generator', () => {
 
   it('honours the requested counts and defaults', () => {
     const custom = app.buildDemoData({ respondents: 12, forms: 3 });
-    expect(custom.respondents).toHaveLength(12);
+    // 12 primary rows plus an alias row for every 5th respondent.
+    expect(custom.respondents).toHaveLength(15);
     expect(custom.forms).toHaveLength(3);
 
     const defaults = app.buildDemoData();
-    expect(defaults.respondents).toHaveLength(40);
+    expect(defaults.respondents).toHaveLength(48);
     expect(defaults.forms).toHaveLength(8);
   });
 
@@ -45,20 +46,63 @@ describe('demo data generator', () => {
     expect(keys.size).toBe(data.scores.length);
   });
 
-  it('gives every respondent a score and exercises alternative emails', () => {
+  it('gives every primary respondent a score, counting alias scores', () => {
     const data = app.buildDemoData();
     const owner = new Map<string, string>();
     for (const r of data.respondents) {
-      owner.set(r.email, r.email);
-      if (r.alternatives) owner.set(r.alternatives, r.email);
+      owner.set(r.email, r.alternatives || r.email);
     }
     const scored = new Set(data.scores.map((s) => owner.get(s.email)));
-    expect(data.respondents.every((r) => scored.has(r.email))).toBe(true);
-    expect(
-      data.scores.some(
-        (s) => !data.respondents.some((r) => r.email === s.email),
-      ),
-    ).toBe(true);
+    const primaries = data.respondents.filter((r) => !r.alternatives);
+    expect(primaries).toHaveLength(40);
+    expect(primaries.every((r) => scored.has(r.email))).toBe(true);
+  });
+
+  it('has a Respondents row for every score email', () => {
+    const data = app.buildDemoData();
+    const emails = new Set(data.respondents.map((r) => r.email));
+    expect(data.scores.every((s) => emails.has(s.email))).toBe(true);
+  });
+
+  it('exposes alias scores through the scores service', () => {
+    const data = app.buildDemoData();
+    const tables = {
+      forms: new FakeTable(),
+      respondents: new FakeTable(),
+      scores: new FakeTable(),
+    };
+    const repos = {
+      forms: app.createFormsRepo(tables.forms),
+      respondents: app.createRespondentsRepo(tables.respondents),
+      scores: app.createScoresRepo(tables.scores),
+    };
+    app.writeDemoData(data, repos);
+    const service = app.createScoresService(() => ({
+      ...repos,
+      getExcludedUrls: () => [],
+      getTitleStripPatterns: () => [],
+      getLocale: () => 'en',
+    }));
+
+    const aliased = data.respondents.filter((r) => r.alternatives);
+    expect(aliased.length).toBeGreaterThan(0);
+    const withAliasScores = aliased.filter((alias) =>
+      data.scores.some((s) => s.email === alias.email),
+    );
+    expect(withAliasScores.length).toBeGreaterThan(0);
+    for (const alias of withAliasScores) {
+      const own = new Set(
+        data.scores
+          .filter((s) => s.email === alias.alternatives)
+          .map((s) => s.formUrl),
+      );
+      const aliasUrls = data.scores
+        .filter((s) => s.email === alias.email)
+        .map((s) => s.formUrl);
+      const result = service.getByUser(alias.alternatives);
+      const answered = result?.scores.filter((e) => e.score !== null);
+      expect(answered).toHaveLength(new Set([...own, ...aliasUrls]).size);
+    }
   });
 
   it('does not treat real addresses or URLs as demo data', () => {

@@ -123,11 +123,11 @@ function buildDemoData(options: DemoDataOptions = {}): DemoData {
     const local = `${first}.${last}${i + 1}`.toLowerCase();
     const email = `${local}@${DEMO_EMAIL_DOMAIN}`;
     const alternative = i % 5 === 0 ? `${local}.alt@${DEMO_EMAIL_DOMAIN}` : '';
-    respondents.push({
-      email,
-      name: `${first} ${last}`,
-      alternatives: alternative,
-    });
+    const name = `${first} ${last}`;
+    respondents.push({ email, name, alternatives: '' });
+    if (alternative) {
+      respondents.push({ email: alternative, name, alternatives: email });
+    }
 
     const answered = forms.filter(() => random() < 0.7);
     if (answered.length === 0 && forms.length > 0) {

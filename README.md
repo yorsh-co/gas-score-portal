@@ -73,8 +73,11 @@ touched. Running `seedDemoData` again adds nothing new.
 
 Use a copy of the spreadsheet without triggers installed: a sync run marks the
 demo forms `error` (their scores still display). Demo addresses are not
-deliverable, so OTP mail never arrives. To sign in, add a real address to a
-respondent's `alternatives`, or test with the vitest suite.
+deliverable, so OTP mail never arrives. To sign in and see a demo
+respondent's scores, add a Respondents row for your real address, then add that
+address to the `alternatives` of the demo respondent's row (scores of rows that
+list your address are shown when you sign in with it). Your real-address row
+is not removed by `clearDemoData`. Alternatively, test with the vitest suite.
 
 ## Limits
 
