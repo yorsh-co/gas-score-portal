@@ -79,7 +79,7 @@ function build() {
   requireInput(manifest);
   requireInput(join(src, 'lib', 'gas-libraries.js'));
 
-  run('rimraf', ['dist']);
+  run('gasdev', ['clean']);
   run('tsc', ['-p', 'tsconfig.json']);
   copy(
     join(src, 'lib', 'gas-libraries.js'),
