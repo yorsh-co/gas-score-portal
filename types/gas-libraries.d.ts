@@ -9,8 +9,8 @@
 //   https://github.com/yorsh-co/gas-webapp/tree/dist/v1.1.3
 // gas-sheetdb 2.1.6 (a2fff2c044813910353df41d33d548aa42fd7c94)
 //   https://github.com/yorsh-co/gas-sheetdb/tree/dist/v2.1.6
-// gas-config 2.2.0 (b0003da372c0e98d49d01df75a9c85cf37107530)
-//   https://github.com/yorsh-co/gas-config/tree/dist/v2.2.0
+// gas-config 2.3.1 (e5cad0890ec4c84859ba22c814d63b04920bfd0e)
+//   https://github.com/yorsh-co/gas-config/tree/dist/v2.3.1
 
 // ---- gas-lock/gas-lock.constants.d.ts ----
 /** Falls back to this when `withLock` isn't given a timeout. */
@@ -2091,6 +2091,18 @@ interface GasSheetDbLogger {
 }
 
 // ---- gas-config/gas-config.access.d.ts ----
+/** Script Property holding the comma-separated editor emails. */
+declare const _GAS_CONFIG_EDITORS_PROPERTY = 'GAS_CONFIG_EDITORS';
+/** Script Property holding the comma-separated reader emails. */
+declare const _GAS_CONFIG_READERS_PROPERTY = 'GAS_CONFIG_READERS';
+/** Constructor options for `_GasConfigAccess`; `undefined` means omitted. */
+interface _GasConfigAccessOptions {
+  /** Normalised editor emails. */
+  editors?: readonly string[] | undefined;
+  /** Normalised reader emails. */
+  readers?: readonly string[] | undefined;
+  restrictReads?: boolean | undefined;
+}
 /**
  * The `editors` and `readers` allowlists and the identity of the signed-in
  * user.
@@ -2108,24 +2120,42 @@ interface GasSheetDbLogger {
  * "Execute as: User accessing the web app". Failures follow gas-webapp's auth
  * middleware: an unidentifiable user and an unlisted user are both 401s, and
  * neither message contains the email.
+ *
+ * A list whose option is omitted is read from its Script Property
+ * (`GAS_CONFIG_EDITORS`, `GAS_CONFIG_READERS`) as comma-separated emails, on
+ * first use and once per instance. A property holding an invalid email lists
+ * nobody, so access fails closed.
  */
 declare class _GasConfigAccess {
-  private readonly _editors;
-  private readonly _readers;
-  private readonly _restricted;
+  private readonly _options;
+  private readonly _warn;
+  private _properties;
+  private _editors;
+  /** `null` once resolved when neither the option nor the property is set. */
+  private _readers;
+  private _readFailed;
   private _identified;
   private _email;
   /**
-   * @param editors Normalised (trimmed, lowercase) emails. An empty list
-   * means nobody can edit.
-   * @param readers Normalised emails allowed to read besides the editors.
-   * @param restricted Whether reads are limited to editors and readers.
+   * @param options The validated, normalised constructor options.
+   * @param warn Logs a warning; must not throw.
    */
   constructor(
-    editors: readonly string[],
-    readers: readonly string[],
-    restricted: boolean,
+    options: _GasConfigAccessOptions,
+    warn: (message: string, context: Record<string, unknown>) => void,
   );
+  /** The editors: the option, else the property, else nobody. */
+  editors(): ReadonlySet<string>;
+  /**
+   * The readers besides the editors: the option, else the property, else
+   * `null` when neither is set.
+   */
+  readers(): ReadonlySet<string> | null;
+  /**
+   * Whether reads are limited to editors and readers: when `restrictReads` is
+   * true, or a readers list is set by option or property.
+   */
+  restricted(): boolean;
   /**
    * Returns the signed-in user's email, or null when it cannot be determined
    * (the scope is declined, or the account is anonymous or external). Session
@@ -2152,6 +2182,13 @@ declare class _GasConfigAccess {
    * when reads are not restricted.
    */
   assertCanRead(): void;
+  /**
+   * Resolves a list from a Script Property: `undefined` when unset, else the
+   * comma-separated emails trimmed, lowercased and deduplicated. An invalid
+   * email, or a failed read, lists nobody and warns with the key only, never
+   * the value.
+   */
+  private _fromProperty;
   /** Returns the user's email, or throws a 401 unless listed in one of `lists`. */
   private _assertListed;
 }
@@ -2208,12 +2245,6 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   groups: GasConfigGroup[];
   theme: GasConfigTheme;
   brand: GasConfigBrand;
-  /** Normalised emails allowed to change the settings; empty means nobody. */
-  editors: string[];
-  /** Whether reads are limited to `editors` and `readers`; true whenever `readers` was given. */
-  restrictReads: boolean;
-  /** Normalised emails allowed to read besides `editors`; `[]` when omitted. */
-  readers: string[];
   logger: GasConfigLogger;
   lockService: GasConfigLockService;
   lockTimeoutMs: number;
@@ -2227,6 +2258,21 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   private readonly _storage;
   private readonly _access;
   private readonly _warned;
+  /**
+   * Normalised emails allowed to change the settings; empty means nobody.
+   * Returns a copy. May read Script Properties on first access.
+   */
+  get editors(): string[];
+  /**
+   * Normalised emails allowed to read besides `editors`; `[]` when none are
+   * listed. Returns a copy. May read Script Properties on first access.
+   */
+  get readers(): string[];
+  /**
+   * Whether reads are limited to `editors` and `readers`. May read Script
+   * Properties on first access.
+   */
+  get restrictReads(): boolean;
   constructor(options: GasConfigOptions<S>);
   /**
    * Returns the value of a key: the stored value, else the field default.
@@ -2280,6 +2326,8 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
    * which only sees non-empty values that passed the shared rules.
    */
   private _validateChange;
+  /** Logs a warning through the logger; never throws. */
+  private _warn;
   /** Warns once per key about a stored value that was replaced. */
   private _warnInvalid;
   /** Validate a title, falling back to the library default when omitted. */
@@ -2293,13 +2341,12 @@ declare class GasConfig<S extends GasConfigSchema = GasConfigSchema> {
   /** Validate the brand overrides, copying them. */
   private _resolveBrand;
   /**
-   * Validate an email list: trimmed, lowercased and deduplicated. Omitted
-   * means an empty list.
+   * Validate an email list: trimmed, lowercased and deduplicated. Returns
+   * `undefined` when omitted, so the Script Property applies.
    */
   private _resolveEmails;
   /**
-   * Resolve whether reads are restricted: `readers` restricts by itself, and
-   * `restrictReads: false` contradicts it.
+   * Validate `restrictReads`; `false` contradicts a `readers` option.
    */
   private _resolveRestrictReads;
   /**
@@ -2484,7 +2531,7 @@ interface GasConfig<S extends GasConfigSchema = GasConfigSchema> {
    * `_`, as Apps Script cannot call private functions from a menu.
    *
    * ```js
-   * const config = new GasConfig({ schema, editors: ['admin@example.org'] });
+   * const config = new GasConfig({ schema }); // editors come from GAS_CONFIG_EDITORS
    *
    * function onOpen() {
    *   SpreadsheetApp.getUi()
@@ -2974,17 +3021,25 @@ interface GasConfigPageOptions {
 interface GasConfigOptions<S extends GasConfigSchema = GasConfigSchema> {
   schema: S;
   groups?: GasConfigGroup[];
-  /** Emails allowed to change the settings. Omitted or empty means nobody. */
+  /**
+   * Emails allowed to change the settings. When omitted, the comma-separated
+   * Script Property `GAS_CONFIG_EDITORS` is used; nobody if that is unset too.
+   * An option replaces the property entirely.
+   */
   editors?: string[];
   /**
    * Emails allowed to read the settings, besides `editors`. Setting it
    * restricts reads; `undefined` leaves reads open to everyone, `[]` limits
-   * them to `editors`.
+   * them to `editors`. When omitted, the Script Property `GAS_CONFIG_READERS`
+   * is used (set, even empty, restricts reads). An option replaces the
+   * property entirely.
    */
   readers?: string[];
   /**
    * Limits reads to `editors` (and `readers`). Omitted or `false` leaves reads
-   * open unless `readers` is set; `false` with `readers` throws.
+   * open unless `readers` or the `GAS_CONFIG_READERS` property is set;
+   * `false` with the `readers` option throws, and `false` with the property
+   * keeps reads restricted and logs a warning.
    */
   restrictReads?: boolean;
   /** @default 'Settings' */
