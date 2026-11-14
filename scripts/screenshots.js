@@ -154,6 +154,7 @@ async function capture(browser, html, shot, problems) {
     viewport: shot.viewport,
     deviceScaleFactor: SCALE,
     colorScheme: shot.scheme,
+    timezoneId: 'UTC',
   });
   try {
     await context.route(`${ORIGIN}/**`, (route) =>
@@ -179,16 +180,18 @@ async function capture(browser, html, shot, problems) {
       .locator(shot.signedIn ? '#results-panel' : '#send-btn:not([disabled])')
       .waitFor({ state: 'visible' });
     await page.evaluate(() => document.fonts.ready);
-    const unstubbed = await page.evaluate(() => window.__unstubbed ?? []);
-    unstubbed.forEach((route) =>
-      problems.push(`${shot.file}: unstubbed route ${route}`),
-    );
+    const readUnstubbed = () => page.evaluate(() => window.__unstubbed ?? []);
+    const unstubbed = new Set(await readUnstubbed());
     await page.screenshot({
       path: join(outDir, shot.file),
       fullPage: true,
       animations: 'disabled',
       caret: 'hide',
     });
+    (await readUnstubbed()).forEach((route) => unstubbed.add(route));
+    unstubbed.forEach((route) =>
+      problems.push(`${shot.file}: unstubbed route ${route}`),
+    );
   } finally {
     await context.close();
   }
