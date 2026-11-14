@@ -19,6 +19,7 @@
     "@types/node": "^22.20.5",
     "eslint": "^10.15.0",
     "gasdev": "github:yorsh-co/gasdev#semver:3.2.1",
+    "playwright": "^1.65.1",
     "prettier": "^3.9.6",
     "typescript": "^5.9.3",
     "vitest": "^5.0.3"
@@ -132,6 +133,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:gas:build": "gasdev gas-test build",
-    "test:gas": "gasdev gas-test run"
+    "test:gas": "gasdev gas-test run",
+    "screenshots": "npm run build && node scripts/screenshots.js"
   }
 }
