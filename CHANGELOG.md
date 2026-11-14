@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Yorsh mark as the default logo and icon, with light and dark variants.
 - `secondaryColor` setting that overrides the link and focus ring colour (`--brand`).
 - ADR 0007 documenting the Yorsh brand defaults.
+- Light/Dark toggle on the portal that overrides the OS colour scheme and is remembered per browser. See [ADR 0008](docs/adr/0008-theme-toggle.md).
 - Client error reporting: an anonymous `POST /api/client-errors` route accepts reports from the portal, limited globally to 30 reports per 60 s, and logs them under the `client` module with emails masked in every field and in the log message. The portal installs the gas-webapp reporter, which forwards client-side failures only, capped at 10 per page load (ADR 0006).
 - Deploy workflow calling the shared `gas-dev-ci` reusable workflow: `develop` deploys to `dev`, `main` to `live`.
 - `gas-dev-ci` CLI as a devDependency, run by the deploy workflow.
