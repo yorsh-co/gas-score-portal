@@ -168,6 +168,9 @@ const busyButtons = new Set<string>();
  */
 let generation = 0;
 
+/** Bumped by each scores load, so only the latest one renders. */
+let scoresRequest = 0;
+
 /**
  * Reads the stored session token.
  * @returns The token, or `null` when none is stored or storage is blocked.
@@ -381,24 +384,40 @@ function loadScores(): Promise<void> {
   resetResult();
   setHidden(['scores-loading'], false);
   const started = generation;
+  const request = ++scoresRequest;
+  const isCurrent = () => started === generation && request === scoresRequest;
   return window.GasWebApp.api
     .get<PortalUserScores>('/api/me/scores', {
       params: { token: sessionToken ?? '' },
     })
     .then((data) => {
-      if (started === generation) renderResult(data);
+      if (isCurrent()) renderResult(data);
     })
     .catch((error: unknown) => {
       window.GasWebApp.errors.logServerError(error as Error, 'Portal');
-      if (started !== generation) return;
+      if (!isCurrent()) return;
       const failure = failureOf(error);
       if (failure.status === 401) saveToken(null);
       dispatch(failure);
     })
     .finally(() => {
-      if (started !== generation) return;
+      if (!isCurrent()) return;
       setHidden(['scores-loading'], true);
     });
+}
+
+/**
+ * Reloads the scores without signing out. Ignored while a refresh is in
+ * flight.
+ */
+function refreshScores(): void {
+  const button = byId<HTMLButtonElement>('refresh-btn');
+  if (button.disabled) return;
+  dispatch({ type: 'dismissError' });
+  button.disabled = true;
+  loadScores().finally(() => {
+    button.disabled = false;
+  });
 }
 
 /** Submits the code form. */
@@ -581,6 +600,7 @@ byId('resend-btn').addEventListener('click', () => {
   withBusyButton('resend-btn', () => requestCode(state.email));
 });
 byId('change-email-btn').addEventListener('click', changeEmail);
+byId('refresh-btn').addEventListener('click', refreshScores);
 byId('sign-out-btn').addEventListener('click', signOut);
 document.addEventListener('click', (event) => {
   const target = event.target as HTMLElement;
