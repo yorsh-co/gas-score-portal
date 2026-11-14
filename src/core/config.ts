@@ -29,10 +29,20 @@ const CONFIG_SCHEMA = {
   primaryColor: {
     type: 'string',
     label: 'Primary color',
-    description: 'Accent color of the web app, as a hex code such as #4f46e5.',
+    description:
+      'Colour of the main action button, as a hex code such as #a34a1c. Empty uses Yorsh copper. Check it has 4.5:1 contrast with white text.',
     group: 'general',
     pattern: '^#[0-9a-fA-F]{6}$',
-    patternMessage: 'Use a hex color such as #4f46e5.',
+    patternMessage: 'Use a hex color such as #a34a1c.',
+  },
+  secondaryColor: {
+    type: 'string',
+    label: 'Secondary color',
+    description:
+      'Colour of links, focus rings and borders, as a hex code such as #0f5563. Empty uses Yorsh petrol.',
+    group: 'general',
+    pattern: '^#[0-9a-fA-F]{6}$',
+    patternMessage: 'Use a hex color such as #0f5563.',
   },
   logoUrl: {
     type: 'url',

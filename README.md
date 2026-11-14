@@ -43,7 +43,8 @@ Settings are stored in Script Properties and edited in the settings dialog, open
 | ------------------------ | ------------------------------------------------------------------------------------------------------ |
 | `locale`                 | Language of the menu, messages and web app (`en` or `pt-BR`).                                          |
 | `portalTitle`            | Title of the web app page.                                                                             |
-| `primaryColor`           | Accent color as a hex code, for example `#4f46e5`.                                                     |
+| `primaryColor`           | Main button color as a hex code, for example `#a34a1c`. Empty uses Yorsh copper.                       |
+| `secondaryColor`         | Link, focus ring and border color as a hex code, for example `#0f5563`. Empty uses Yorsh petrol.       |
 | `logoUrl`                | HTTPS address of a logo that replaces the built-in one.                                                |
 | `faviconUrl`             | HTTPS address of the page icon.                                                                        |
 | `driveFolderUrl`         | Folder searched for Forms to import.                                                                   |
