@@ -9,11 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Restyled the portal with the Yorsh identity: design tokens with light and dark variants, Space Grotesk and DM Sans inlined as fonts (with their OFL licences), and restyled components.
+- `faviconUrl` now defaults to the Yorsh icon and accepts HTTPS addresses only.
+- `primaryColor` now sets only the main button colour (`--accent`); links and focus rings are coloured by the new `secondaryColor`.
 - Migrated the toolchain to `gasdev` 3.0 (`3.1.0`), which replaces `gas-dev-config`, `gas-dev-bundle`, `gas-dev-release` and `gas-dev-ci`: the `package.json` settings are nested under the `gasdev` key, the scripts call `gasdev` (`deploy:setup` runs `gasdev setup`), the deploy workflow calls `yorsh-co/gasdev@v3.1.0`, and Node.js `^22.15.0` is required.
 - Bumped the bundled gas-\* libraries to `gas-webapp` 1.1.3 (1.1.0: CSRF gate on preflight-free HTTP `doPost` bodies, which does not affect the portal's `google.script.run` calls; CWE-1333 path-matching fix; 1.1.1: the `CONTROL_CHARS` global is now prefixed as `GAS_WEBAPP_CONTROL_CHARS`; 1.1.2: fixes the version in the peer types; 1.1.3: the client error handler logs the client's text as `clientMessage`; none of these affect the portal), `gas-sheetdb` 2.1.6, `gas-config` 2.2.0, `gas-error` 1.2.6, `gas-logger` 2.0.5 and `gas-lock` 1.2.5, and re-vendored the `gas-webapp` browser client at 1.1.3.
 
 ### Added
 
+- Yorsh mark as the default logo and icon, with light and dark variants.
+- `secondaryColor` setting that overrides the link and focus ring colour (`--brand`).
+- ADR 0007 documenting the Yorsh brand defaults.
 - Client error reporting: an anonymous `POST /api/client-errors` route accepts reports from the portal, limited globally to 30 reports per 60 s, and logs them under the `client` module with emails masked in every field and in the log message. The portal installs the gas-webapp reporter, which forwards client-side failures only, capped at 10 per page load (ADR 0006).
 - Deploy workflow calling the shared `gas-dev-ci` reusable workflow: `develop` deploys to `dev`, `main` to `live`.
 - `gas-dev-ci` CLI as a devDependency, run by the deploy workflow.
