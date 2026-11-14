@@ -101,6 +101,13 @@ export interface AppExports {
     respondents: () => object,
     logger: object,
   ): { otp: object; sessions: object; hmac(value: string): string };
+  buildDemoData(options?: {
+    respondents?: number;
+    forms?: number;
+    seed?: number;
+  }): DemoDataApi;
+  isDemoEmail(email: string): boolean;
+  isDemoFormUrl(url: string): boolean;
   getApp(): { doGet(e: object): unknown; doPost(e: object): unknown };
   doGet(e: object): unknown;
   doPost(e: object): unknown;
@@ -191,6 +198,12 @@ export interface ScoresRepoApi {
   ): { inserted: number; updated: number; unchanged: number };
 }
 
+export interface DemoDataApi {
+  forms: FormRecordApi[];
+  respondents: RespondentRecordApi[];
+  scores: { email: string; formUrl: string; score: number }[];
+}
+
 export interface MigrationCountsApi {
   forms: number;
   respondents: number;
@@ -233,6 +246,9 @@ const EXPORTS: (keyof AppExports)[] = [
   'createOtpService',
   'createSessionService',
   'createAuthServices',
+  'buildDemoData',
+  'isDemoEmail',
+  'isDemoFormUrl',
   'getApp',
   'doGet',
   'doPost',

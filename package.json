@@ -49,6 +49,7 @@
       "infra/db/scores.repo.ts",
       "infra/db/overview.ts",
       "infra/db/migrate-legacy.ts",
+      "dev/seed.ts",
       "domain/LinkedForm.ts",
       "infra/drive/GDrive.ts",
       "infra/forms/GForms.ts",
