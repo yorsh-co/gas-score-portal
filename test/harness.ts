@@ -101,6 +101,34 @@ export interface AppExports {
     respondents: () => object,
     logger: object,
   ): { otp: object; sessions: object; hmac(value: string): string };
+  buildDemoData(options?: {
+    respondents?: number;
+    forms?: number;
+    seed?: number;
+  }): DemoDataApi;
+  isDemoEmail(email: string): boolean;
+  isDemoFormUrl(url: string): boolean;
+  writeDemoData(
+    data: DemoDataApi,
+    repos: { forms: object; respondents: object; scores: object },
+  ): { forms: number; respondents: number; scores: number };
+  seedDemoData(
+    tables?: { forms: object; respondents: object; scores: object },
+    refresh?: () => unknown,
+  ): { forms: number; respondents: number; scores: number };
+  clearDemoData(
+    tables?: { forms: object; respondents: object; scores: object },
+    refresh?: () => unknown,
+  ): { forms: number; respondents: number; scores: number };
+  removeDemoData(tables: {
+    forms: object;
+    respondents: object;
+    scores: object;
+  }): {
+    forms: number;
+    respondents: number;
+    scores: number;
+  };
   getApp(): { doGet(e: object): unknown; doPost(e: object): unknown };
   doGet(e: object): unknown;
   doPost(e: object): unknown;
@@ -191,6 +219,12 @@ export interface ScoresRepoApi {
   ): { inserted: number; updated: number; unchanged: number };
 }
 
+export interface DemoDataApi {
+  forms: FormRecordApi[];
+  respondents: RespondentRecordApi[];
+  scores: { email: string; formUrl: string; score: number }[];
+}
+
 export interface MigrationCountsApi {
   forms: number;
   respondents: number;
@@ -233,6 +267,13 @@ const EXPORTS: (keyof AppExports)[] = [
   'createOtpService',
   'createSessionService',
   'createAuthServices',
+  'buildDemoData',
+  'isDemoEmail',
+  'isDemoFormUrl',
+  'writeDemoData',
+  'removeDemoData',
+  'seedDemoData',
+  'clearDemoData',
   'getApp',
   'doGet',
   'doPost',

@@ -64,6 +64,21 @@ The legacy app removed some words from the Form titles with hard-coded rules. Th
 checando a aprendizagem
 ```
 
+## Demo data
+
+To fill the tables with fake data for testing or demos, open the Apps Script
+editor and run `seedDemoData`; run `clearDemoData` to remove it. Only rows with
+`@example.com` emails or `https://example.com/demo-forms/` form URLs are
+touched. Running `seedDemoData` again adds nothing new.
+
+Use a copy of the spreadsheet without triggers installed: a sync run marks the
+demo forms `error` (their scores still display). Demo addresses are not
+deliverable, so OTP mail never arrives. To sign in and see a demo
+respondent's scores, add a Respondents row for your real address, then add that
+address to the `alternatives` of the demo respondent's row (scores of rows that
+list your address are shown when you sign in with it). Your real-address row
+is not removed by `clearDemoData`. Alternatively, test with the vitest suite.
+
 ## Limits
 
 - Apps Script stops an execution after 6 minutes. The synchronization saves a cursor and schedules a continuation before the limit.

@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Editor-only `seedDemoData` and `clearDemoData` Apps Script functions that fill and remove deterministic demo data (`@example.com` emails and `https://example.com/demo-forms/` form URLs).
 - Privacy policy and terms of use links in the portal footer, configurable via `privacyPolicyUrl` and `termsUrl` (HTTPS only).
 - Yorsh mark as the default logo and icon, with light and dark variants.
 - `secondaryColor` setting that overrides the link and focus ring colour (`--brand`).

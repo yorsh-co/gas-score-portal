@@ -69,4 +69,10 @@ export class FakeTable {
     this.apply(row, update);
     return { ...row };
   };
+
+  deleteWhere = (predicate: Predicate) => {
+    const removed = this.rows.filter((row) => predicate({ ...row }));
+    removed.forEach((row) => this.rows.splice(this.rows.indexOf(row), 1));
+    return removed.map((row) => ({ ...row }));
+  };
 }
