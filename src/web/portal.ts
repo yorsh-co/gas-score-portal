@@ -146,6 +146,12 @@ const TOKEN_KEY = 'portal.token';
 /** Session token, kept in memory too in case storage is unavailable. */
 let sessionToken: string | null = null;
 
+/** Key of the theme choice in `localStorage`. */
+const THEME_KEY = 'scorePortal.theme';
+
+/** Explicit theme in effect, or `null` while the page follows the OS. */
+let currentTheme: PortalTheme | null = null;
+
 let state: PortalState = initialPortalState();
 let shownPanel: PortalPanel | null = null;
 let resendTimer: number | undefined;
@@ -183,6 +189,62 @@ function saveToken(token: string | null): void {
   } catch {
     // Storage is blocked; the in-memory token still serves this page.
   }
+}
+
+/**
+ * Reads the stored theme choice.
+ * @returns The stored theme, or `null` when none is stored or storage is blocked.
+ */
+function loadTheme(): PortalTheme | null {
+  try {
+    return parseStoredTheme(window.localStorage.getItem(THEME_KEY));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Keeps the theme choice for this browser.
+ * @param theme Theme to keep.
+ */
+function saveTheme(theme: PortalTheme): void {
+  try {
+    window.localStorage.setItem(THEME_KEY, theme);
+  } catch {
+    // Storage is blocked; the in-memory choice still serves this page.
+  }
+}
+
+/** Whether the OS colour scheme is dark. */
+function prefersDark(): boolean {
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+/**
+ * Applies a theme choice: sets `data-theme`, makes the dark logo source follow
+ * the choice instead of the OS, and syncs the toggle state.
+ * @param theme Explicit theme, or `null` to follow the OS.
+ */
+function applyTheme(theme: PortalTheme | null): void {
+  currentTheme = theme;
+  const root = document.documentElement;
+  if (theme) root.dataset.theme = theme;
+  else delete root.dataset.theme;
+  const darkLogo = document.getElementById('portal-logo-dark');
+  if (darkLogo) {
+    darkLogo.setAttribute(
+      'media',
+      theme
+        ? theme === 'dark'
+          ? 'all'
+          : 'not all'
+        : '(prefers-color-scheme: dark)',
+    );
+  }
+  byId('theme-btn').setAttribute(
+    'aria-pressed',
+    String((theme ?? (prefersDark() ? 'dark' : 'light')) === 'dark'),
+  );
 }
 
 /**
@@ -472,6 +534,17 @@ function loadMeta(): void {
 window.GasWebApp.reporter?.install({
   route: '/api/client-errors',
   captureGlobal: true,
+});
+applyTheme(loadTheme());
+window
+  .matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', () => {
+    if (!currentTheme) applyTheme(null);
+  });
+byId('theme-btn').addEventListener('click', () => {
+  const next = toggledTheme(currentTheme, prefersDark());
+  saveTheme(next);
+  applyTheme(next);
 });
 loadMeta();
 restoreSession();

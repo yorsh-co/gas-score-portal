@@ -92,6 +92,7 @@ const MESSAGES_EN = {
   'portal.resendIn': 'Resend code in {seconds} s',
   'portal.changeEmail': 'Use another email',
   'portal.signOut': 'Sign out',
+  'portal.darkMode': 'Dark mode',
   'portal.labelName': 'Name',
   'portal.labelUsers': 'User(s)',
   'portal.labelResponses': 'Responses',

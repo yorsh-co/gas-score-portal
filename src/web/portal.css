@@ -19,6 +19,14 @@
     sans-serif;
 }
 
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -202,6 +210,12 @@ td {
   align-items: center;
   gap: 20px;
   margin-bottom: 30px;
+  position: relative;
+}
+.theme-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 #user-scores h1 {
   margin: 0;
@@ -323,6 +337,23 @@ button.link:hover {
 button.link:disabled {
   color: var(--muted);
   text-decoration: none;
+}
+button.icon-button {
+  padding: 8px;
+  background: none;
+  color: var(--muted);
+  line-height: 0;
+}
+button.icon-button:hover {
+  background: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text);
+}
+.theme-toggle .icon-light,
+.theme-toggle[aria-pressed='true'] .icon-dark {
+  display: none;
+}
+.theme-toggle[aria-pressed='true'] .icon-light {
+  display: block;
 }
 .portal-column {
   width: 100%;

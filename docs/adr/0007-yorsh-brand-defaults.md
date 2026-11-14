@@ -4,7 +4,7 @@ Date: 2026-11-14
 
 ## Status
 
-Accepted
+Accepted; theme toggle bullet superseded by [ADR 0008](0008-theme-toggle.md)
 
 ## Context
 

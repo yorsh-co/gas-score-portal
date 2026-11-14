@@ -90,6 +90,7 @@ const MESSAGES_PT_BR: Messages = {
   'portal.resendIn': 'Reenviar código em {seconds} s',
   'portal.changeEmail': 'Usar outro e-mail',
   'portal.signOut': 'Sair',
+  'portal.darkMode': 'Modo escuro',
   'portal.labelName': 'Nome',
   'portal.labelUsers': 'Usuário(s)',
   'portal.labelResponses': 'Respostas',
