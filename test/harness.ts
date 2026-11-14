@@ -97,6 +97,13 @@ export interface AppExports {
     create(email: string): string;
     resolve(token: string): string | null;
   };
+  createOtpMailer(
+    getPortalTitle: () => string,
+    getLocale: () => string,
+  ): {
+    hasQuota(): boolean;
+    sendOtp(to: string, code: string, minutes: number): void;
+  };
   createAuthServices(
     respondents: () => object,
     logger: object,
@@ -266,6 +273,7 @@ const EXPORTS: (keyof AppExports)[] = [
   'createWebApp',
   'createOtpService',
   'createSessionService',
+  'createOtpMailer',
   'createAuthServices',
   'buildDemoData',
   'isDemoEmail',

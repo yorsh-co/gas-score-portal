@@ -120,7 +120,11 @@ const MESSAGES_PT_BR: Messages = {
     'Não foi possível enviar o código agora. Tente novamente mais tarde.',
 
   'email.otpSubject': '{portalTitle}: seu código de acesso',
+  'email.otpReason':
+    'Alguém, provavelmente você, pediu para entrar no {portalTitle} com este endereço de email.',
   'email.otpIntro': 'Seu código de acesso ao {portalTitle} é:',
   'email.otpExpiry':
     'Ele expira em {minutes} minutos e só pode ser usado uma vez. Se você não o solicitou, ignore este email.',
+  'email.otpFooter':
+    'Você recebeu este email porque este endereço está cadastrado no {portalTitle}. Esta é uma mensagem automática.',
 };
