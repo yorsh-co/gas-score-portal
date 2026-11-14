@@ -98,6 +98,9 @@ const MESSAGES_EN = {
   'portal.labelAverage': 'Average score',
   'portal.labelForm': 'Module',
   'portal.labelScore': 'Score',
+  'portal.privacyPolicy': 'Privacy policy',
+  'portal.terms': 'Terms of use',
+  'portal.legalNav': 'Legal',
   'portal.empty': 'No scores found.',
   'portal.note':
     'New scores may take up to an hour to appear after a form is submitted.',

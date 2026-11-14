@@ -324,3 +324,31 @@ button.link:disabled {
   color: var(--muted);
   text-decoration: none;
 }
+.portal-column {
+  width: 100%;
+  max-width: 600px;
+}
+.site-footer {
+  margin-top: 16px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  text-align: center;
+}
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 20px;
+}
+.site-footer a {
+  color: var(--brand);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--brand) 40%, transparent);
+  text-underline-offset: 0.2em;
+}
+.site-footer a:hover {
+  color: var(--accent);
+  text-decoration-color: currentColor;
+}

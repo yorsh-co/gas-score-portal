@@ -193,6 +193,10 @@ function createApiRouter(
         logoUrl: config.get('logoUrl') ?? null,
         faviconUrl: config.get('faviconUrl') ?? null,
       },
+      legal: {
+        privacyPolicyUrl: config.get('privacyPolicyUrl') ?? null,
+        termsUrl: config.get('termsUrl') ?? null,
+      },
     });
   });
 

@@ -115,6 +115,10 @@ describe('GET /api/meta', () => {
           logoUrl: null,
           faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
         },
+        legal: {
+          privacyPolicyUrl: 'https://yorsh.co/privacy',
+          termsUrl: 'https://yorsh.co/terms',
+        },
       },
     });
   });
@@ -125,6 +129,8 @@ describe('GET /api/meta', () => {
         'gasConfig:primaryColor': '"#112233"',
         'gasConfig:secondaryColor': '"#445566"',
         'gasConfig:logoUrl': '"https://example.org/logo.png"',
+        'gasConfig:privacyPolicyUrl': '"https://example.org/privacy"',
+        'gasConfig:termsUrl': '"https://example.org/terms"',
       },
     });
     const webApp = app.createWebApp({ getByUser: () => null }, AUTH);
@@ -138,6 +144,10 @@ describe('GET /api/meta', () => {
           primaryColor: '#112233',
           secondaryColor: '#445566',
           logoUrl: 'https://example.org/logo.png',
+        },
+        legal: {
+          privacyPolicyUrl: 'https://example.org/privacy',
+          termsUrl: 'https://example.org/terms',
         },
       },
     });
