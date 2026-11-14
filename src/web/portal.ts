@@ -1,7 +1,8 @@
 /** One form's score, as served by `GET /api/me/scores`. */
 interface PortalScore {
   formTitle: string;
-  formPoints: number | null;
+  /** Absent or `null` when the form's worth is unknown. */
+  formPoints?: number | null;
   /** Absent or `null` when the form has no response. */
   score?: number | null;
 }
