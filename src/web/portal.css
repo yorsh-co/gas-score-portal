@@ -210,12 +210,6 @@ td {
   align-items: center;
   gap: 20px;
   margin-bottom: 30px;
-  position: relative;
-}
-.theme-toggle {
-  position: absolute;
-  top: 0;
-  right: 0;
 }
 #user-scores h1 {
   margin: 0;
@@ -361,6 +355,11 @@ button.icon-button:hover {
 }
 .site-footer {
   margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 20px;
   color: var(--muted);
   font-family: var(--font-sans);
   font-size: 0.875rem;
