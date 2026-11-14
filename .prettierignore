@@ -14,3 +14,4 @@ src/web/vendor
 src/lib
 types/gas-libraries.d.ts
 dist
+src/web/portal.fonts.css
