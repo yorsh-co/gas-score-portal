@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { FakeTable } from '../fakes/sheetdb.fake';
 import { loadApp } from '../harness';
 
@@ -162,6 +162,87 @@ describe('demo data generator', () => {
       expect(tables.forms.rows).toHaveLength(1);
       expect(tables.respondents.rows).toHaveLength(1);
       expect(tables.scores.rows).toHaveLength(1);
+    });
+  });
+
+  describe('editor entry points', () => {
+    const setup = () => {
+      const env = loadApp();
+      const tables = {
+        forms: new FakeTable(),
+        respondents: new FakeTable(),
+        scores: new FakeTable(),
+      };
+      const sizes = () => ({
+        forms: tables.forms.rows.length,
+        respondents: tables.respondents.rows.length,
+        scores: tables.scores.rows.length,
+      });
+      const refreshedWith: ReturnType<typeof sizes>[] = [];
+      const refresh = vi.fn(() => void refreshedWith.push(sizes()));
+      return { ...env, tables, sizes, refresh, refreshedWith };
+    };
+
+    it('seedDemoData writes the default demo data under the script lock', () => {
+      const { app, locks, tables, sizes, refresh, refreshedWith } = setup();
+      const data = app.buildDemoData();
+
+      const counts = app.seedDemoData(tables, refresh);
+
+      expect(counts).toEqual({
+        forms: data.forms.length,
+        respondents: data.respondents.length,
+        scores: data.scores.length,
+      });
+      expect(sizes()).toEqual(counts);
+      expect(refreshedWith).toEqual([counts]);
+      expect(locks.acquired).toBeGreaterThan(0);
+      expect(locks.released).toBe(locks.acquired);
+    });
+
+    it('seedDemoData adds no rows when run again', () => {
+      const { app, tables, sizes, refresh } = setup();
+      app.seedDemoData(tables, refresh);
+      const before = sizes();
+
+      const counts = app.seedDemoData(tables, refresh);
+
+      expect(counts).toMatchObject({ respondents: 0, scores: 0 });
+      expect(sizes()).toEqual(before);
+      expect(refresh).toHaveBeenCalledTimes(2);
+    });
+
+    it('clearDemoData removes the seeded rows and keeps real ones', () => {
+      const { app, locks, tables, sizes, refresh, refreshedWith } = setup();
+      tables.forms.insert({ url: 'https://forms.gle/real', title: 'Real' });
+      tables.respondents.insert({ email: 'ana@gmail.com', name: 'Ana' });
+      tables.scores.insert({
+        email: 'ana@gmail.com',
+        formUrl: 'https://forms.gle/real',
+        score: 5,
+      });
+      const seeded = app.seedDemoData(tables, refresh);
+
+      const removed = app.clearDemoData(tables, refresh);
+
+      expect(removed).toEqual(seeded);
+      expect(sizes()).toEqual({ forms: 1, respondents: 1, scores: 1 });
+      expect(tables.respondents.rows[0]).toMatchObject({
+        email: 'ana@gmail.com',
+      });
+      expect(refreshedWith.at(-1)).toEqual(sizes());
+      expect(locks.released).toBe(locks.acquired);
+    });
+
+    it('clearDemoData releases the lock when the refresh fails', () => {
+      const { app, locks, tables } = setup();
+
+      expect(() =>
+        app.clearDemoData(tables, () => {
+          throw new Error('sheet missing');
+        }),
+      ).toThrow('sheet missing');
+      expect(locks.released).toBe(locks.acquired);
     });
   });
 });

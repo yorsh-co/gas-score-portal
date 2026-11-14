@@ -112,6 +112,14 @@ export interface AppExports {
     data: DemoDataApi,
     repos: { forms: object; respondents: object; scores: object },
   ): { forms: number; respondents: number; scores: number };
+  seedDemoData(
+    tables?: { forms: object; respondents: object; scores: object },
+    refresh?: () => unknown,
+  ): { forms: number; respondents: number; scores: number };
+  clearDemoData(
+    tables?: { forms: object; respondents: object; scores: object },
+    refresh?: () => unknown,
+  ): { forms: number; respondents: number; scores: number };
   removeDemoData(tables: {
     forms: object;
     respondents: object;
@@ -264,6 +272,8 @@ const EXPORTS: (keyof AppExports)[] = [
   'isDemoFormUrl',
   'writeDemoData',
   'removeDemoData',
+  'seedDemoData',
+  'clearDemoData',
   'getApp',
   'doGet',
   'doPost',

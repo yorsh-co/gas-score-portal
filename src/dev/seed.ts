@@ -221,36 +221,62 @@ function removeDemoData(tables: DemoTables): DemoCounts {
   };
 }
 
+/** The `Forms`, `Respondents` and `Scores` tables. */
+interface DemoDbTables {
+  forms: _GasSheetDbTable;
+  respondents: _GasSheetDbTable;
+  scores: _GasSheetDbTable;
+}
+
+/** Returns the spreadsheet's `Forms`, `Respondents` and `Scores` tables. */
+function getDemoDbTables(): DemoDbTables {
+  return {
+    forms: getFormsTable(),
+    respondents: getRespondentsTable(),
+    scores: getScoresTable(),
+  };
+}
+
 /**
  * Fills the `Forms`, `Respondents` and `Scores` tables with fake data.
  * Run from the Apps Script editor only; use a spreadsheet copy.
+ * @param tables Target tables. Defaults to the spreadsheet's.
+ * @param refresh Rebuilds the overview once the data is written.
+ * @returns Number of rows written per table.
  */
-function seedDemoData(): void {
+function seedDemoData(
+  tables: DemoDbTables = getDemoDbTables(),
+  refresh: () => unknown = refreshOverview,
+): DemoCounts {
   const counts = GasLock.withLock('script', () => {
     const written = writeDemoData(buildDemoData(), {
-      forms: createFormsRepo(getFormsTable()),
-      respondents: createRespondentsRepo(getRespondentsTable()),
-      scores: createScoresRepo(getScoresTable()),
+      forms: createFormsRepo(tables.forms),
+      respondents: createRespondentsRepo(tables.respondents),
+      scores: createScoresRepo(tables.scores),
     });
-    refreshOverview();
+    refresh();
     return written;
   });
   createModuleLogger('seed').info('Demo data written', { ...counts });
+  return counts;
 }
 
 /**
  * Removes the data created by `seedDemoData`, leaving real rows untouched.
  * Run from the Apps Script editor only.
+ * @param tables Tables to clean. Defaults to the spreadsheet's.
+ * @param refresh Rebuilds the overview once the data is removed.
+ * @returns Number of rows removed per table.
  */
-function clearDemoData(): void {
+function clearDemoData(
+  tables: DemoDbTables = getDemoDbTables(),
+  refresh: () => unknown = refreshOverview,
+): DemoCounts {
   const counts = GasLock.withLock('script', () => {
-    const removed = removeDemoData({
-      forms: getFormsTable(),
-      respondents: getRespondentsTable(),
-      scores: getScoresTable(),
-    });
-    refreshOverview();
+    const removed = removeDemoData(tables);
+    refresh();
     return removed;
   });
   createModuleLogger('seed').info('Demo data removed', { ...counts });
+  return counts;
 }
