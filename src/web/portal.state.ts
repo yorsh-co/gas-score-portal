@@ -173,6 +173,15 @@ function isHttpsUrl(value: string | null): value is string {
 }
 
 /**
+ * Whether a form score holds an answer. Missing, `null` and non-finite values
+ * are unanswered.
+ * @param score Score as received from the server.
+ */
+function isAnswered(score: unknown): score is number {
+  return typeof score === 'number' && Number.isFinite(score);
+}
+
+/**
  * Score rescaled to 10 points. Forms worth 10 points, or of unknown worth,
  * are returned as they are.
  * @param score Points scored.
