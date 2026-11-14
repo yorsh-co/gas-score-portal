@@ -103,6 +103,7 @@ const MESSAGES_EN = {
   'portal.terms': 'Terms of use',
   'portal.legalNav': 'Legal',
   'portal.empty': 'No scores found.',
+  'portal.loading': 'Loading scores…',
   'portal.note':
     'New scores may take up to an hour to appear after a form is submitted.',
   'portal.updatedAt': 'Updated on {date}.',

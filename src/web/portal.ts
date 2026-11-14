@@ -97,7 +97,11 @@ function resetResult(): void {
     'last-update-timestamp',
     'scores-tbody',
   ].forEach((id) => (byId(id).textContent = ''));
-  setHidden(['summary-table', 'scores-table', 'empty-state'], true);
+  setHidden(
+    ['summary-table', 'scores-table', 'empty-state', 'scores-loading'],
+    true,
+  );
+  byId('results-panel').removeAttribute('aria-busy');
 }
 
 /**
@@ -370,9 +374,14 @@ function submitEmail(): void {
   }
 }
 
-/** Loads the scores of the signed-in respondent. */
+/**
+ * Loads the scores of the signed-in respondent, showing the loader until the
+ * request settles.
+ */
 function loadScores(): Promise<void> {
   resetResult();
+  setHidden(['scores-loading'], false);
+  byId('results-panel').setAttribute('aria-busy', 'true');
   const started = generation;
   return window.GasWebApp.api
     .get<PortalUserScores>('/api/me/scores', {
@@ -387,6 +396,11 @@ function loadScores(): Promise<void> {
       const failure = failureOf(error);
       if (failure.status === 401) saveToken(null);
       dispatch(failure);
+    })
+    .finally(() => {
+      if (started !== generation) return;
+      setHidden(['scores-loading'], true);
+      byId('results-panel').removeAttribute('aria-busy');
     });
 }
 
