@@ -23,157 +23,186 @@
 
   <body>
     <main>
-      <div id="user-scores" class="card">
-        <div class="title-container">
-          <picture>
-            <source
-              id="portal-logo-dark"
-              media="(prefers-color-scheme: dark)"
-              srcset="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'%3E%3Crect width='64' height='64' rx='10' fill='%23E8935A'/%3E%3Cpath d='M16 22 29 37 50 12M29 37V54' fill='none' stroke='%230F3F4A' stroke-width='8' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E"
-            />
-            <img
-              id="portal-logo"
-              src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64' role='img' aria-label='Score Portal'%3E%3Crect width='64' height='64' rx='10' fill='%230F3F4A'/%3E%3Cpath d='M16 22 29 37 50 12M29 37V54' fill='none' stroke='%23E8935A' stroke-width='8' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E"
-              alt=""
-              width="72"
-              height="72"
-            />
-          </picture>
-          <h1 id="portal-title">Score Portal</h1>
+      <div class="portal-column">
+        <div id="user-scores" class="card">
+          <div class="title-container">
+            <picture>
+              <source
+                id="portal-logo-dark"
+                media="(prefers-color-scheme: dark)"
+                srcset="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64'%3E%3Crect width='64' height='64' rx='10' fill='%23E8935A'/%3E%3Cpath d='M16 22 29 37 50 12M29 37V54' fill='none' stroke='%230F3F4A' stroke-width='8' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E"
+              />
+              <img
+                id="portal-logo"
+                src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64' width='64' height='64' role='img' aria-label='Score Portal'%3E%3Crect width='64' height='64' rx='10' fill='%230F3F4A'/%3E%3Cpath d='M16 22 29 37 50 12M29 37V54' fill='none' stroke='%23E8935A' stroke-width='8' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E"
+                alt=""
+                width="72"
+                height="72"
+              />
+            </picture>
+            <h1 id="portal-title">Score Portal</h1>
+          </div>
+
+          <div
+            id="error"
+            class="error align-center"
+            role="alert"
+            aria-live="assertive"
+          ></div>
+
+          <form id="email-panel" novalidate>
+            <div class="form-group">
+              <label for="email" data-i18n="portal.emailLabel"
+                >Email used in the quizzes</label
+              >
+              <input
+                id="email"
+                type="email"
+                autocomplete="email"
+                placeholder="Enter the email used in the quizzes"
+                data-i18n-placeholder="portal.emailPlaceholder"
+                class="align-center"
+              />
+            </div>
+            <div class="button-container">
+              <button
+                id="send-btn"
+                type="submit"
+                class="lg full-width spinner-padding"
+                data-i18n="portal.sendCodeButton"
+              >
+                Send me a code
+              </button>
+            </div>
+          </form>
+
+          <form id="code-panel" novalidate hidden>
+            <div class="form-group">
+              <label for="code" data-i18n="portal.codeLabel">Access code</label>
+              <p id="code-help" class="hint"></p>
+              <input
+                id="code"
+                type="text"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                pattern="[0-9]{6}"
+                aria-describedby="code-help"
+                class="align-center code-input"
+              />
+            </div>
+            <div class="button-container">
+              <button
+                id="verify-btn"
+                type="submit"
+                class="lg full-width spinner-padding"
+                data-i18n="portal.verifyButton"
+              >
+                View your scores
+              </button>
+            </div>
+            <div class="link-row">
+              <button
+                id="resend-btn"
+                type="button"
+                class="link"
+                disabled
+              ></button>
+              <button
+                id="change-email-btn"
+                type="button"
+                class="link"
+                data-i18n="portal.changeEmail"
+              >
+                Use another email
+              </button>
+            </div>
+          </form>
+
+          <div id="results-panel" tabindex="-1" hidden>
+            <div class="link-row end">
+              <button
+                id="sign-out-btn"
+                type="button"
+                class="link"
+                data-i18n="portal.signOut"
+              >
+                Sign out
+              </button>
+            </div>
+
+            <table id="summary-table" hidden>
+              <tbody>
+                <tr>
+                  <th data-i18n="portal.labelName">Name</th>
+                  <td id="user-name" class="cell-ellipsis"></td>
+                </tr>
+                <tr>
+                  <th data-i18n="portal.labelUsers">User(s)</th>
+                  <td id="user-ids" class="cell-ellipsis"></td>
+                </tr>
+                <tr>
+                  <th data-i18n="portal.labelResponses">Responses</th>
+                  <td id="user-num-responses"></td>
+                </tr>
+                <tr>
+                  <th data-i18n="portal.labelAverage">Average score</th>
+                  <td id="user-average-score"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <hr />
+
+            <table id="scores-table" class="tr-border-bottom" hidden>
+              <thead>
+                <tr>
+                  <th data-i18n="portal.labelForm">Module</th>
+                  <th class="form-score" data-i18n="portal.labelScore">
+                    Score
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="scores-tbody"></tbody>
+            </table>
+
+            <div id="empty-state" class="empty" data-i18n="portal.empty" hidden>
+              No scores found.
+            </div>
+
+            <div id="scores-note">
+              <p id="last-update-timestamp"></p>
+              <p data-i18n="portal.note">
+                New scores may take up to an hour to appear after a form is
+                submitted.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div
-          id="error"
-          class="error align-center"
-          role="alert"
-          aria-live="assertive"
-        ></div>
-
-        <form id="email-panel" novalidate>
-          <div class="form-group">
-            <label for="email" data-i18n="portal.emailLabel"
-              >Email used in the quizzes</label
+        <footer class="site-footer">
+          <nav
+            id="legal-nav"
+            aria-label="Legal"
+            data-i18n-aria-label="portal.legalNav"
+          >
+            <a
+              id="privacy-link"
+              href="https://yorsh.co/privacy"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-i18n="portal.privacyPolicy"
+              >Privacy policy</a
             >
-            <input
-              id="email"
-              type="email"
-              autocomplete="email"
-              placeholder="Enter the email used in the quizzes"
-              data-i18n-placeholder="portal.emailPlaceholder"
-              class="align-center"
-            />
-          </div>
-          <div class="button-container">
-            <button
-              id="send-btn"
-              type="submit"
-              class="lg full-width spinner-padding"
-              data-i18n="portal.sendCodeButton"
+            <a
+              id="terms-link"
+              href="https://yorsh.co/terms"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-i18n="portal.terms"
+              >Terms of use</a
             >
-              Send me a code
-            </button>
-          </div>
-        </form>
-
-        <form id="code-panel" novalidate hidden>
-          <div class="form-group">
-            <label for="code" data-i18n="portal.codeLabel">Access code</label>
-            <p id="code-help" class="hint"></p>
-            <input
-              id="code"
-              type="text"
-              inputmode="numeric"
-              autocomplete="one-time-code"
-              pattern="[0-9]{6}"
-              aria-describedby="code-help"
-              class="align-center code-input"
-            />
-          </div>
-          <div class="button-container">
-            <button
-              id="verify-btn"
-              type="submit"
-              class="lg full-width spinner-padding"
-              data-i18n="portal.verifyButton"
-            >
-              View your scores
-            </button>
-          </div>
-          <div class="link-row">
-            <button
-              id="resend-btn"
-              type="button"
-              class="link"
-              disabled
-            ></button>
-            <button
-              id="change-email-btn"
-              type="button"
-              class="link"
-              data-i18n="portal.changeEmail"
-            >
-              Use another email
-            </button>
-          </div>
-        </form>
-
-        <div id="results-panel" tabindex="-1" hidden>
-          <div class="link-row end">
-            <button
-              id="sign-out-btn"
-              type="button"
-              class="link"
-              data-i18n="portal.signOut"
-            >
-              Sign out
-            </button>
-          </div>
-
-          <table id="summary-table" hidden>
-            <tbody>
-              <tr>
-                <th data-i18n="portal.labelName">Name</th>
-                <td id="user-name" class="cell-ellipsis"></td>
-              </tr>
-              <tr>
-                <th data-i18n="portal.labelUsers">User(s)</th>
-                <td id="user-ids" class="cell-ellipsis"></td>
-              </tr>
-              <tr>
-                <th data-i18n="portal.labelResponses">Responses</th>
-                <td id="user-num-responses"></td>
-              </tr>
-              <tr>
-                <th data-i18n="portal.labelAverage">Average score</th>
-                <td id="user-average-score"></td>
-              </tr>
-            </tbody>
-          </table>
-
-          <hr />
-
-          <table id="scores-table" class="tr-border-bottom" hidden>
-            <thead>
-              <tr>
-                <th data-i18n="portal.labelForm">Module</th>
-                <th class="form-score" data-i18n="portal.labelScore">Score</th>
-              </tr>
-            </thead>
-            <tbody id="scores-tbody"></tbody>
-          </table>
-
-          <div id="empty-state" class="empty" data-i18n="portal.empty" hidden>
-            No scores found.
-          </div>
-
-          <div id="scores-note">
-            <p id="last-update-timestamp"></p>
-            <p data-i18n="portal.note">
-              New scores may take up to an hour to appear after a form is
-              submitted.
-            </p>
-          </div>
-        </div>
+          </nav>
+        </footer>
       </div>
 
       <template id="row-template">

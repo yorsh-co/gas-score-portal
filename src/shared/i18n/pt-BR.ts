@@ -96,6 +96,9 @@ const MESSAGES_PT_BR: Messages = {
   'portal.labelAverage': 'Nota média',
   'portal.labelForm': 'Módulo',
   'portal.labelScore': 'Nota',
+  'portal.privacyPolicy': 'Política de privacidade',
+  'portal.terms': 'Termos de uso',
+  'portal.legalNav': 'Informações legais',
   'portal.empty': 'Nenhuma nota encontrada.',
   'portal.note':
     'Novas notas poderão ser visualizadas em até uma hora após o envio do formulário.',

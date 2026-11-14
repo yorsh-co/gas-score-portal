@@ -9,6 +9,8 @@ describe('getConfig', () => {
       locale: 'en',
       portalTitle: 'Score Portal',
       faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+      privacyPolicyUrl: 'https://yorsh.co/privacy',
+      termsUrl: 'https://yorsh.co/terms',
       excludedFormUrls: null,
     });
   });
@@ -122,4 +124,17 @@ describe('brand settings validation', () => {
       );
     },
   );
+
+  it.each([
+    ['privacyPolicyUrl', 'javascript:alert(1)'],
+    ['termsUrl', 'javascript:alert(1)'],
+    ['privacyPolicyUrl', 'http://example.org/privacy'],
+    ['termsUrl', 'http://example.org/privacy'],
+  ])('rejects %s value %s', (key, value) => {
+    const { app } = loadApp(owner);
+
+    expect(() => app.saveConfigValues({ [key]: value })).toThrow(
+      expect.objectContaining({ name: 'GasValidationError' }),
+    );
+  });
 });

@@ -23,6 +23,10 @@ interface PortalMeta {
     logoUrl: string | null;
     faviconUrl: string | null;
   };
+  legal: {
+    privacyPolicyUrl: string | null;
+    termsUrl: string | null;
+  };
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -391,6 +395,14 @@ function applyTranslations(): void {
     .forEach((element) => {
       element.placeholder = tr(element.dataset.i18nPlaceholder as MessageKey);
     });
+  document
+    .querySelectorAll<HTMLElement>('[data-i18n-aria-label]')
+    .forEach((element) => {
+      element.setAttribute(
+        'aria-label',
+        tr(element.dataset.i18nAriaLabel as MessageKey),
+      );
+    });
 }
 
 /**
@@ -417,6 +429,28 @@ function applyBrand(brand: PortalMeta['brand']): void {
   }
 }
 
+/**
+ * Points the footer links at the owner's URLs. Only `https:` addresses are
+ * applied; anything else keeps the built-in default.
+ * @param legal Legal link settings from the server.
+ */
+function applyLegalLinks(legal: PortalMeta['legal']): void {
+  const links = [
+    ['privacy-link', legal.privacyPolicyUrl],
+    ['terms-link', legal.termsUrl],
+  ] as const;
+  links.forEach(([id, value]) => {
+    if (!value) return;
+    try {
+      if (new URL(value).protocol === 'https:') {
+        byId<HTMLAnchorElement>(id).href = value;
+      }
+    } catch {
+      // Unparseable address: keep the default link.
+    }
+  });
+}
+
 /** Loads the locale and title from the server before the page is used. */
 function loadMeta(): void {
   const button = byId<HTMLButtonElement>('send-btn');
@@ -427,6 +461,7 @@ function loadMeta(): void {
       locale = resolveLocale(meta.locale);
       byId('portal-title').textContent = meta.portalTitle;
       applyBrand(meta.brand);
+      applyLegalLinks(meta.legal);
       applyTranslations();
       render();
     })

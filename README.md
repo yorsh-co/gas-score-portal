@@ -47,6 +47,8 @@ Settings are stored in Script Properties and edited in the settings dialog, open
 | `secondaryColor`         | Link and focus ring color as a hex code, for example `#0f5563`. Empty uses Yorsh petrol.               |
 | `logoUrl`                | HTTPS address of a logo that replaces the built-in one.                                                |
 | `faviconUrl`             | HTTPS address of the page icon.                                                                        |
+| `privacyPolicyUrl`       | HTTPS address of the privacy policy linked in the footer.                                              |
+| `termsUrl`               | HTTPS address of the terms of use linked in the footer.                                                |
 | `driveFolderUrl`         | Folder searched for Forms to import.                                                                   |
 | `formsTitleQuery`        | Only Forms whose title contains this text are imported.                                                |
 | `formsFullTextQuery`     | Only Forms whose content contains this text are imported.                                              |
