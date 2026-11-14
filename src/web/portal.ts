@@ -101,7 +101,6 @@ function resetResult(): void {
     ['summary-table', 'scores-table', 'empty-state', 'scores-loading'],
     true,
   );
-  byId('results-panel').removeAttribute('aria-busy');
 }
 
 /**
@@ -381,7 +380,6 @@ function submitEmail(): void {
 function loadScores(): Promise<void> {
   resetResult();
   setHidden(['scores-loading'], false);
-  byId('results-panel').setAttribute('aria-busy', 'true');
   const started = generation;
   return window.GasWebApp.api
     .get<PortalUserScores>('/api/me/scores', {
@@ -400,7 +398,6 @@ function loadScores(): Promise<void> {
     .finally(() => {
       if (started !== generation) return;
       setHidden(['scores-loading'], true);
-      byId('results-panel').removeAttribute('aria-busy');
     });
 }
 
