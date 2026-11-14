@@ -88,7 +88,7 @@ is not removed by `clearDemoData`. Alternatively, test with the vitest suite.
 
 ## Screenshots
 
-Captured with sample data.
+Generated from fixture data by `npm run screenshots`.
 
 | Sign-in                                        | Results                                        |
 | ---------------------------------------------- | ---------------------------------------------- |
