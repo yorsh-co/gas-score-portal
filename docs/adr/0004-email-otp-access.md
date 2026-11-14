@@ -101,3 +101,4 @@ A respondent proves control of their mailbox with a one-time code.
 - Sign-out is client-side only: the page forgets the token, but the server does
   not revoke it. A token copied before sign-out stays valid until its 30-minute
   server TTL.
+- The content of the code email is decided in [ADR 9](0009-otp-email-content.md).

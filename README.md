@@ -35,6 +35,17 @@ The decisions are recorded in [`docs/adr`](docs/adr).
 
 Later deployments are made by CI, not by the app.
 
+### Email deliverability
+
+Access codes are sent from your Workspace domain. Authenticate it so Gmail does not file them as spam ([ADR 9](docs/adr/0009-otp-email-content.md)):
+
+1. Enable DKIM in the Workspace Admin console (Apps › Google Workspace › Gmail › Authenticate email) and publish the TXT record it shows.
+2. Publish an SPF record, `v=spf1 include:_spf.google.com ~all`, merged with any existing SPF record.
+3. Publish a DMARC record, starting at `p=none`.
+4. Send yourself a code and, in Gmail, open "Show original". SPF, DKIM (`d=<your domain>`) and DMARC must all show PASS.
+5. Optionally monitor reputation with Google Postmaster Tools.
+6. Ask early recipients to mark the message "Not spam".
+
 ## Configuration
 
 Settings are stored in Script Properties and edited in the settings dialog, opened from the menu. Only the spreadsheet owner and editors can change them.
