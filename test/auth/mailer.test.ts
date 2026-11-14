@@ -31,6 +31,7 @@ function send(locale: string) {
 describe('OTP mailer', () => {
   it('sends a complete HTML document', () => {
     const mail = send('pt-BR');
+    expect(mail.subject).not.toContain('123456');
     expect(mail.htmlBody.startsWith('<!doctype html>')).toBe(true);
     expect(mail.htmlBody).toContain('<html lang="pt-BR">');
     expect(mail.htmlBody).toContain('<meta charset="utf-8">');
