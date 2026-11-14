@@ -33,6 +33,7 @@ interface StateApi {
   resendSecondsLeft(state: State, now: number): number;
   normalizeCodeInput(value: string): string;
   isHttpsUrl(value: string | null): boolean;
+  isAnswered(score: unknown): boolean;
   scoreOutOfTen(score: number, formPoints: number | null): number;
   averageOutOfTen(
     scores: { score: number; formPoints: number | null }[],
@@ -60,6 +61,7 @@ function loadState(): StateApi {
     'resendSecondsLeft',
     'normalizeCodeInput',
     'isHttpsUrl',
+    'isAnswered',
     'scoreOutOfTen',
     'averageOutOfTen',
     'parseStoredTheme',
@@ -278,6 +280,34 @@ describe('scoreOutOfTen', () => {
     expect(api.scoreOutOfTen(12, 15)).toBe(8);
     expect(api.scoreOutOfTen(7.5, 10)).toBe(7.5);
     expect(api.scoreOutOfTen(6, null)).toBe(6);
+  });
+});
+
+describe('isAnswered', () => {
+  it('accepts finite numbers, zero included', () => {
+    expect(api.isAnswered(0)).toBe(true);
+    expect(api.isAnswered(7.5)).toBe(true);
+  });
+
+  it('rejects missing, null and non-numeric scores', () => {
+    expect(api.isAnswered(null)).toBe(false);
+    expect(api.isAnswered(undefined)).toBe(false);
+    expect(api.isAnswered(NaN)).toBe(false);
+    expect(api.isAnswered('8')).toBe(false);
+  });
+
+  it('keeps unanswered forms out of the average', () => {
+    const entries: { score?: number | null; formPoints: number }[] = [
+      { score: 18, formPoints: 20 },
+      { formPoints: 20 },
+      { score: null, formPoints: 20 },
+    ];
+    const answered = entries.flatMap((e) =>
+      api.isAnswered(e.score)
+        ? [{ score: e.score as number, formPoints: e.formPoints }]
+        : [],
+    );
+    expect(api.averageOutOfTen(answered)).toBe(9);
   });
 });
 

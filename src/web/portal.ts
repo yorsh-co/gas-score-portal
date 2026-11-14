@@ -1,8 +1,10 @@
 /** One form's score, as served by `GET /api/me/scores`. */
 interface PortalScore {
   formTitle: string;
-  formPoints: number | null;
-  score: number | null;
+  /** Absent or `null` when the form's worth is unknown. */
+  formPoints?: number | null;
+  /** Absent or `null` when the form has no response. */
+  score?: number | null;
 }
 
 /** The response of the scores route. */
@@ -78,7 +80,7 @@ function formatOutOfTen(value: number): string {
  * @param entry Form score.
  */
 function scoreLabel(entry: PortalScore): string {
-  if (entry.score === null) return tr('portal.notAnswered');
+  if (!isAnswered(entry.score)) return tr('portal.notAnswered');
   return formatOutOfTen(scoreOutOfTen(entry.score, entry.formPoints));
 }
 
@@ -107,7 +109,9 @@ function resetResult(): void {
 function renderResult(data: PortalUserScores): void {
   const scores = data.scores;
   const answered = scores.flatMap((s) =>
-    s.score === null ? [] : [{ score: s.score, formPoints: s.formPoints }],
+    isAnswered(s.score)
+      ? [{ score: s.score, formPoints: s.formPoints ?? null }]
+      : [],
   );
 
   byId('user-name').textContent = data.name;
