@@ -122,7 +122,7 @@ const MESSAGES_PT_BR: Messages = {
   'email.otpSubject': '{portalTitle}: seu código de acesso',
   'email.otpReason':
     'Alguém, provavelmente você, pediu para entrar no {portalTitle} com este endereço de email.',
-  'email.otpIntro': 'Seu código de acesso ao {portalTitle} é:',
+  'email.otpIntro': 'Seu código de acesso é:',
   'email.otpExpiry':
     'Ele expira em {minutes} minutos e só pode ser usado uma vez. Se você não o solicitou, ignore este email.',
   'email.otpFooter':
