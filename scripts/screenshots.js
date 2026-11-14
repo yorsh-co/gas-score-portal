@@ -48,7 +48,10 @@ const SCORES = {
   ],
 };
 
-/** Capture definitions: output file, viewport, and whether a session is resumed. */
+/**
+ * Capture definitions: output file, viewport, colour scheme, whether a session
+ * is resumed, and whether to capture the full page instead of the viewport.
+ */
 const SHOTS = [
   {
     file: 'sign-in-light.png',
@@ -61,16 +64,18 @@ const SHOTS = [
     viewport: { width: 1024, height: 859 },
     scheme: 'light',
     signedIn: true,
+    fullPage: true,
   },
   {
     file: 'results-dark.png',
     viewport: { width: 1024, height: 859 },
     scheme: 'dark',
     signedIn: true,
+    fullPage: true,
   },
   {
     file: 'results-mobile.png',
-    viewport: { width: 360, height: 804 },
+    viewport: { width: 360, height: 800 },
     scheme: 'light',
     signedIn: true,
   },
@@ -184,7 +189,7 @@ async function capture(browser, html, shot, problems) {
     const unstubbed = new Set(await readUnstubbed());
     await page.screenshot({
       path: join(outDir, shot.file),
-      fullPage: true,
+      fullPage: shot.fullPage ?? false,
       animations: 'disabled',
       caret: 'hide',
     });
