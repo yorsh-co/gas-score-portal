@@ -105,7 +105,11 @@ describe('GET /api/meta', () => {
       data: {
         locale: 'pt-BR',
         portalTitle: 'Score Portal',
-        brand: { primaryColor: null, logoUrl: null, faviconUrl: null },
+        brand: {
+          primaryColor: null,
+          logoUrl: null,
+          faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+        },
       },
     });
   });

@@ -400,7 +400,10 @@ function applyBrand(brand: PortalMeta['brand']): void {
   if (brand.primaryColor) {
     document.documentElement.style.setProperty('--primary', brand.primaryColor);
   }
-  if (brand.logoUrl) byId<HTMLImageElement>('portal-logo').src = brand.logoUrl;
+  if (brand.logoUrl) {
+    document.getElementById('portal-logo-dark')?.remove();
+    byId<HTMLImageElement>('portal-logo').src = brand.logoUrl;
+  }
 }
 
 /** Loads the locale and title from the server before the page is used. */

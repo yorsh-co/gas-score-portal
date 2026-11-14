@@ -46,8 +46,12 @@ const CONFIG_SCHEMA = {
   faviconUrl: {
     type: 'url',
     label: 'Favicon URL',
-    description: 'HTTPS address of the web app icon.',
+    description:
+      'HTTPS address of the web app icon. Empty uses the Yorsh icon.',
     group: 'general',
+    default: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+    pattern: '^https://',
+    patternMessage: 'Use an address that starts with https://.',
   },
   driveFolderUrl: {
     type: 'url',

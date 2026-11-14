@@ -8,6 +8,7 @@ describe('getConfig', () => {
     expect(app.getConfig().getAll()).toMatchObject({
       locale: 'en',
       portalTitle: 'Score Portal',
+      faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
       excludedFormUrls: null,
     });
   });
