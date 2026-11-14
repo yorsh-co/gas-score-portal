@@ -440,13 +440,8 @@ function applyLegalLinks(legal: PortalMeta['legal']): void {
     ['terms-link', legal.termsUrl],
   ] as const;
   links.forEach(([id, value]) => {
-    if (!value) return;
-    try {
-      if (new URL(value).protocol === 'https:') {
-        byId<HTMLAnchorElement>(id).href = value;
-      }
-    } catch {
-      // Unparseable address: keep the default link.
+    if (isHttpsUrl(value)) {
+      byId<HTMLAnchorElement>(id).href = value;
     }
   });
 }

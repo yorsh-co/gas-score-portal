@@ -157,6 +157,19 @@ function normalizeCodeInput(value: string): string {
 }
 
 /**
+ * Whether a configured address is an absolute HTTPS URL.
+ * @param value Address to check.
+ */
+function isHttpsUrl(value: string | null): value is string {
+  if (!value) return false;
+  try {
+    return new URL(value).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Score rescaled to 10 points. Forms worth 10 points, or of unknown worth,
  * are returned as they are.
  * @param score Points scored.

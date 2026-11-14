@@ -32,6 +32,7 @@ interface StateApi {
   portalPanel(state: State): Exclude<Step, 'error'>;
   resendSecondsLeft(state: State, now: number): number;
   normalizeCodeInput(value: string): string;
+  isHttpsUrl(value: string | null): boolean;
   scoreOutOfTen(score: number, formPoints: number | null): number;
   averageOutOfTen(
     scores: { score: number; formPoints: number | null }[],
@@ -53,10 +54,13 @@ function loadState(): StateApi {
     'portalPanel',
     'resendSecondsLeft',
     'normalizeCodeInput',
+    'isHttpsUrl',
     'scoreOutOfTen',
     'averageOutOfTen',
   ];
-  return runInNewContext(`${js}\n({ ${names.join(', ')} })`) as StateApi;
+  return runInNewContext(`${js}\n({ ${names.join(', ')} })`, {
+    URL,
+  }) as StateApi;
 }
 
 const api = loadState();
@@ -283,5 +287,19 @@ describe('averageOutOfTen', () => {
 
   it('is zero for no scores', () => {
     expect(api.averageOutOfTen([])).toBe(0);
+  });
+});
+
+describe('isHttpsUrl', () => {
+  it('accepts an HTTPS address', () => {
+    expect(api.isHttpsUrl('https://example.org/privacy')).toBe(true);
+  });
+
+  it('rejects other schemes, malformed and empty values', () => {
+    expect(api.isHttpsUrl('javascript:alert(1)')).toBe(false);
+    expect(api.isHttpsUrl('http://example.org')).toBe(false);
+    expect(api.isHttpsUrl('not a url')).toBe(false);
+    expect(api.isHttpsUrl('')).toBe(false);
+    expect(api.isHttpsUrl(null)).toBe(false);
   });
 });
