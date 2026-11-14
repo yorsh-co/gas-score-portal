@@ -121,9 +121,13 @@ const MESSAGES_EN = {
   'auth.tryLater': 'We could not send the code now. Try again later.',
 
   'email.otpSubject': '{portalTitle}: your access code',
+  'email.otpReason':
+    'Someone, hopefully you, asked to sign in to {portalTitle} with this email address.',
   'email.otpIntro': 'Your access code for {portalTitle} is:',
   'email.otpExpiry':
     'It expires in {minutes} minutes and works only once. If you did not request it, ignore this email.',
+  'email.otpFooter':
+    'You received this email because this address is registered in {portalTitle}. This is an automated message.',
 };
 
 /** The shape every catalogue must satisfy. */
