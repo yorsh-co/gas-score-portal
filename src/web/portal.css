@@ -145,6 +145,13 @@ button:disabled {
   box-sizing: border-box;
   animation: rotation 1s linear infinite;
 }
+.spinner.inline {
+  position: static;
+  margin: 0;
+  flex: none;
+  border-color: var(--muted);
+  border-bottom-color: transparent;
+}
 @keyframes rotation {
   0% {
     transform: rotate(0deg);
@@ -235,6 +242,14 @@ td {
   margin-top: 16px;
   color: var(--error);
   font-size: 14px;
+}
+#user-scores .loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px 0;
+  color: var(--muted);
 }
 #user-scores .empty {
   margin: 24px 0;

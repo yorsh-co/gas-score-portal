@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- The results panel shows a "Loading scores…" indicator while scores load.
 - `npm run screenshots` captures the README screenshots with Playwright from fixture data; screenshots regenerated for the full-height layout and theme toggle.
 - Editor-only `seedDemoData` and `clearDemoData` Apps Script functions that fill and remove deterministic demo data (`@example.com` emails and `https://example.com/demo-forms/` form URLs).
 - Privacy policy and terms of use links in the portal footer, configurable via `privacyPolicyUrl` and `termsUrl` (HTTPS only).

@@ -101,6 +101,7 @@ const MESSAGES_PT_BR: Messages = {
   'portal.terms': 'Termos de uso',
   'portal.legalNav': 'Informações legais',
   'portal.empty': 'Nenhuma nota encontrada.',
+  'portal.loading': 'Carregando notas…',
   'portal.note':
     'Novas notas poderão ser visualizadas em até uma hora após o envio do formulário.',
   'portal.updatedAt': 'Atualizada em {date}.',
