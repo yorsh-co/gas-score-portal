@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { FakeTable } from '../fakes/sheetdb.fake';
 import { loadApp } from '../harness';
 
 describe('demo data generator', () => {
@@ -63,5 +64,60 @@ describe('demo data generator', () => {
   it('does not treat real addresses or URLs as demo data', () => {
     expect(app.isDemoEmail('ana@gmail.com')).toBe(false);
     expect(app.isDemoFormUrl('https://forms.gle/abc')).toBe(false);
+  });
+
+  describe('storage', () => {
+    const setup = () => {
+      const tables = {
+        forms: new FakeTable(),
+        respondents: new FakeTable(),
+        scores: new FakeTable(),
+      };
+      const repos = {
+        forms: app.createFormsRepo(tables.forms),
+        respondents: app.createRespondentsRepo(tables.respondents),
+        scores: app.createScoresRepo(tables.scores),
+      };
+      return { tables, repos };
+    };
+
+    it('inserts nothing new when written twice', () => {
+      const { tables, repos } = setup();
+      const data = app.buildDemoData();
+
+      const first = app.writeDemoData(data, repos);
+      const second = app.writeDemoData(data, repos);
+
+      expect(first.respondents).toBe(data.respondents.length);
+      expect(first.scores).toBe(data.scores.length);
+      expect(second).toMatchObject({ respondents: 0, scores: 0 });
+      expect(tables.forms.rows).toHaveLength(data.forms.length);
+      expect(tables.respondents.rows).toHaveLength(data.respondents.length);
+      expect(tables.scores.rows).toHaveLength(data.scores.length);
+    });
+
+    it('removes demo rows and keeps real ones', () => {
+      const { tables, repos } = setup();
+      tables.forms.insert({ url: 'https://forms.gle/real', title: 'Real' });
+      tables.respondents.insert({ email: 'ana@gmail.com', name: 'Ana' });
+      tables.scores.insert({
+        email: 'ana@gmail.com',
+        formUrl: 'https://forms.gle/real',
+        score: 5,
+      });
+      const data = app.buildDemoData();
+      app.writeDemoData(data, repos);
+
+      const removed = app.removeDemoData(tables);
+
+      expect(removed).toEqual({
+        forms: data.forms.length,
+        respondents: data.respondents.length,
+        scores: data.scores.length,
+      });
+      expect(tables.forms.rows).toHaveLength(1);
+      expect(tables.respondents.rows).toHaveLength(1);
+      expect(tables.scores.rows).toHaveLength(1);
+    });
   });
 });

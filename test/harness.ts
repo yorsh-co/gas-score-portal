@@ -108,6 +108,19 @@ export interface AppExports {
   }): DemoDataApi;
   isDemoEmail(email: string): boolean;
   isDemoFormUrl(url: string): boolean;
+  writeDemoData(
+    data: DemoDataApi,
+    repos: { forms: object; respondents: object; scores: object },
+  ): { forms: number; respondents: number; scores: number };
+  removeDemoData(tables: {
+    forms: object;
+    respondents: object;
+    scores: object;
+  }): {
+    forms: number;
+    respondents: number;
+    scores: number;
+  };
   getApp(): { doGet(e: object): unknown; doPost(e: object): unknown };
   doGet(e: object): unknown;
   doPost(e: object): unknown;
@@ -249,6 +262,8 @@ const EXPORTS: (keyof AppExports)[] = [
   'buildDemoData',
   'isDemoEmail',
   'isDemoFormUrl',
+  'writeDemoData',
+  'removeDemoData',
   'getApp',
   'doGet',
   'doPost',

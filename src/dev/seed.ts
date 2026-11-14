@@ -161,3 +161,96 @@ function isDemoEmail(email: string): boolean {
 function isDemoFormUrl(url: string): boolean {
   return String(url).startsWith(DEMO_FORM_URL_PREFIX);
 }
+
+/** Repositories `writeDemoData` stores into. */
+interface DemoRepos {
+  forms: FormsRepo;
+  respondents: RespondentsRepo;
+  scores: ScoresRepo;
+}
+
+/** Number of rows written or removed per table. */
+interface DemoCounts {
+  forms: number;
+  respondents: number;
+  scores: number;
+}
+
+/** Tables `removeDemoData` deletes from. */
+interface DemoTables {
+  forms: Pick<_GasSheetDbTable, 'deleteWhere'>;
+  respondents: Pick<_GasSheetDbTable, 'deleteWhere'>;
+  scores: Pick<_GasSheetDbTable, 'deleteWhere'>;
+}
+
+/**
+ * Stores demo data. Idempotent: existing respondents and scores are kept, and
+ * forms are upserted. Returns the number of rows newly inserted for
+ * respondents and scores, and the number of forms written.
+ * @param data Generated demo data.
+ * @param repos Target repositories.
+ */
+function writeDemoData(data: DemoData, repos: DemoRepos): DemoCounts {
+  data.forms.forEach((form) => repos.forms.upsert(form));
+  return {
+    forms: data.forms.length,
+    respondents: repos.respondents.insertMissing(data.respondents),
+    scores: repos.scores.insertMissing(data.scores),
+  };
+}
+
+/**
+ * Deletes only demo rows (`example.com` emails, demo form URLs); real data is
+ * never matched.
+ * @param tables `Forms`, `Respondents` and `Scores` tables.
+ * @returns Number of rows deleted per table.
+ */
+function removeDemoData(tables: DemoTables): DemoCounts {
+  return {
+    forms: tables.forms.deleteWhere((row) =>
+      isDemoFormUrl(cellToString(row.url)),
+    ).length,
+    respondents: tables.respondents.deleteWhere((row) =>
+      isDemoEmail(cellToString(row.email)),
+    ).length,
+    scores: tables.scores.deleteWhere(
+      (row) =>
+        isDemoEmail(cellToString(row.email)) ||
+        isDemoFormUrl(cellToString(row.formUrl)),
+    ).length,
+  };
+}
+
+/**
+ * Fills the `Forms`, `Respondents` and `Scores` tables with fake data.
+ * Run from the Apps Script editor only; use a spreadsheet copy.
+ */
+function seedDemoData(): void {
+  const counts = GasLock.withLock('script', () => {
+    const written = writeDemoData(buildDemoData(), {
+      forms: createFormsRepo(getFormsTable()),
+      respondents: createRespondentsRepo(getRespondentsTable()),
+      scores: createScoresRepo(getScoresTable()),
+    });
+    refreshOverview();
+    return written;
+  });
+  createModuleLogger('seed').info('Demo data written', { ...counts });
+}
+
+/**
+ * Removes the data created by `seedDemoData`, leaving real rows untouched.
+ * Run from the Apps Script editor only.
+ */
+function clearDemoData(): void {
+  const counts = GasLock.withLock('script', () => {
+    const removed = removeDemoData({
+      forms: getFormsTable(),
+      respondents: getRespondentsTable(),
+      scores: getScoresTable(),
+    });
+    refreshOverview();
+    return removed;
+  });
+  createModuleLogger('seed').info('Demo data removed', { ...counts });
+}
