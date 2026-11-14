@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- More space above the portal logo (48px on desktop, 32px on phones).
 - The portal card now stretches to the full viewport height, with the footer at the bottom.
 - Restyled the portal with the Yorsh identity: design tokens with light and dark variants, Space Grotesk and DM Sans inlined as fonts (with their OFL licences), and restyled components.
 - `faviconUrl` now defaults to the Yorsh icon and accepts HTTPS addresses only.
