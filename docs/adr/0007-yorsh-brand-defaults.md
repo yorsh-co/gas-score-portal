@@ -17,7 +17,7 @@ the settings dialog.
 - Colour overrides: `primaryColor` overrides copper (`--accent`, the primary
   button) and `--accent-strong` is derived as
   `color-mix(in srgb, <c> 85%, black)`. The new `secondaryColor` overrides
-  petrol (`--brand`: links, focus ring, coloured borders). Each setting is one
+  petrol (`--brand`: links, focus ring). Each setting is one
   hex code used in both light and dark; empty keeps the Yorsh `light-dark()`
   pair. Contrast of an override is the owner's responsibility, as the setting
   description says.

@@ -396,7 +396,7 @@ function applyTranslations(): void {
 /**
  * Applies the owner's brand settings over the built-in identity. The primary
  * colour overrides `--accent` and its derived `--accent-strong`; the secondary
- * colour overrides `--brand` (links, focus ring, borders).
+ * colour overrides `--brand` (links, focus ring).
  * @param brand Brand settings from the server.
  */
 function applyBrand(brand: PortalMeta['brand']): void {

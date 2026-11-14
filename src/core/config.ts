@@ -39,7 +39,7 @@ const CONFIG_SCHEMA = {
     type: 'string',
     label: 'Secondary color',
     description:
-      'Colour of links, focus rings and borders, as a hex code such as #0f5563. Empty uses Yorsh petrol.',
+      'Colour of links and focus rings, as a hex code such as #0f5563. Empty uses Yorsh petrol.',
     group: 'general',
     pattern: '^#[0-9a-fA-F]{6}$',
     patternMessage: 'Use a hex color such as #0f5563.',

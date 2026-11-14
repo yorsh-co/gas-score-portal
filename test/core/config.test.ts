@@ -100,3 +100,26 @@ describe('form title strip patterns', () => {
     expect(app.getFormTitleStripPatterns()).toEqual(['^t4\\s*', 'quiz']);
   });
 });
+
+describe('brand settings validation', () => {
+  const owner = { owner: 'owner@example.org', activeUser: 'owner@example.org' };
+
+  it('rejects a malformed secondaryColor', () => {
+    const { app } = loadApp(owner);
+
+    expect(() => app.saveConfigValues({ secondaryColor: 'red' })).toThrow(
+      expect.objectContaining({ name: 'GasValidationError' }),
+    );
+  });
+
+  it.each(['http://example.com/i.png', 'javascript:alert(1)'])(
+    'rejects the non-https faviconUrl %s',
+    (faviconUrl) => {
+      const { app } = loadApp(owner);
+
+      expect(() => app.saveConfigValues({ faviconUrl })).toThrow(
+        expect.objectContaining({ name: 'GasValidationError' }),
+      );
+    },
+  );
+});
