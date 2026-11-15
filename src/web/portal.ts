@@ -81,7 +81,7 @@ function formatOutOfTen(value: number): string {
  */
 function scoreLabel(entry: PortalScore): string {
   if (!isAnswered(entry.score)) return tr('portal.notAnswered');
-  return formatOutOfTen(scoreOutOfTen(entry.score, entry.formPoints));
+  return formatOutOfTen(scoreOutOfTen(entry.score, entry.formPoints ?? null));
 }
 
 /** Shows or hides the elements, by ID. */

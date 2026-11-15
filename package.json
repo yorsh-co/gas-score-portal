@@ -116,7 +116,7 @@
     "build:watch": "node scripts/build.js --watch",
     "build:fonts": "node scripts/build-fonts.js",
     "build:frontend": "tsc -p tsconfig.frontend.json --noEmit && gasdev html",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p gas-test/tsconfig.json --noEmit && tsc -p tsconfig.frontend.json --noEmit",
     "bundle:libs": "gasdev bundle",
     "deploy:setup": "gasdev setup",
     "clasp:push": "npm run build && clasp push --force",
