@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { declaresGlobal, loadApp } from '../harness';
 
-const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org']);
+const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org', 'jo\u00e3o@x.org']);
 
 function setup(options: { quota?: number; sendFails?: boolean } = {}) {
   const state = { mailFails: options.sendFails ?? false };
@@ -134,6 +134,16 @@ describe('requesting a code', () => {
 
     expect(s.requestCode('ana@x.org').error).toMatch(/429/);
     expect(s.requestCode('zed@x.org').error).toBeUndefined();
+  });
+
+  it('shares the limit between precomposed and decomposed addresses', () => {
+    const s = setup();
+
+    s.requestCode('jo\u00e3o@x.org');
+    s.requestCode('joa\u0303o@x.org');
+    s.requestCode('jo\u00e3o@x.org');
+
+    expect(s.requestCode('joa\u0303o@x.org').error).toMatch(/429/);
   });
 
   it('counts unknown emails toward the limit too', () => {
@@ -364,6 +374,15 @@ describe('verifying a code', () => {
     expect(response?.data.token).toMatch(/^[0-9a-f-]{36}$/);
   });
 
+  it('verifies a code issued for the precomposed address with the decomposed one', () => {
+    const s = setup();
+    s.requestCode('jo\u00e3o@x.org');
+
+    const { response } = s.verify('joa\u0303o@x.org', s.lastCode());
+
+    expect(response?.data.token).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
   it('is single-use', () => {
     const s = setup();
     s.requestCode('ana@x.org');
@@ -454,6 +473,15 @@ describe('GET /api/me/scores', () => {
     s.scores(ana);
 
     expect(s.lookups).toEqual(['ana@x.org']);
+  });
+
+  it('resolves a session opened with the decomposed address to the precomposed one', () => {
+    const s = setup();
+    const token = s.login('joa\u0303o@x.org');
+
+    s.scores(token);
+
+    expect(s.lookups).toEqual(['jo\u00e3o@x.org']);
   });
 
   it('removed the unauthenticated lookup route', () => {

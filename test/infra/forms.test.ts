@@ -55,7 +55,19 @@ describe.each([
     expect(emails([build("o'brien@x.org", 1)])).toEqual(["o'brien@x.org"]);
   });
 
-  it('only trims and lowercases, as sign-in does', () => {
+  it('treats precomposed and decomposed addresses as one identity', () => {
+    expect(
+      emails([build('jo\u00e3o@x.org', 1), build('joa\u0303o@x.org', 2)]),
+    ).toEqual(['jo\u00e3o@x.org']);
+  });
+
+  it('treats a lowercased-then-composed address as one identity', () => {
+    expect(
+      emails([build('\u03aa\u0301@x.org', 1), build('\u0390@x.org', 2)]),
+    ).toEqual(['\u0390@x.org']);
+  });
+
+  it('normalizes as sign-in does', () => {
     expect(emails([build('  Ana@X.org ', 1)])).toEqual(['ana@x.org']);
   });
 });
