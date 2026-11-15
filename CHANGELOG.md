@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Each response without an email is now stored under its own key, `E-mail não fornecido (<response ID>)`, stable across syncs, so such responses are no longer merged under `multipleResponsesPerUser`. The legacy grouped row `e-mail não fornecido` is left untouched, and a full re-sync recreates its responses as separate rows. If an editor fixes a placeholder row by hand, a later sync re-creates it only if the response falls inside the re-read window (`SYNC_OVERLAP_MS` before `syncedAt`) or the form is fully re-synced.
 - The portal frontend type-checks again, and `npm run typecheck` now covers `tsconfig.frontend.json`, so `npm run check` and CI catch frontend type errors.
 - The access code now appears before the portal title in the email, so a title containing a 6-digit number cannot be mistaken for the code.
 - The access-code email is now a complete, link-free HTML document with a matching plain-text part, a reason line and a footer naming the portal, to reduce Gmail spam flagging. The README gains an "Email deliverability" section (DKIM/SPF/DMARC). See [ADR 0009](docs/adr/0009-otp-email-content.md).
