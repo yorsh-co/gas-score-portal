@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadApp } from '../harness';
+import { declaresGlobal, loadApp } from '../harness';
 
 describe('getConfig', () => {
   it('returns the defaults when nothing is stored', () => {
@@ -55,7 +55,7 @@ describe('excluded forms', () => {
       JSON.stringify(' https://a \n\nhttps://b\n'),
     );
 
-    expect(app.getExcludedFormUrls()).toEqual(['https://a', 'https://b']);
+    expect(app.getExcludedFormUrls_()).toEqual(['https://a', 'https://b']);
   });
 
   it('saves the list when the user is an editor', () => {
@@ -66,7 +66,7 @@ describe('excluded forms', () => {
 
     app.saveExcludedFormUrls(['https://a', 'https://b']);
 
-    expect(app.getExcludedFormUrls()).toEqual(['https://a', 'https://b']);
+    expect(app.getExcludedFormUrls_()).toEqual(['https://a', 'https://b']);
   });
 
   it('rejects the save for a user who is not an editor', () => {
@@ -99,7 +99,7 @@ describe('form title strip patterns', () => {
 
     app.saveConfigValues({ formTitleStripPatterns: '^t4\\s*\n\nquiz' });
 
-    expect(app.getFormTitleStripPatterns()).toEqual(['^t4\\s*', 'quiz']);
+    expect(app.getFormTitleStripPatterns_()).toEqual(['^t4\\s*', 'quiz']);
   });
 });
 
@@ -137,4 +137,79 @@ describe('brand settings validation', () => {
       expect.objectContaining({ name: 'GasValidationError' }),
     );
   });
+});
+
+describe('settings reads through GasConfigRpc', () => {
+  const stored = {
+    owner: 'owner@example.org',
+    properties: { 'gasConfig:excludedFormUrls': JSON.stringify('https://a') },
+  };
+
+  it('denies an anonymous web app visitor', () => {
+    const { app } = loadApp({ ...stored, effectiveUser: 'owner@example.org' });
+
+    expect(() => app.GasConfigRpc('getSettings')).toThrow(/"status":401/);
+  });
+
+  it('denies a signed-in web app visitor who is not an editor', () => {
+    const { app } = loadApp({
+      ...stored,
+      activeUser: 'visitor@example.org',
+      effectiveUser: 'owner@example.org',
+    });
+
+    expect(() => app.GasConfigRpc('getSettings')).toThrow(/"status":401/);
+  });
+
+  it('shows a web app visitor who is an editor the settings', () => {
+    const { app } = loadApp({
+      ...stored,
+      editors: ['ed@example.org'],
+      activeUser: 'ed@example.org',
+      effectiveUser: 'owner@example.org',
+    });
+
+    expect(app.GasConfigRpc('getSettings')).toMatchObject({
+      canEdit: true,
+      values: { excludedFormUrls: 'https://a' },
+    });
+  });
+
+  it('shows a spreadsheet user who is not a listed editor the settings read-only', () => {
+    const { app } = loadApp({ ...stored, activeUser: 'shared@example.org' });
+
+    expect(app.GasConfigRpc('getSettings')).toMatchObject({
+      canEdit: false,
+      values: { excludedFormUrls: 'https://a' },
+    });
+  });
+
+  it('shows the owner the settings read-only when the editors cannot be resolved', () => {
+    const { app } = loadApp({
+      ...stored,
+      activeUser: 'owner@example.org',
+      globals: {
+        SpreadsheetApp: {
+          getActiveSpreadsheet: () => {
+            throw new Error('Access denied');
+          },
+        },
+      },
+    });
+
+    expect(app.GasConfigRpc('getSettings')).toMatchObject({
+      canEdit: false,
+      values: { excludedFormUrls: 'https://a' },
+    });
+  });
+});
+
+describe('google.script.run surface', () => {
+  it.each(['getExcludedFormUrls', 'getFormTitleStripPatterns'])(
+    'declares %s only as a private function',
+    (name) => {
+      expect(declaresGlobal(name)).toBe(false);
+      expect(declaresGlobal(`${name}_`)).toBe(true);
+    },
+  );
 });

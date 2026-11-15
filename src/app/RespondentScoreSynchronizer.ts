@@ -50,7 +50,7 @@ function createSyncDeps(
     respondents: createRespondentsRepo(getRespondentsTable()),
     scores: createScoresRepo(getScoresTable()),
     timer,
-    getExcludedUrls: getExcludedFormUrls,
+    getExcludedUrls: getExcludedFormUrls_,
     openForm: (url) => GForms.forms.get({ url }),
     getFormScores: (form, after) =>
       GForms.responses.getScores(form, {

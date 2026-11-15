@@ -238,21 +238,41 @@ function getDemoDbTables(): DemoDbTables {
 }
 
 /**
+ * Refuses callers other than the user the script runs as. The web app runs as
+ * the deployer and exposes every top-level function through
+ * `google.script.run`, where a visitor's active user is blank or another
+ * account. Editor and `clasp run` executions run as their caller.
+ * @throws {GasForbiddenError} When the active user is blank or is not the
+ *   effective user.
+ */
+function assertDemoDataCaller(): void {
+  const active = Session.getActiveUser().getEmail();
+  if (!active || active !== Session.getEffectiveUser().getEmail()) {
+    throw new GasForbiddenError(
+      'Run this function from the Apps Script editor.',
+    );
+  }
+}
+
+/**
  * Fills the `Forms`, `Respondents` and `Scores` tables with fake data.
  * Run from the Apps Script editor only; use a spreadsheet copy.
  * @param tables Target tables. Defaults to the spreadsheet's.
  * @param refresh Rebuilds the overview once the data is written.
  * @returns Number of rows written per table.
+ * @throws {GasForbiddenError} When not run as the effective user.
  */
 function seedDemoData(
-  tables: DemoDbTables = getDemoDbTables(),
+  tables?: DemoDbTables,
   refresh: () => unknown = refreshOverview,
 ): DemoCounts {
+  assertDemoDataCaller();
+  const target = tables === undefined ? getDemoDbTables() : tables;
   const counts = GasLock.withLock('script', () => {
     const written = writeDemoData(buildDemoData(), {
-      forms: createFormsRepo(tables.forms),
-      respondents: createRespondentsRepo(tables.respondents),
-      scores: createScoresRepo(tables.scores),
+      forms: createFormsRepo(target.forms),
+      respondents: createRespondentsRepo(target.respondents),
+      scores: createScoresRepo(target.scores),
     });
     refresh();
     return written;
@@ -267,13 +287,16 @@ function seedDemoData(
  * @param tables Tables to clean. Defaults to the spreadsheet's.
  * @param refresh Rebuilds the overview once the data is removed.
  * @returns Number of rows removed per table.
+ * @throws {GasForbiddenError} When not run as the effective user.
  */
 function clearDemoData(
-  tables: DemoDbTables = getDemoDbTables(),
+  tables?: DemoDbTables,
   refresh: () => unknown = refreshOverview,
 ): DemoCounts {
+  assertDemoDataCaller();
+  const target = tables === undefined ? getDemoDbTables() : tables;
   const counts = GasLock.withLock('script', () => {
-    const removed = removeDemoData(tables);
+    const removed = removeDemoData(target);
     refresh();
     return removed;
   });
