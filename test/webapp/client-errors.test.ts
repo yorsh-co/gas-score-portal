@@ -104,6 +104,31 @@ describe('POST /api/client-errors', () => {
     }
   });
 
+  it('masks a long log field in linear time', () => {
+    const { app } = loadApp();
+    const entries: unknown[] = [];
+    const spies = (['log', 'info', 'warn', 'error', 'debug'] as const).map(
+      (m) =>
+        vi.spyOn(console, m).mockImplementation((...args: unknown[]) => {
+          entries.push(...args);
+        }),
+    );
+    const start = Date.now();
+
+    try {
+      app.createRedactedLogger().error('boom', {
+        x: `ana@x.org ${'a'.repeat(50_000)}`,
+      });
+    } finally {
+      spies.forEach((s) => s.mockRestore());
+    }
+
+    expect(Date.now() - start).toBeLessThan(1000);
+    const out = JSON.stringify(entries);
+    expect(out).toContain('an...@x.org');
+    expect(out).not.toContain('ana@x.org');
+  });
+
   it('masks emails nested beyond the depth limit in context', () => {
     const { entries, report } = capture();
 

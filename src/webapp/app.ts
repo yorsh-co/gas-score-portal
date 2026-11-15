@@ -13,8 +13,8 @@ function getApp(): GasWebApp {
         forms: createFormsRepo(getFormsTable()),
         respondents: createRespondentsRepo(getRespondentsTable()),
         scores: createScoresRepo(getScoresTable()),
-        getExcludedUrls: getExcludedFormUrls,
-        getTitleStripPatterns: getFormTitleStripPatterns,
+        getExcludedUrls: getExcludedFormUrls_,
+        getTitleStripPatterns: getFormTitleStripPatterns_,
         getLocale,
       })),
       createAuthServices(

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { FakeTable } from '../fakes/sheetdb.fake';
-import { loadApp } from '../harness';
+import { type FakeEnvironmentOptions, loadApp } from '../harness';
 
 describe('demo data generator', () => {
   const { app } = loadApp();
@@ -166,8 +166,10 @@ describe('demo data generator', () => {
   });
 
   describe('editor entry points', () => {
-    const setup = () => {
-      const env = loadApp();
+    const setup = (
+      options: FakeEnvironmentOptions = { activeUser: 'owner@gmail.com' },
+    ) => {
+      const env = loadApp(options);
       const tables = {
         forms: new FakeTable(),
         respondents: new FakeTable(),
@@ -243,6 +245,53 @@ describe('demo data generator', () => {
         }),
       ).toThrow('sheet missing');
       expect(locks.released).toBe(locks.acquired);
+    });
+
+    it('refuses an anonymous web app visitor before opening the spreadsheet', () => {
+      const getActiveSpreadsheet = vi.fn();
+      const { app, locks } = setup({
+        activeUser: '',
+        effectiveUser: 'owner@gmail.com',
+        globals: { SpreadsheetApp: { getActiveSpreadsheet } },
+      });
+      // Loading the config reads the spreadsheet once; only later calls count.
+      getActiveSpreadsheet.mockClear();
+
+      expect(() => app.seedDemoData()).toThrow(/Apps Script editor/);
+      expect(() => app.clearDemoData()).toThrow(/Apps Script editor/);
+      expect(getActiveSpreadsheet).not.toHaveBeenCalled();
+      expect(locks.acquired).toBe(0);
+    });
+
+    it('refuses a signed-in visitor who is not the user the script runs as', () => {
+      const { app, locks, tables, sizes, refresh } = setup({
+        activeUser: 'visitor@school.org',
+        effectiveUser: 'owner@gmail.com',
+      });
+
+      expect(() => app.seedDemoData(tables, refresh)).toThrow(
+        /Apps Script editor/,
+      );
+      expect(() => app.clearDemoData(tables, refresh)).toThrow(
+        /Apps Script editor/,
+      );
+      expect(sizes()).toEqual({ forms: 0, respondents: 0, scores: 0 });
+      expect(refresh).not.toHaveBeenCalled();
+      expect(locks.acquired).toBe(0);
+    });
+
+    it('runs for an editor who is neither the owner nor a listed editor', () => {
+      const { app, tables, sizes, refresh } = setup({
+        owner: 'owner@gmail.com',
+        editors: [],
+        activeUser: 'member@school.org',
+      });
+
+      const seeded = app.seedDemoData(tables, refresh);
+      expect(sizes()).toEqual(seeded);
+
+      expect(app.clearDemoData(tables, refresh)).toEqual(seeded);
+      expect(sizes()).toEqual({ forms: 0, respondents: 0, scores: 0 });
     });
   });
 });

@@ -119,7 +119,7 @@ class FormsImporter {
       ...createFormsRepo(getFormsTable())
         .list()
         .map((form) => form.url),
-      ...getExcludedFormUrls(),
+      ...getExcludedFormUrls_(),
     ]);
     return forms.filter((form) => !known.has(form.getEditUrl()));
   }

@@ -1,5 +1,9 @@
-/** Matches an email, raw or percent-encoded, inside free text. */
-const EMAIL_PATTERN = /[^\s/@%]+(?:@|%40)[^\s/@%]+\.[^\s/@%]+/gi;
+/**
+ * Matches an email, raw or percent-encoded, inside free text. The lookbehind
+ * lets a match start only where a run of local-part characters begins, which
+ * keeps matching linear in the input length on untrusted values.
+ */
+const EMAIL_PATTERN = /(?<![^\s/@%])[^\s/@%]+(?:@|%40)[^\s/@%]+\.[^\s/@%]+/gi;
 
 /**
  * Masks every email found in a string, array or object, recursively. Past the

@@ -24,10 +24,11 @@ export interface AppExports {
     params?: Record<string, string | number>,
   ): string;
   tr(key: MessageKeyApi, params?: Record<string, string | number>): string;
-  getExcludedFormUrls(): string[];
+  getExcludedFormUrls_(): string[];
   saveExcludedFormUrls(urls: string[]): void;
   saveConfigValues(changes: Record<string, string>): void;
-  getFormTitleStripPatterns(): string[];
+  getFormTitleStripPatterns_(): string[];
+  GasConfigRpc(method: string, payload?: unknown): unknown;
   runMenuAction(logger: unknown, action: () => void): void;
   createCancelledError(): Error;
   createFormsRepo(table: object): FormsRepoApi;
@@ -54,9 +55,13 @@ export interface AppExports {
       options?: { interval?: number; dataString?: string | null },
     ): string;
     consumeContinuation(triggerId: string): string | null;
+    isProjectTrigger(triggerUid: string | undefined, handler: string): boolean;
     deleteContinuations(handler: string): void;
   };
   continueSyncScores(e: { triggerUid: string }): void;
+  timedSyncScores(e?: { triggerUid: string }): void;
+  installTriggers(): void;
+  menuImportDriveForms(): void;
   isLockTimeoutError(err: unknown): boolean;
   RespondentScoreSynchronizer: new (
     cursor: FormsCursorApi,
@@ -248,15 +253,19 @@ const EXPORTS: (keyof AppExports)[] = [
   'MESSAGES_PT_BR',
   't',
   'tr',
-  'getExcludedFormUrls',
+  'getExcludedFormUrls_',
   'saveExcludedFormUrls',
   'saveConfigValues',
-  'getFormTitleStripPatterns',
+  'getFormTitleStripPatterns_',
+  'GasConfigRpc',
   'runMenuAction',
   'createCancelledError',
   'FormsCursor',
   'TriggerUtils',
   'continueSyncScores',
+  'timedSyncScores',
+  'installTriggers',
+  'menuImportDriveForms',
   'isLockTimeoutError',
   'RespondentScoreSynchronizer',
   'createFormsRepo',
@@ -320,6 +329,35 @@ const loadInClaspOrder = createGasLoader<AppExports>({
   root: ROOT,
 });
 
+/**
+ * Whether the loaded app sources declare a global with this name, in the
+ * scope `google.script.run` resolves function names against.
+ * @param name Global name.
+ */
+export function declaresGlobal(name: string): boolean {
+  const probe = createGasLoader({
+    files: [BUNDLE, ...loadOrderFiles(ROOT)],
+    exports: [name],
+    root: ROOT,
+  });
+  try {
+    probe({
+      console,
+      Error,
+      SpreadsheetApp: {
+        getActiveSpreadsheet: () => ({
+          getOwner: () => null,
+          getEditors: () => [],
+        }),
+      },
+    });
+    return true;
+  } catch (err) {
+    if (String(err).includes(`export "${name}" is not defined`)) return false;
+    throw err;
+  }
+}
+
 /** In-memory `PropertiesService.getScriptProperties()`. */
 export function createFakeProperties(initial: Record<string, string> = {}) {
   const store = new Map(Object.entries(initial));
@@ -353,6 +391,8 @@ export interface FakeEnvironmentOptions {
   owner?: string | null;
   editors?: string[];
   activeUser?: string;
+  /** Email of the user the script runs as. Defaults to `activeUser`. */
+  effectiveUser?: string;
   /** Extra or overriding globals, such as spies. */
   globals?: Record<string, unknown>;
   /** Uses random UUIDs instead of a counter. */
@@ -453,7 +493,8 @@ export function loadApp(options: FakeEnvironmentOptions = {}) {
     SpreadsheetApp: { getActiveSpreadsheet: () => spreadsheet },
     Session: {
       getActiveUser: () => user(options.activeUser ?? ''),
-      getEffectiveUser: () => user(options.activeUser ?? ''),
+      getEffectiveUser: () =>
+        user(options.effectiveUser ?? options.activeUser ?? ''),
     },
     ScriptApp: scriptApp,
     CacheService: { getScriptCache: () => cache },

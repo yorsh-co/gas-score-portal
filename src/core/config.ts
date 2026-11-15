@@ -141,9 +141,9 @@ let memoizedConfig: AppConfig | undefined;
 /**
  * Returns the emails allowed to change the settings: the owner and editors of
  * the container spreadsheet. Fails closed, returning none, if they cannot be
- * read.
+ * read. The trailing underscore keeps it out of `google.script.run`.
  */
-function resolveConfigEditors(): string[] {
+function resolveConfigEditors_(): string[] {
   try {
     const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
     const owner = spreadsheet.getOwner();
@@ -155,6 +155,21 @@ function resolveConfigEditors(): string[] {
       error: String(err),
     });
     return [];
+  }
+}
+
+/**
+ * Whether the execution runs as the identified user calling it, as the menu
+ * and the settings dialog do. False in the web app, which runs as the
+ * deployer for every visitor, and when the user cannot be identified. Never
+ * throws.
+ */
+function runsAsActiveUser_(): boolean {
+  try {
+    const active = Session.getActiveUser().getEmail();
+    return active !== '' && active === Session.getEffectiveUser().getEmail();
+  } catch {
+    return false;
   }
 }
 
@@ -171,7 +186,10 @@ function getConfig(): AppConfig {
       ],
       title: 'Settings',
       appName: 'Score Portal',
-      editors: resolveConfigEditors(),
+      editors: resolveConfigEditors_(),
+      // google.script.run reaches GasConfigRpc from the web app too, where
+      // only the editors may read the settings.
+      ...(!runsAsActiveUser_() && { restrictReads: true }),
       logger: createModuleLogger('config'),
     });
   }
@@ -200,9 +218,10 @@ function tr(key: MessageKey, params?: MessageParams): string {
 }
 
 /**
- * Returns the URLs of the Forms excluded from synchronization.
+ * Returns the URLs of the Forms excluded from synchronization. The trailing
+ * underscore keeps it out of reach of google.script.run.
  */
-function getExcludedFormUrls(): string[] {
+function getExcludedFormUrls_(): string[] {
   const raw = getConfig().get('excludedFormUrls') ?? '';
   return raw
     .split(CONFIG_LIST_SEPARATOR)
@@ -211,9 +230,10 @@ function getExcludedFormUrls(): string[] {
 }
 
 /**
- * Returns the regular expression sources removed from the Form titles.
+ * Returns the regular expression sources removed from the Form titles. The
+ * trailing underscore keeps it out of reach of google.script.run.
  */
-function getFormTitleStripPatterns(): string[] {
+function getFormTitleStripPatterns_(): string[] {
   const raw = getConfig().get('formTitleStripPatterns') ?? '';
   return raw
     .split(CONFIG_LIST_SEPARATOR)

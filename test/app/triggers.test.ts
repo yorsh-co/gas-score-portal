@@ -1,6 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { loadApp } from '../harness';
 
+/**
+ * `Session` of a `google.script.run` call to the web app, which executes as
+ * the deployer `owner@x.org`.
+ * @param visitor Email of the visitor; blank when anonymous.
+ */
+const webAppSession = (visitor: string) => ({
+  getActiveUser: () => ({ getEmail: () => visitor }),
+  getEffectiveUser: () => ({ getEmail: () => 'owner@x.org' }),
+});
+
+/** Web app visitors other than the deployer: label and email. */
+const WEB_APP_VISITORS: [string, string][] = [
+  ['an anonymous visitor', ''],
+  ['another signed-in user', 'visitor@x.org'],
+];
+
 describe('FormsCursor', () => {
   it('initialize saves a new cursor and removes the earlier ones of the user', () => {
     const prefix = 'cursor:FORMS_RESPONSES:me@x.org:';
@@ -67,6 +83,24 @@ describe('TriggerUtils continuations', () => {
     expect(triggers).toHaveLength(0);
     expect(properties.getKeys()).toEqual([]);
   });
+
+  it('isProjectTrigger matches only a project trigger of the handler', () => {
+    const { app } = loadApp();
+    const id = app.TriggerUtils.createContinuation('continueSyncScores');
+
+    expect(app.TriggerUtils.isProjectTrigger(id, 'continueSyncScores')).toBe(
+      true,
+    );
+    expect(app.TriggerUtils.isProjectTrigger(id, 'timedSyncScores')).toBe(
+      false,
+    );
+    expect(
+      app.TriggerUtils.isProjectTrigger('forged', 'continueSyncScores'),
+    ).toBe(false);
+    expect(
+      app.TriggerUtils.isProjectTrigger(undefined, 'continueSyncScores'),
+    ).toBe(false);
+  });
 });
 
 describe('continueSyncScores', () => {
@@ -81,4 +115,96 @@ describe('continueSyncScores', () => {
     expect(triggers).toHaveLength(0);
     expect(properties.getKeys()).toEqual([]);
   });
+
+  it('ignores an event that names no continuation trigger', () => {
+    const { app, properties, triggers } = loadApp();
+    const id = app.TriggerUtils.createContinuation('continueSyncScores', {
+      dataString: 'cursor:key',
+    });
+    const other = app.TriggerUtils.createContinuation('timedSyncScores', {
+      dataString: 'other',
+    });
+
+    app.continueSyncScores({ triggerUid: 'forged' });
+    app.continueSyncScores({ triggerUid: other });
+
+    expect(triggers).toHaveLength(2);
+    expect(properties.getProperty(`continuation:${id}`)).toBe('cursor:key');
+    expect(properties.getProperty(`continuation:${other}`)).toBe('other');
+  });
+});
+
+describe('timedSyncScores', () => {
+  it.each(WEB_APP_VISITORS)(
+    'ignores a web app call by %s, keeping the cursor in progress',
+    (_, visitor) => {
+      const key = 'cursor:FORMS_RESPONSES:owner@x.org:2020-01-01T00:00:00.000Z';
+      const { app, properties, triggers } = loadApp({
+        properties: { [key]: '{}' },
+        globals: { Session: webAppSession(visitor) },
+      });
+      const id = app.TriggerUtils.createContinuation('continueSyncScores', {
+        dataString: key,
+      });
+
+      expect(() => app.timedSyncScores()).not.toThrow();
+      expect(() => app.timedSyncScores({ triggerUid: id })).not.toThrow();
+
+      expect(properties.getProperty(key)).toBe('{}');
+      expect(triggers).toHaveLength(1);
+    },
+  );
+});
+
+describe('installTriggers', () => {
+  it.each(WEB_APP_VISITORS)(
+    'rejects a web app call by %s, keeping the triggers',
+    (_, visitor) => {
+      const { app, triggers } = loadApp({
+        globals: { Session: webAppSession(visitor) },
+      });
+      app.TriggerUtils.createContinuation('timedSyncScores');
+
+      expect(() => app.installTriggers()).toThrow(/Forbidden/);
+      expect(triggers).toHaveLength(1);
+    },
+  );
+
+  it('installs the trigger for a user running the script themselves', () => {
+    const created: string[] = [];
+    const { app } = loadApp({
+      activeUser: 'owner@x.org',
+      globals: {
+        ScriptApp: {
+          getProjectTriggers: () => [],
+          newTrigger: (handler: string) => ({
+            timeBased: () => ({
+              everyMinutes: () => ({
+                create: () => void created.push(handler),
+              }),
+            }),
+          }),
+        },
+      },
+    });
+
+    app.installTriggers();
+
+    expect(created).toEqual(['timedSyncScores']);
+  });
+});
+
+describe('menuImportDriveForms', () => {
+  it.each(WEB_APP_VISITORS)(
+    'rejects a web app call by %s before importing',
+    (_, visitor) => {
+      const { app, toasts } = loadApp({
+        globals: { Session: webAppSession(visitor) },
+      });
+
+      expect(() => app.menuImportDriveForms()).toThrow(/Forbidden/);
+      expect(toasts).toHaveLength(1);
+      expect(toasts[0]).toMatchObject({ message: 'Forbidden', timeout: 15 });
+    },
+  );
 });

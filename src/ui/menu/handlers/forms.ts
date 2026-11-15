@@ -32,9 +32,12 @@ function getSelectedFormUrls(): string[] {
 
 /**
  * Imports the Forms found in the configured Drive folder.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ *   their own authority.
  */
 function menuImportDriveForms(): void {
   runMenuAction(formsMenuLogger, () => {
+    if (!isCallerEffectiveUser()) throw new GasForbiddenError();
     Toast.loading();
     new FormsImporter({ allowPrompt: true }).run();
     Toast.success(tr('forms.imported'));
@@ -62,7 +65,7 @@ function menuLinkNewForm(): void {
     }
 
     const formUrl = form.getEditUrl();
-    const excludedUrls = getExcludedFormUrls();
+    const excludedUrls = getExcludedFormUrls_();
     if (excludedUrls.includes(formUrl)) {
       const ui = SpreadsheetApp.getUi();
       const selectedButton = ui.alert(
@@ -115,7 +118,7 @@ function menuRemoveForms(): void {
     if (selectedButton !== ui.Button.OK) throw createCancelledError();
 
     Toast.busy(tr('forms.removing', { count: linkedForms.length }));
-    const excludedUrls = new Set(getExcludedFormUrls());
+    const excludedUrls = new Set(getExcludedFormUrls_());
     linkedForms.forEach((linkedForm) => excludedUrls.add(linkedForm.url));
     saveExcludedFormUrls([...excludedUrls]);
 
