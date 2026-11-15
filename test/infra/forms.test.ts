@@ -115,6 +115,17 @@ describe('GForms.responses.getScores without an email', () => {
     },
   );
 
+  it('never produces a placeholder that is a valid typed email', () => {
+    const { app } = loadApp();
+    expect(app.isValidEmail_(app.missingRespondentEmail_('A1'))).toBe(false);
+  });
+
+  it('treats a malformed collected email as missing without an email item', () => {
+    expect(
+      emails([{ id: 'A1', respondentEmail: 'x', time: 1 }], false),
+    ).toEqual([placeholder('A1')]);
+  });
+
   it('keeps the key stable across syncs', () => {
     expect(emails([{ id: 'A1', time: 1 }])).toEqual([placeholder('A1')]);
     expect(emails([{ id: 'A1', time: 5 }])).toEqual([placeholder('A1')]);
@@ -124,5 +135,37 @@ describe('GForms.responses.getScores without an email', () => {
     expect(
       emails([{ respondentEmail: '   ', typedEmail: 'Ana@X.org', time: 1 }]),
     ).toEqual(['ana@x.org']);
+  });
+
+  it("does not collide with another response's placeholder", () => {
+    expect(
+      emails([
+        { id: 'B2', time: 1 },
+        { id: 'A1', typedEmail: `${missing()} (B2)`, time: 2 },
+      ]).sort(),
+    ).toEqual([placeholder('A1'), placeholder('B2')]);
+  });
+
+  it.each(['ana', 'ana@x', 'ana @x.org', 'a@b@c.org'])(
+    'treats the malformed typed answer %j as missing',
+    (typedEmail) => {
+      expect(emails([{ id: 'A1', typedEmail, time: 1 }])).toEqual([
+        placeholder('A1'),
+      ]);
+    },
+  );
+
+  it('falls back to a valid typed answer when the collected email is malformed', () => {
+    expect(
+      emails([
+        { respondentEmail: 'not-an-email', typedEmail: 'Ana@X.org', time: 1 },
+      ]),
+    ).toEqual(['ana@x.org']);
+  });
+
+  it('uses the placeholder when the collected email is malformed and nothing is typed', () => {
+    expect(
+      emails([{ id: 'A1', respondentEmail: 'not-an-email', time: 1 }]),
+    ).toEqual([placeholder('A1')]);
   });
 });
