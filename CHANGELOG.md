@@ -17,10 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migrated the toolchain to `gasdev` 3.0 (`3.2.1`), which replaces `gas-dev-config`, `gas-dev-bundle`, `gas-dev-release` and `gas-dev-ci`: the `package.json` settings are nested under the `gasdev` key, the scripts call `gasdev` (`deploy:setup` runs `gasdev setup`), the deploy workflow calls `yorsh-co/gasdev@v3.2.1`, `gasdev clean` replaces `rimraf` in the `clean` script and `scripts/build.js`, `eslint` is `^10.15.0`, `gasdev.type` is `"webapp"`, and Node.js `^22.15.0` is required.
 - Bumped the bundled gas-\* libraries to `gas-webapp` 1.1.3 (1.1.0: CSRF gate on preflight-free HTTP `doPost` bodies, which does not affect the portal's `google.script.run` calls; CWE-1333 path-matching fix; 1.1.1: the `CONTROL_CHARS` global is now prefixed as `GAS_WEBAPP_CONTROL_CHARS`; 1.1.2: fixes the version in the peer types; 1.1.3: the client error handler logs the client's text as `clientMessage`; none of these affect the portal), `gas-sheetdb` 2.1.6, `gas-config` 2.3.1 (lazy `editors`/`readers` getters; the `GAS_CONFIG_EDITORS` fallback is not used because the portal passes `editors`), `gas-error` 1.2.6, `gas-logger` 2.0.5 and `gas-lock` 1.2.5, and re-vendored the `gas-webapp` browser client at 1.1.3.
 
-### Fixed
-
-- The portal frontend type-checks again, and `npm run typecheck` now covers `tsconfig.frontend.json`, so `npm run check` and CI catch frontend type errors.
-
 ### Added
 
 - The results panel shows a "Loading scores…" indicator while scores load.
@@ -68,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The portal frontend type-checks again, and `npm run typecheck` now covers `tsconfig.frontend.json`, so `npm run check` and CI catch frontend type errors.
 - The access code now appears before the portal title in the email, so a title containing a 6-digit number cannot be mistaken for the code.
 - The access-code email is now a complete, link-free HTML document with a matching plain-text part, a reason line and a footer naming the portal, to reduce Gmail spam flagging. The README gains an "Email deliverability" section (DKIM/SPF/DMARC). See [ADR 0009](docs/adr/0009-otp-email-content.md).
 
