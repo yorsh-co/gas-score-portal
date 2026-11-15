@@ -34,6 +34,15 @@ function normalizeEmail_(email: unknown): string {
 }
 
 /**
+ * Whether a value looks like an email. Deliberately loose: the respondent
+ * lookup is the real check.
+ * @param email Normalized email.
+ */
+function isValidEmail_(email: string): boolean {
+  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+/**
  * Maps a stored entry to a respondent record.
  * @param entry Table entry.
  */

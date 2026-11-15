@@ -51,15 +51,6 @@ interface OtpService {
 }
 
 /**
- * Whether a value looks like an email. Deliberately loose: the respondent
- * lookup is the real check.
- * @param email Normalized email.
- */
-function isValidEmail_(email: string): boolean {
-  return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-/**
  * Converts the signed bytes returned by `Utilities` into a hex string.
  * @param bytes Signed byte array.
  */
