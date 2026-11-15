@@ -36,19 +36,6 @@ const StringUtils = {
   },
 
   /**
-   * Lowercases an email and strips accents and characters that cannot be part
-   * of an address.
-   * @param str Raw email.
-   */
-  normalizeEmail(str = ''): string {
-    return str
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[̀-ͯ]/g, '')
-      .replace(/[^\p{L}\p{N}@._+-]/gu, '');
-  },
-
-  /**
    * Hides all but the first two characters of the local part of an email.
    * @param email Email address.
    */

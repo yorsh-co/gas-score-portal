@@ -16,6 +16,18 @@ export interface AppExports {
     getAll(): Record<string, unknown>;
     editors: string[];
   };
+  GForms: {
+    responses: {
+      getScores(
+        form: object,
+        options: {
+          after?: Date;
+          multipleResponsesPerUser: 'newest' | 'oldest';
+        },
+      ): { email: string; name: string; score: number }[];
+    };
+  };
+  MISSING_RESPONDENT_EMAIL: string;
   MESSAGES_EN: Record<string, string>;
   MESSAGES_PT_BR: Record<string, string>;
   t(
@@ -260,6 +272,8 @@ const EXPORTS: (keyof AppExports)[] = [
   'GasConfig',
   'GasLock',
   'GasError',
+  'GForms',
+  'MISSING_RESPONDENT_EMAIL',
   'getConfig_',
   'MESSAGES_EN',
   'MESSAGES_PT_BR',
