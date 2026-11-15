@@ -46,6 +46,15 @@ Access codes are sent from your Workspace domain. Authenticate it so Gmail does 
 5. Optionally monitor reputation with Google Postmaster Tools.
 6. Ask early recipients to mark the message "Not spam".
 
+### OTP key rotation
+
+The OTP HMAC key is stored in the Script Property `otp.hmacKey`. Rotate it once every web app deployment (dev, live and any version-pinned ones) runs a version that makes `getOtpHmacKey_` private (see the `[Unreleased]` → Security entry in the CHANGELOG), because older versions exposed the key (see [ADR 4](docs/adr/0004-email-otp-access.md)):
+
+1. Open Project Settings › Script Properties.
+2. Delete `otp.hmacKey` and save.
+
+The next sign-in request creates a new key under the script lock. Pending codes and live sessions stop working, so respondents sign in again. Rate-limit counters restart, and old cache entries expire within 6 hours.
+
 ## Configuration
 
 Settings are stored in Script Properties and edited in the settings dialog, opened from the menu. Only the spreadsheet owner and editors can change them.

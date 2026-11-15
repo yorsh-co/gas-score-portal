@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from 'vitest';
-import { loadApp } from '../harness';
+import { declaresGlobal, loadApp } from '../harness';
 
 const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org']);
 
@@ -459,4 +459,14 @@ describe('GET /api/me/scores', () => {
   it('removed the unauthenticated lookup route', () => {
     expect(setup().scores().error).toMatch(/401/);
   });
+});
+
+describe('google.script.run surface', () => {
+  it.each(['getOtpHmacKey', 'computeOtpHmac'])(
+    'declares %s only as a private function',
+    (name) => {
+      expect(declaresGlobal(name)).toBe(false);
+      expect(declaresGlobal(`${name}_`)).toBe(true);
+    },
+  );
 });

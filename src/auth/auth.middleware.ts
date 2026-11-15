@@ -36,7 +36,7 @@ function createAuthServices(
   logger: Pick<GasLogger, 'error'>,
 ): AuthServices {
   const cache = CacheService.getScriptCache();
-  const hmac = computeOtpHmac;
+  const hmac = computeOtpHmac_;
   const uuid = () => Utilities.getUuid();
   return {
     otp: createOtpService({

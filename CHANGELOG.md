@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- `getOtpHmacKey` and `computeOtpHmac` are now private (`_`), so visitors can no longer read the OTP HMAC key or use the HMAC through `google.script.run`. Rotate `otp.hmacKey` as described in the README.
 - `seedDemoData` and `clearDemoData` refuse callers other than the user the script runs as, so web app visitors can no longer write or remove demo data through `google.script.run`. Runs from the Apps Script editor and `clasp run` are unaffected.
 - Access to scores now requires proof of mailbox control through a one-time code. See [ADR 0004](docs/adr/0004-email-otp-access.md) for the threat model, rate limits and residual risks.
 - `resolveConfigEditors` is renamed `resolveConfigEditors_` so it is private to Apps Script: anonymous visitors can no longer call it through `google.script.run` to read the emails of the spreadsheet owner and editors.

@@ -75,9 +75,10 @@ let otpHmacKey: string | undefined;
 /**
  * Returns the HMAC key, creating it on first use. The key is 32 random bytes
  * taken from two UUIDs and is stored once, under the script lock. It is read
- * from Script Properties once per execution.
+ * from Script Properties once per execution. The trailing underscore keeps it
+ * out of `google.script.run`.
  */
-function getOtpHmacKey(): string {
+function getOtpHmacKey_(): string {
   if (otpHmacKey) return otpHmacKey;
   const properties = PropertiesService.getScriptProperties();
   const existing = properties.getProperty(OTP_HMAC_KEY_PROPERTY);
@@ -94,11 +95,12 @@ function getOtpHmacKey(): string {
 
 /**
  * Computes HMAC-SHA256 as hex with the stored key.
+ * The trailing underscore keeps it out of `google.script.run`.
  * @param value Value to sign.
  */
-function computeOtpHmac(value: string): string {
+function computeOtpHmac_(value: string): string {
   return bytesToHex(
-    Utilities.computeHmacSha256Signature(value, getOtpHmacKey()),
+    Utilities.computeHmacSha256Signature(value, getOtpHmacKey_()),
   );
 }
 

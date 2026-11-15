@@ -31,7 +31,7 @@ function createOtpHarness(respondents: string[]): OtpHarness {
   const cache = CacheService.getScriptCache();
   const deps = {
     cache,
-    hmac: computeOtpHmac,
+    hmac: computeOtpHmac_,
     uuid: () => Utilities.getUuid(),
     now: () => Date.now() + offset,
     sleep: () => undefined,
@@ -178,7 +178,7 @@ test('the sign-in flow round-trips through the web app over RPC', () => {
         ],
       }),
     },
-    { otp: harness.otp, sessions: harness.sessions, hmac: computeOtpHmac },
+    { otp: harness.otp, sessions: harness.sessions, hmac: computeOtpHmac_ },
   );
 
   const requested = callRpc(app, 'POST', '/api/auth/otp', {
