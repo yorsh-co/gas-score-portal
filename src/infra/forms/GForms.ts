@@ -83,13 +83,15 @@ const GForms = (() => {
     resp: GoogleAppsScript.Forms.FormResponse,
     emailItem: GoogleAppsScript.Forms.Item | undefined,
   ): string => {
-    const email = resp.getRespondentEmail();
-    if (email) return StringUtils.normalizeEmail(email);
+    const collected = normalizeEmail_(resp.getRespondentEmail());
+    if (collected) return collected;
 
     if (emailItem) {
       const itemResp = resp.getResponseForItem(emailItem);
-      if (itemResp)
-        return StringUtils.normalizeEmail(String(itemResp.getResponse()));
+      const typed = itemResp
+        ? normalizeEmail_(String(itemResp.getResponse()))
+        : '';
+      if (typed) return typed;
     }
 
     return MISSING_RESPONDENT_EMAIL;

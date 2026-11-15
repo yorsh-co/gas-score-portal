@@ -85,6 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Form respondent emails are now only trimmed and lowercased, as at sign-in, so addresses that differ by accents or special characters no longer share one portal identity and the stored key matches the address the owner signs in with. Whitespace and other characters inside typed addresses are no longer removed, and blank addresses are treated as missing. Rows already stored under a stripped address are not migrated.
 - `getOtpHmacKey` and `computeOtpHmac` are now private (`_`), so visitors can no longer read the OTP HMAC key or use the HMAC through `google.script.run`. Rotate `otp.hmacKey` as described in the README.
 - The caller check is consolidated into the private `isCallerEffectiveUser_` and `assertCallerEffectiveUser_`, so `isCallerEffectiveUser` and `assertDemoDataCaller` are no longer callable through `google.script.run`.
 - `seedDemoData` and `clearDemoData` refuse callers other than the user the script runs as, so web app visitors can no longer write or remove demo data through `google.script.run`. Runs from the Apps Script editor and `clasp run` are unaffected.
