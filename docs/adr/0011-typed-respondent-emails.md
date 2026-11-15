@@ -5,7 +5,7 @@ Date: 2026-11-15
 ## Status
 
 Accepted. Normalization superseded by [0012](0012-nfc-email-normalization.md).
-Accepted emails narrowed by [0013](0013-reject-malformed-respondent-emails.md)
+Accepted emails narrowed by [0013](0013-reject-malformed-respondent-emails.md).
 
 ## Context
 
