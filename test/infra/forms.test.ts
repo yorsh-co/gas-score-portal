@@ -28,11 +28,15 @@ function fakeForm(responses: FakeResponse[], withEmailItem = true) {
   };
 }
 
-const emails = (responses: FakeResponse[], withEmailItem = true) => {
+const emails = (
+  responses: FakeResponse[],
+  withEmailItem = true,
+  multipleResponsesPerUser: 'newest' | 'oldest' = 'newest',
+) => {
   const { app } = loadApp();
   return app.GForms.responses
     .getScores(fakeForm(responses, withEmailItem), {
-      multipleResponsesPerUser: 'newest',
+      multipleResponsesPerUser,
     })
     .map((s) => s.email);
 };
@@ -83,18 +87,25 @@ describe('GForms.responses.getScores without an email', () => {
     },
   );
 
-  it('gives each response without an email its own key', () => {
-    expect(
-      emails([
-        { id: 'A1', time: 1 },
-        { id: 'B2', time: 2 },
-      ]).sort(),
-    ).toEqual([placeholder('A1'), placeholder('B2')].sort());
-  });
+  it.each(['newest', 'oldest'] as const)(
+    'gives each response without an email its own key with %s',
+    (policy) => {
+      expect(
+        emails(
+          [
+            { id: 'A1', time: 1 },
+            { id: 'B2', time: 2 },
+          ],
+          true,
+          policy,
+        ).sort(),
+      ).toEqual([placeholder('A1'), placeholder('B2')].sort());
+    },
+  );
 
   it('keeps the key stable across syncs', () => {
-    const response = { id: 'A1', time: 1 };
-    expect(emails([response])).toEqual(emails([response]));
+    expect(emails([{ id: 'A1', time: 1 }])).toEqual([placeholder('A1')]);
+    expect(emails([{ id: 'A1', time: 5 }])).toEqual([placeholder('A1')]);
   });
 
   it('falls back to the typed answer when the collected email is blank', () => {
