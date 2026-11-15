@@ -35,6 +35,8 @@ The decisions are recorded in [`docs/adr`](docs/adr).
 
 Later deployments are made by CI, not by the app.
 
+Linked Forms may collect emails as "Responder input", so respondents need no Google account, but then any submitter can record scores under an address they type. Choose "Verified" email collection when every respondent has a Google account ([ADR 11](docs/adr/0011-typed-respondent-emails.md)).
+
 ### Email deliverability
 
 Access codes are sent from your Workspace domain. Authenticate it so Gmail does not file them as spam ([ADR 9](docs/adr/0009-otp-email-content.md)):
