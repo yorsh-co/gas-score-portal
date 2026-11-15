@@ -140,7 +140,7 @@ describe('timedSyncScores', () => {
   );
 });
 
-describe('installTriggers', () => {
+describe('installTriggers_', () => {
   it.each(WEB_APP_VISITORS)(
     'rejects a web app call by %s, keeping the triggers',
     (_, visitor) => {
@@ -149,7 +149,7 @@ describe('installTriggers', () => {
       });
       app.TriggerUtils.createContinuation('timedSyncScores');
 
-      expect(() => app.installTriggers()).toThrow(/Forbidden/);
+      expect(() => app.installTriggers_()).toThrow(/Forbidden/);
       expect(triggers).toHaveLength(1);
     },
   );
@@ -172,7 +172,7 @@ describe('installTriggers', () => {
       },
     });
 
-    app.installTriggers();
+    app.installTriggers_();
 
     expect(created).toEqual(['timedSyncScores']);
   });

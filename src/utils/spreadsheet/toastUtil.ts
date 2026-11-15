@@ -5,7 +5,7 @@ type ToastType = 'busy' | 'loading' | 'ready' | 'success' | 'warning' | 'error';
  * Toast messages shown in the spreadsheet, logged alongside.
  */
 const Toast = (() => {
-  const toastLogger = createModuleLogger('toast');
+  const toastLogger = createModuleLogger_('toast');
 
   /**
    * Shows a toast and logs it at `info`; failures are logged by their handlers.
@@ -36,21 +36,21 @@ const Toast = (() => {
   return {
     /** Busy toast, shown until replaced. */
     busy: (message?: string, title?: string) =>
-      show('busy', '🔵', tr('toast.busy'), message, title, -1),
+      show('busy', '🔵', tr_('toast.busy'), message, title, -1),
     /** Loading toast, shown until replaced. */
     loading: (message?: string, title?: string) =>
-      show('loading', '🔵', tr('toast.loading'), message, title, -1),
+      show('loading', '🔵', tr_('toast.loading'), message, title, -1),
     /** Ready toast. */
     ready: (message?: string, title?: string) =>
-      show('ready', '🟢', tr('toast.ready'), message, title),
+      show('ready', '🟢', tr_('toast.ready'), message, title),
     /** Success toast. */
     success: (message?: string, title?: string) =>
-      show('success', '🟢', tr('toast.success'), message, title),
+      show('success', '🟢', tr_('toast.success'), message, title),
     /** Warning toast. */
     warning: (message?: string, title?: string) =>
-      show('warning', '🟡', tr('toast.warning'), message, title),
+      show('warning', '🟡', tr_('toast.warning'), message, title),
     /** Error toast, shown for 15 seconds. */
     error: (message?: string, title?: string) =>
-      show('error', '🔴', tr('toast.error'), message, title, 15),
+      show('error', '🔴', tr_('toast.error'), message, title, 15),
   };
 })();

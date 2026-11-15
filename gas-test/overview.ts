@@ -49,11 +49,11 @@ test('overview formula pivots a real sheet', (ctx) => {
   tables.forms.softDelete(goneForm as GasSheetDbEntry);
 
   const sheet = ctx.spreadsheet.insertSheet(`${ctx.prefix}Overview`);
-  const separators = detectFormulaSeparators(sheet);
+  const separators = detectFormulaSeparators_(sheet);
   sheet
     .getRange(1, 1)
     .setFormula(
-      buildOverviewFormula(
+      buildOverviewFormula_(
         tables.forms,
         tables.respondents,
         tables.scores,

@@ -23,7 +23,7 @@ interface ExecutionTimerApi {
  * Creates an execution timer.
  * @param executionLimit Limit in milliseconds; defaults to 6 minutes.
  */
-function ExecutionTimer(
+function ExecutionTimer_(
   executionLimit = DEFAULT_EXECUTION_LIMIT_MS,
 ): ExecutionTimerApi {
   let timerStart: number | undefined;

@@ -9,7 +9,7 @@ const AUTH = {
 
 function setup() {
   const { app } = loadApp();
-  const webApp = app.createWebApp({ getByUser: () => null }, AUTH);
+  const webApp = app.createWebApp_({ getByUser: () => null }, AUTH);
   return { webApp };
 }
 
@@ -133,7 +133,7 @@ describe('GET /api/meta', () => {
         'gasConfig:termsUrl': '"https://example.org/terms"',
       },
     });
-    const webApp = app.createWebApp({ getByUser: () => null }, AUTH);
+    const webApp = app.createWebApp_({ getByUser: () => null }, AUTH);
 
     const response = webApp.doGet({ parameter: { route: '/api/meta' } });
 

@@ -11,7 +11,7 @@ interface ContinuationOptions {
 
 /** Helpers to install and manage the project triggers. */
 const TriggerUtils = (() => {
-  const triggerLogger = createModuleLogger('triggers');
+  const triggerLogger = createModuleLogger_('triggers');
 
   /** Deletes a trigger and the continuation data stored for it. */
   const removeTrigger = (trigger: GoogleAppsScript.Script.Trigger): void => {

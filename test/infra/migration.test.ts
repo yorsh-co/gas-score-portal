@@ -31,16 +31,16 @@ function setup() {
     scores: new FakeTable(),
   };
   const repos = {
-    forms: app.createFormsRepo(tables.forms),
-    respondents: app.createRespondentsRepo(tables.respondents),
-    scores: app.createScoresRepo(tables.scores),
+    forms: app.createFormsRepo_(tables.forms),
+    respondents: app.createRespondentsRepo_(tables.respondents),
+    scores: app.createScoresRepo_(tables.scores),
   };
   const run = (legacy = { forms: legacyForms, scores: matrix() }) =>
-    app.migrateLegacyData(legacy, repos);
+    app.migrateLegacyData_(legacy, repos);
   return { repos, tables, run };
 }
 
-describe('migrateLegacyData', () => {
+describe('migrateLegacyData_', () => {
   it('reads and writes scores once for the whole migration', () => {
     const { tables, run } = setup();
 
@@ -162,7 +162,7 @@ describe('migrateLegacyData', () => {
   });
 });
 
-describe('runLegacyMigration', () => {
+describe('runLegacyMigration_', () => {
   function fakeSheet(name: string, values: unknown[][]) {
     return {
       name,
@@ -196,12 +196,12 @@ describe('runLegacyMigration', () => {
     };
     const refresh = vi.fn();
     const run = () =>
-      app.runLegacyMigration(
+      app.runLegacyMigration_(
         fakeSpreadsheet(sheets),
         {
-          forms: app.createFormsRepo(tables.forms),
-          respondents: app.createRespondentsRepo(tables.respondents),
-          scores: app.createScoresRepo(tables.scores),
+          forms: app.createFormsRepo_(tables.forms),
+          respondents: app.createRespondentsRepo_(tables.respondents),
+          scores: app.createScoresRepo_(tables.scores),
         },
         refresh,
       );

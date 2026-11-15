@@ -66,14 +66,14 @@ class FormsCursor {
 
     const raw = PropertiesService.getScriptProperties().getProperty(key);
     if (!raw) {
-      createModuleLogger('cursor').warn('Cursor not found', { key });
+      createModuleLogger_('cursor').warn('Cursor not found', { key });
       return undefined;
     }
 
     try {
       return new FormsCursor(JSON.parse(raw) as FormsCursorOptions);
     } catch (err) {
-      createModuleLogger('cursor').error('Failed to parse the cursor', {
+      createModuleLogger_('cursor').error('Failed to parse the cursor', {
         key,
         error: String(err),
       });

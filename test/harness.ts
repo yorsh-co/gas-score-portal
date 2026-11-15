@@ -11,7 +11,7 @@ export interface AppExports {
   GasConfig: new (options: object) => unknown;
   GasLock: { withLock<T>(scope: string, callback: () => T): T };
   GasError: new (message: string, options?: object) => Error;
-  getConfig(): {
+  getConfig_(): {
     get(key: string): unknown;
     getAll(): Record<string, unknown>;
     editors: string[];
@@ -23,25 +23,25 @@ export interface AppExports {
     key: MessageKeyApi,
     params?: Record<string, string | number>,
   ): string;
-  tr(key: MessageKeyApi, params?: Record<string, string | number>): string;
+  tr_(key: MessageKeyApi, params?: Record<string, string | number>): string;
   isCallerEffectiveUser_(): boolean;
   assertCallerEffectiveUser_(message?: string): void;
   getExcludedFormUrls_(): string[];
-  saveExcludedFormUrls(urls: string[]): void;
-  saveConfigValues(changes: Record<string, string>): void;
+  saveExcludedFormUrls_(urls: string[]): void;
+  saveConfigValues_(changes: Record<string, string>): void;
   getFormTitleStripPatterns_(): string[];
   GasConfigRpc(method: string, payload?: unknown): unknown;
-  runMenuAction(logger: unknown, action: () => void): void;
-  createCancelledError(): Error;
-  createFormsRepo(table: object): FormsRepoApi;
-  createRespondentsRepo(table: object): RespondentsRepoApi;
-  createScoresRepo(table: object): ScoresRepoApi;
-  migrateLegacyData(
+  runMenuAction_(logger: unknown, action: () => void): void;
+  createCancelledError_(): Error;
+  createFormsRepo_(table: object): FormsRepoApi;
+  createRespondentsRepo_(table: object): RespondentsRepoApi;
+  createScoresRepo_(table: object): ScoresRepoApi;
+  migrateLegacyData_(
     legacy: { forms: unknown[][]; scores: unknown[][] },
     repos: { forms: object; respondents: object; scores: object },
     now?: Date,
   ): MigrationCountsApi;
-  runLegacyMigration(
+  runLegacyMigration_(
     spreadsheet: object,
     repos: { forms: object; respondents: object; scores: object },
     refresh: () => void,
@@ -62,7 +62,7 @@ export interface AppExports {
   };
   continueSyncScores(e: { triggerUid: string }): void;
   timedSyncScores(e?: { triggerUid: string }): void;
-  installTriggers(): void;
+  installTriggers_(): void;
   menuImportDriveForms(): void;
   menuInstall(): void;
   menuUninstall(): void;
@@ -74,65 +74,65 @@ export interface AppExports {
   migrateLegacySheets(): MigrationCountsApi;
   /** Tables cached by name; seeding it replaces the Sheets-backed ones. */
   dbTables: Record<string, unknown>;
-  isLockTimeoutError(err: unknown): boolean;
+  isLockTimeoutError_(err: unknown): boolean;
   RespondentScoreSynchronizer: new (
     cursor: FormsCursorApi,
     deps: SyncDepsApi,
   ) => { run(): void };
-  columnLetter(index: number): string;
-  buildOverviewFormula(
+  columnLetter_(index: number): string;
+  buildOverviewFormula_(
     forms: object,
     respondents: object,
     scores: object,
     separators?: { arg: string; column: string },
   ): string;
-  detectFormulaSeparators(sheet: object): { arg: string; column: string };
-  refreshOverview(
+  detectFormulaSeparators_(sheet: object): { arg: string; column: string };
+  refreshOverview_(
     spreadsheet: object,
     forms: object,
     respondents: object,
     scores: object,
   ): unknown;
-  createScoresService(getDeps: () => object): {
+  createScoresService_(getDeps: () => object): {
     getByUser(userId: string): UserScoresApi | null;
   };
-  createRedactedLogger(module?: string): {
+  createRedactedLogger_(module?: string): {
     error(message: string, meta?: object): void;
   };
-  createWebApp(
+  createWebApp_(
     service: object,
     auth: object,
   ): {
     doGet(e: object): unknown;
     doPost(e: object): unknown;
   };
-  createOtpService(deps: object): {
+  createOtpService_(deps: object): {
     request(email: string): void;
     verify(email: string, code: string): boolean;
   };
-  createSessionService(deps: object): {
+  createSessionService_(deps: object): {
     create(email: string): string;
     resolve(token: string): string | null;
   };
-  createOtpMailer(
+  createOtpMailer_(
     getPortalTitle: () => string,
     getLocale: () => string,
   ): {
     hasQuota(): boolean;
     sendOtp(to: string, code: string, minutes: number): void;
   };
-  createAuthServices(
+  createAuthServices_(
     respondents: () => object,
     logger: object,
   ): { otp: object; sessions: object; hmac(value: string): string };
-  buildDemoData(options?: {
+  buildDemoData_(options?: {
     respondents?: number;
     forms?: number;
     seed?: number;
   }): DemoDataApi;
-  isDemoEmail(email: string): boolean;
-  isDemoFormUrl(url: string): boolean;
-  writeDemoData(
+  isDemoEmail_(email: string): boolean;
+  isDemoFormUrl_(url: string): boolean;
+  writeDemoData_(
     data: DemoDataApi,
     repos: { forms: object; respondents: object; scores: object },
   ): { forms: number; respondents: number; scores: number };
@@ -144,7 +144,7 @@ export interface AppExports {
     tables?: { forms: object; respondents: object; scores: object },
     refresh?: () => unknown,
   ): { forms: number; respondents: number; scores: number };
-  removeDemoData(tables: {
+  removeDemoData_(tables: {
     forms: object;
     respondents: object;
     scores: object;
@@ -153,7 +153,7 @@ export interface AppExports {
     respondents: number;
     scores: number;
   };
-  getApp(): { doGet(e: object): unknown; doPost(e: object): unknown };
+  getApp_(): { doGet(e: object): unknown; doPost(e: object): unknown };
   doGet(e: object): unknown;
   doPost(e: object): unknown;
 }
@@ -260,25 +260,25 @@ const EXPORTS: (keyof AppExports)[] = [
   'GasConfig',
   'GasLock',
   'GasError',
-  'getConfig',
+  'getConfig_',
   'MESSAGES_EN',
   'MESSAGES_PT_BR',
   't',
-  'tr',
+  'tr_',
   'isCallerEffectiveUser_',
   'assertCallerEffectiveUser_',
   'getExcludedFormUrls_',
-  'saveExcludedFormUrls',
-  'saveConfigValues',
+  'saveExcludedFormUrls_',
+  'saveConfigValues_',
   'getFormTitleStripPatterns_',
   'GasConfigRpc',
-  'runMenuAction',
-  'createCancelledError',
+  'runMenuAction_',
+  'createCancelledError_',
   'FormsCursor',
   'TriggerUtils',
   'continueSyncScores',
   'timedSyncScores',
-  'installTriggers',
+  'installTriggers_',
   'menuImportDriveForms',
   'menuInstall',
   'menuUninstall',
@@ -289,32 +289,32 @@ const EXPORTS: (keyof AppExports)[] = [
   'onOpen',
   'migrateLegacySheets',
   'dbTables',
-  'isLockTimeoutError',
+  'isLockTimeoutError_',
   'RespondentScoreSynchronizer',
-  'createFormsRepo',
-  'createRespondentsRepo',
-  'createScoresRepo',
-  'migrateLegacyData',
-  'runLegacyMigration',
-  'columnLetter',
-  'buildOverviewFormula',
-  'detectFormulaSeparators',
-  'refreshOverview',
-  'createScoresService',
-  'createRedactedLogger',
-  'createWebApp',
-  'createOtpService',
-  'createSessionService',
-  'createOtpMailer',
-  'createAuthServices',
-  'buildDemoData',
-  'isDemoEmail',
-  'isDemoFormUrl',
-  'writeDemoData',
-  'removeDemoData',
+  'createFormsRepo_',
+  'createRespondentsRepo_',
+  'createScoresRepo_',
+  'migrateLegacyData_',
+  'runLegacyMigration_',
+  'columnLetter_',
+  'buildOverviewFormula_',
+  'detectFormulaSeparators_',
+  'refreshOverview_',
+  'createScoresService_',
+  'createRedactedLogger_',
+  'createWebApp_',
+  'createOtpService_',
+  'createSessionService_',
+  'createOtpMailer_',
+  'createAuthServices_',
+  'buildDemoData_',
+  'isDemoEmail_',
+  'isDemoFormUrl_',
+  'writeDemoData_',
+  'removeDemoData_',
   'seedDemoData',
   'clearDemoData',
-  'getApp',
+  'getApp_',
   'doGet',
   'doPost',
 ];

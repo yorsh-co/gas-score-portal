@@ -181,13 +181,13 @@ function setup(
   env.app.dbTables.Respondents = tables.respondents;
   env.app.dbTables.Scores = tables.scores;
   env.app
-    .createFormsRepo(tables.forms)
+    .createFormsRepo_(tables.forms)
     .upsert({ url: LINKED_URL, title: 'Linked', status: 'linked', error: '' });
   tables.respondents.insert({ email: 'ana@x.org', name: 'Ana' });
   tables.scores.insert({ email: 'ana@x.org', formUrl: LINKED_URL, score: 1 });
 
   const showDialog = vi.fn();
-  (env.app.getConfig() as unknown as { showDialog: unknown }).showDialog =
+  (env.app.getConfig_() as unknown as { showDialog: unknown }).showDialog =
     showDialog;
 
   const tableSpies = Object.values(tables).flatMap((table) =>
@@ -234,7 +234,7 @@ type Env = ReturnType<typeof setup>;
 /** The public entry points that act on the spreadsheet or script settings. */
 const ENTRY_POINTS: {
   name: string;
-  /** Runs inside `runMenuAction`, so a refusal is toasted. */
+  /** Runs inside `runMenuAction_`, so a refusal is toasted. */
   menu: boolean;
   call: (app: AppExports) => unknown;
   /** Asserts the main effect of a successful call. */

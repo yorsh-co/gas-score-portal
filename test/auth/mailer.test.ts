@@ -20,7 +20,7 @@ function send(locale: string, portalTitle = 'Quiz <Portal>') {
     },
   });
   app
-    .createOtpMailer(
+    .createOtpMailer_(
       () => portalTitle,
       () => locale,
     )
@@ -64,7 +64,7 @@ describe('OTP mailer', () => {
       },
     });
     app
-      .createOtpMailer(
+      .createOtpMailer_(
         () => 'O\'Brien & "Co"',
         () => 'en',
       )

@@ -20,7 +20,7 @@ const MISSING_RESPONDENT_EMAIL = 'E-mail n\u00e3o fornecido';
 
 /** Google Forms lookups. */
 const GForms = (() => {
-  const formsLogger = createModuleLogger('forms');
+  const formsLogger = createModuleLogger_('forms');
 
   /**
    * Opens a form by URL or ID.

@@ -16,7 +16,7 @@ interface OtpMailer {
  * Escapes text for HTML.
  * @param text Plain text.
  */
-function escapeHtml(text: string): string {
+function escapeHtml_(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -35,7 +35,7 @@ function escapeHtml(text: string): string {
  * @param getPortalTitle Portal title shown in the email.
  * @param getLocale Locale of the email.
  */
-function createOtpMailer(
+function createOtpMailer_(
   getPortalTitle: () => string,
   getLocale: () => string,
 ): OtpMailer {
@@ -51,20 +51,20 @@ function createOtpMailer(
       const expiry = t(locale, 'email.otpExpiry', { minutes });
       const footer = t(locale, 'email.otpFooter', { portalTitle });
       const paragraph = (text: string) =>
-        `<p style="margin:0 0 16px">${escapeHtml(text)}</p>`;
+        `<p style="margin:0 0 16px">${escapeHtml_(text)}</p>`;
       MailApp.sendEmail({
         to,
         subject,
         body: [intro, code, expiry, reason, footer].join('\n\n'),
         htmlBody:
           `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">` +
-          `<title>${escapeHtml(subject)}</title></head>` +
+          `<title>${escapeHtml_(subject)}</title></head>` +
           '<body style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,Arial,sans-serif;font-size:16px;line-height:1.5;color:#202124">' +
           paragraph(intro) +
-          `<p style="margin:0 0 16px;font-size:24px;font-weight:bold;letter-spacing:4px">${escapeHtml(code)}</p>` +
+          `<p style="margin:0 0 16px;font-size:24px;font-weight:bold;letter-spacing:4px">${escapeHtml_(code)}</p>` +
           paragraph(expiry) +
           paragraph(reason) +
-          `<p style="margin:24px 0 0;font-size:12px;color:#5f6368">${escapeHtml(footer)}</p>` +
+          `<p style="margin:24px 0 0;font-size:12px;color:#5f6368">${escapeHtml_(footer)}</p>` +
           '</body></html>',
         name: portalTitle,
       });

@@ -26,14 +26,14 @@ interface FormsRepo {
  * Maps a stored entry to a form record.
  * @param entry Table entry.
  */
-function toFormRecord(entry: GasSheetDbEntry): FormRecord {
+function toFormRecord_(entry: GasSheetDbEntry): FormRecord {
   return {
-    url: cellToString(entry.url),
-    title: cellToString(entry.title),
-    maxPoints: cellToNumber(entry.maxPoints),
-    status: (cellToString(entry.status) || 'linked') as FormStatus,
-    syncedAt: cellToDate(entry.syncedAt),
-    error: cellToString(entry.error),
+    url: cellToString_(entry.url),
+    title: cellToString_(entry.title),
+    maxPoints: cellToNumber_(entry.maxPoints),
+    status: (cellToString_(entry.status) || 'linked') as FormStatus,
+    syncedAt: cellToDate_(entry.syncedAt),
+    error: cellToString_(entry.error),
   };
 }
 
@@ -41,12 +41,12 @@ function toFormRecord(entry: GasSheetDbEntry): FormRecord {
  * Creates the forms repository.
  * @param table Backing table.
  */
-function createFormsRepo(table: DbTable): FormsRepo {
+function createFormsRepo_(table: DbTable): FormsRepo {
   const byUrl = (url: string) => (entry: GasSheetDbEntry) => entry.url === url;
 
   const get = (url: string): FormRecord | null => {
     const entry = table.findOneWhere(byUrl(url));
-    return entry ? toFormRecord(entry) : null;
+    return entry ? toFormRecord_(entry) : null;
   };
 
   const upsert = (form: Partial<FormRecord> & { url: string }): FormRecord =>
@@ -57,8 +57,8 @@ function createFormsRepo(table: DbTable): FormsRepo {
           patch[key] = value;
       }
       const updated = table.updateOneWhere(byUrl(form.url), patch);
-      if (updated) return toFormRecord(updated);
-      return toFormRecord(
+      if (updated) return toFormRecord_(updated);
+      return toFormRecord_(
         table.insert({
           url: form.url,
           title: '',
@@ -75,14 +75,14 @@ function createFormsRepo(table: DbTable): FormsRepo {
     list: () =>
       table
         .find()
-        .map(toFormRecord)
+        .map(toFormRecord_)
         .sort((a, b) => a.title.localeCompare(b.title)),
     get,
     upsert,
     updateStatus(url, status, error = '') {
       const updated = table.updateOneWhere(byUrl(url), { status, error });
       if (!updated) throw new GasNotFoundError(`Form not found: ${url}`);
-      return toFormRecord(updated);
+      return toFormRecord_(updated);
     },
   };
 }

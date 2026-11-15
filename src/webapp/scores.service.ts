@@ -36,7 +36,7 @@ interface ScoresService {
  * Masks a respondent name, keeping the first name and the initial of the last.
  * @param name Full name.
  */
-function maskRespondentName(name: string): string {
+function maskRespondentName_(name: string): string {
   const parts = name.trim().split(' ');
   const last = parts[parts.length - 1] ?? '';
   if (parts.length > 2) return `${parts[0]} ... ${last.slice(0, 1)}.`;
@@ -49,7 +49,7 @@ function maskRespondentName(name: string): string {
  * skipped.
  * @param sources Regular expression sources.
  */
-function compileTitleStripPatterns(sources: readonly string[]): RegExp[] {
+function compileTitleStripPatterns_(sources: readonly string[]): RegExp[] {
   const compiled: RegExp[] = [];
   sources.forEach((source) => {
     try {
@@ -66,7 +66,7 @@ function compileTitleStripPatterns(sources: readonly string[]): RegExp[] {
  * @param title Stored form title.
  * @param strip Patterns whose matches are removed from each title segment.
  */
-function normalizeFormTitle(title: string, strip: readonly RegExp[]): string {
+function normalizeFormTitle_(title: string, strip: readonly RegExp[]): string {
   return StringUtils.toProperCase(
     title
       .split(/\s*[-–—]\s*/)
@@ -84,7 +84,7 @@ function normalizeFormTitle(title: string, strip: readonly RegExp[]): string {
  * Creates the scores service.
  * @param getDeps Resolves the repositories and settings; called once per lookup.
  */
-function createScoresService(getDeps: () => ScoresServiceDeps): ScoresService {
+function createScoresService_(getDeps: () => ScoresServiceDeps): ScoresService {
   return {
     getByUser(userId) {
       const {
@@ -120,12 +120,12 @@ function createScoresService(getDeps: () => ScoresServiceDeps): ScoresService {
         });
 
       const excluded = new Set(getExcludedUrls());
-      const strip = compileTitleStripPatterns(getTitleStripPatterns());
+      const strip = compileTitleStripPatterns_(getTitleStripPatterns());
       const entries: UserScoreEntry[] = forms
         .list()
         .filter((f) => f.status !== 'excluded' && !excluded.has(f.url))
         .map((f) => ({
-          formTitle: normalizeFormTitle(f.title, strip),
+          formTitle: normalizeFormTitle_(f.title, strip),
           formPoints: f.maxPoints,
           score: byForm.get(f.url) ?? null,
         }));
@@ -138,7 +138,7 @@ function createScoresService(getDeps: () => ScoresServiceDeps): ScoresService {
 
       return {
         email: respondent.email,
-        name: maskRespondentName(respondent.name),
+        name: maskRespondentName_(respondent.name),
         alternatives: [...emails].map((email) => StringUtils.maskEmail(email)),
         scores: entries,
       };

@@ -6,20 +6,20 @@ let app: GasWebApp | undefined;
  * not be defined yet. Tables are resolved per request, so creating it touches
  * no sheet.
  */
-function getApp(): GasWebApp {
+function getApp_(): GasWebApp {
   if (!app) {
-    app = createWebApp(
-      createScoresService(() => ({
-        forms: createFormsRepo(getFormsTable()),
-        respondents: createRespondentsRepo(getRespondentsTable()),
-        scores: createScoresRepo(getScoresTable()),
+    app = createWebApp_(
+      createScoresService_(() => ({
+        forms: createFormsRepo_(getFormsTable_()),
+        respondents: createRespondentsRepo_(getRespondentsTable_()),
+        scores: createScoresRepo_(getScoresTable_()),
         getExcludedUrls: getExcludedFormUrls_,
         getTitleStripPatterns: getFormTitleStripPatterns_,
-        getLocale,
+        getLocale: getLocale_,
       })),
-      createAuthServices(
-        () => createRespondentsRepo(getRespondentsTable()),
-        createModuleLogger('auth'),
+      createAuthServices_(
+        () => createRespondentsRepo_(getRespondentsTable_()),
+        createModuleLogger_('auth'),
       ),
     );
   }

@@ -2,15 +2,15 @@
  * Creates the error thrown when the user cancels a prompt or confirmation.
  * It is an expected failure, so it is logged at `warn`, not `error`.
  */
-function createCancelledError(): GasError {
-  return new GasError(tr('error.cancelled'), { statusCode: 409 });
+function createCancelledError_(): GasError {
+  return new GasError(tr_('error.cancelled'), { statusCode: 409 });
 }
 
 /**
  * Extracts a user-facing message from any thrown value.
  * @param err Thrown value.
  */
-function getErrorMessage(err: unknown): string {
+function getErrorMessage_(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
@@ -19,10 +19,10 @@ function getErrorMessage(err: unknown): string {
  * through gas-lock and gas-sheetdb, which do not wrap it in a typed error.
  * @param err Thrown value.
  */
-function isLockTimeoutError(err: unknown): boolean {
+function isLockTimeoutError_(err: unknown): boolean {
   return (
-    /lock/i.test(getErrorMessage(err)) &&
-    /timeout|timed out|obtain/i.test(getErrorMessage(err))
+    /lock/i.test(getErrorMessage_(err)) &&
+    /timeout|timed out|obtain/i.test(getErrorMessage_(err))
   );
 }
 
@@ -34,19 +34,19 @@ function isLockTimeoutError(err: unknown): boolean {
  * @param logger Logger of the calling module.
  * @param action Action to run.
  */
-function runMenuAction(logger: GasLogger, action: () => void): void {
+function runMenuAction_(logger: GasLogger, action: () => void): void {
   try {
     action();
   } catch (err) {
-    if (isLockTimeoutError(err)) {
+    if (isLockTimeoutError_(err)) {
       logger.warn('Menu action skipped: the script lock is busy', {
-        error: getErrorMessage(err),
+        error: getErrorMessage_(err),
       });
-      Toast.warning(tr('error.syncRunning'));
+      Toast.warning(tr_('error.syncRunning'));
       return;
     }
     GasError.handle(err, { logger, rethrow: false, method: 'menu' });
-    Toast.error(getErrorMessage(err));
+    Toast.error(getErrorMessage_(err));
     throw err;
   }
 }

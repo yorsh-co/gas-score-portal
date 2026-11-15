@@ -111,7 +111,7 @@ const CONFIG_SCHEMA = {
     description:
       'Regular expressions (case-insensitive), one per line. Matches are removed from the Form titles shown in the web app.',
     group: 'forms',
-    validate: (value) => findInvalidPattern(value),
+    validate: (value) => findInvalidPattern_(value),
   },
 } satisfies GasConfigSchema;
 
@@ -120,7 +120,7 @@ const CONFIG_SCHEMA = {
  * is not a valid regular expression, or null when all are valid.
  * @param value Setting value, one pattern per line.
  */
-function findInvalidPattern(value: string): string | null {
+function findInvalidPattern_(value: string): string | null {
   for (const line of value.split(CONFIG_LIST_SEPARATOR)) {
     const pattern = line.trim();
     if (pattern === '') continue;
@@ -151,7 +151,7 @@ function resolveConfigEditors_(): string[] {
     if (owner) emails.push(owner.getEmail());
     return emails.filter((email) => email !== '');
   } catch (err) {
-    createModuleLogger('config').warn('Could not resolve the editors', {
+    createModuleLogger_('config').warn('Could not resolve the editors', {
       error: String(err),
     });
     return [];
@@ -161,7 +161,7 @@ function resolveConfigEditors_(): string[] {
 /**
  * Returns the settings. Created once per execution.
  */
-function getConfig(): AppConfig {
+function getConfig_(): AppConfig {
   if (!memoizedConfig) {
     memoizedConfig = new GasConfig({
       schema: CONFIG_SCHEMA,
@@ -175,7 +175,7 @@ function getConfig(): AppConfig {
       // google.script.run reaches GasConfigRpc from the web app too, where
       // only the editors may read the settings.
       ...(!isCallerEffectiveUser_() && { restrictReads: true }),
-      logger: createModuleLogger('config'),
+      logger: createModuleLogger_('config'),
     });
   }
   return memoizedConfig;
@@ -185,9 +185,9 @@ function getConfig(): AppConfig {
  * Returns the locale of the menu, messages and web app. Falls back to the
  * default when the settings cannot be read.
  */
-function getLocale(): Locale {
+function getLocale_(): Locale {
   try {
-    return resolveLocale(getConfig().get('locale'));
+    return resolveLocale(getConfig_().get('locale'));
   } catch {
     return DEFAULT_LOCALE;
   }
@@ -198,8 +198,8 @@ function getLocale(): Locale {
  * @param key Message key.
  * @param params Values for the `{name}` placeholders.
  */
-function tr(key: MessageKey, params?: MessageParams): string {
-  return t(getLocale(), key, params);
+function tr_(key: MessageKey, params?: MessageParams): string {
+  return t(getLocale_(), key, params);
 }
 
 /**
@@ -207,7 +207,7 @@ function tr(key: MessageKey, params?: MessageParams): string {
  * underscore keeps it out of reach of google.script.run.
  */
 function getExcludedFormUrls_(): string[] {
-  const raw = getConfig().get('excludedFormUrls') ?? '';
+  const raw = getConfig_().get('excludedFormUrls') ?? '';
   return raw
     .split(CONFIG_LIST_SEPARATOR)
     .map((url) => url.trim())
@@ -219,7 +219,7 @@ function getExcludedFormUrls_(): string[] {
  * trailing underscore keeps it out of reach of google.script.run.
  */
 function getFormTitleStripPatterns_(): string[] {
-  const raw = getConfig().get('formTitleStripPatterns') ?? '';
+  const raw = getConfig_().get('formTitleStripPatterns') ?? '';
   return raw
     .split(CONFIG_LIST_SEPARATOR)
     .map((pattern) => pattern.trim())
@@ -231,8 +231,8 @@ function getFormTitleStripPatterns_(): string[] {
  * settings.
  * @param changes Values by setting key.
  */
-function saveConfigValues(changes: Record<string, string>): void {
-  const config = getConfig();
+function saveConfigValues_(changes: Record<string, string>): void {
+  const config = getConfig_();
   const outcome = config._saveChanges({
     changes,
     version: config._readSnapshot().version,
@@ -242,7 +242,7 @@ function saveConfigValues(changes: Record<string, string>): void {
   if (outcome.reason === 'invalid') {
     throw new GasValidationError(Object.values(outcome.errors).join(' '));
   }
-  throw new GasConflictError(tr('error.settingsConflict'));
+  throw new GasConflictError(tr_('error.settingsConflict'));
 }
 
 /**
@@ -250,8 +250,8 @@ function saveConfigValues(changes: Record<string, string>): void {
  * Requires the active user to be an editor of the settings.
  * @param urls Edit URLs, without duplicates.
  */
-function saveExcludedFormUrls(urls: readonly string[]): void {
-  saveConfigValues({ excludedFormUrls: urls.join(CONFIG_LIST_SEPARATOR) });
+function saveExcludedFormUrls_(urls: readonly string[]): void {
+  saveConfigValues_({ excludedFormUrls: urls.join(CONFIG_LIST_SEPARATOR) });
 }
 
 /**
@@ -259,10 +259,10 @@ function saveExcludedFormUrls(urls: readonly string[]): void {
  * Requires the active user to be an editor of the settings.
  * @param url Folder URL.
  */
-function saveDriveFolderUrl(url: string): void {
-  saveConfigValues({ driveFolderUrl: url });
+function saveDriveFolderUrl_(url: string): void {
+  saveConfigValues_({ driveFolderUrl: url });
 }
 
 // GasConfigRpc, called by the settings dialog, starts from a blank global
 // scope and routes to the latest constructed instance, so one must exist.
-getConfig();
+getConfig_();

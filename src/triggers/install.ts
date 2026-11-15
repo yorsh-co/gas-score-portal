@@ -6,7 +6,7 @@ const SYNC_INTERVAL_MINUTES = 30;
  * @throws {GasForbiddenError} When the caller does not run the script with
  *   their own authority.
  */
-function installTriggers(): void {
+function installTriggers_(): void {
   assertCallerEffectiveUser_();
   TriggerUtils.installTimedMinutes('timedSyncScores', SYNC_INTERVAL_MINUTES);
 }

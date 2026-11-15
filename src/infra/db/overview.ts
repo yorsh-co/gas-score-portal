@@ -11,7 +11,7 @@ type OverviewSource = Pick<_GasSheetDbTable, 'sheetName' | 'rowNumbers'> & {
  * Converts a 1-based column index to its A1 letters.
  * @param index Column index, starting at 1.
  */
-function columnLetter(index: number): string {
+function columnLetter_(index: number): string {
   let letters = '';
   for (let n = index; n > 0; n = Math.floor((n - 1) / 26))
     letters = String.fromCharCode(65 + ((n - 1) % 26)) + letters;
@@ -23,9 +23,9 @@ function columnLetter(index: number): string {
  * @param table Source table.
  * @param key Column key; created when missing.
  */
-function tableColumnRange(table: OverviewSource, key: string): string {
+function tableColumnRange_(table: OverviewSource, key: string): string {
   table.schema.ensureColumns([key]);
-  const letter = columnLetter(table.schema.columnKeys.indexOf(key) + 1);
+  const letter = columnLetter_(table.schema.columnKeys.indexOf(key) + 1);
   const first = table.rowNumbers.firstData;
   return `'${table.sheetName}'!${letter}${first}:${letter}`;
 }
@@ -50,7 +50,7 @@ const FORMULA_SEPARATORS_COMMA: FormulaSeparators = { arg: ';', column: '\\' };
  * in locales with a decimal comma. Writes to the top-left cell of the sheet.
  * @param sheet Sheet to probe.
  */
-function detectFormulaSeparators(
+function detectFormulaSeparators_(
   sheet: GoogleAppsScript.Spreadsheet.Sheet,
 ): FormulaSeparators {
   const cell = sheet.getRange(1, 1);
@@ -70,7 +70,7 @@ function detectFormulaSeparators(
  * @param scores `Scores` table.
  * @param separators Separators of the spreadsheet locale.
  */
-function buildOverviewFormula(
+function buildOverviewFormula_(
   forms: OverviewSource,
   respondents: OverviewSource,
   scores: OverviewSource,
@@ -78,16 +78,16 @@ function buildOverviewFormula(
 ): string {
   const a = `${separators.arg} `;
   const c = `${separators.column} `;
-  const scoreEmail = tableColumnRange(scores, 'email');
-  const scoreForm = tableColumnRange(scores, 'formUrl');
-  const scoreValue = tableColumnRange(scores, 'score');
-  const formUrl = tableColumnRange(forms, 'url');
-  const formTitle = tableColumnRange(forms, 'title');
-  const respondentEmail = tableColumnRange(respondents, 'email');
-  const respondentName = tableColumnRange(respondents, 'name');
+  const scoreEmail = tableColumnRange_(scores, 'email');
+  const scoreForm = tableColumnRange_(scores, 'formUrl');
+  const scoreValue = tableColumnRange_(scores, 'score');
+  const formUrl = tableColumnRange_(forms, 'url');
+  const formTitle = tableColumnRange_(forms, 'title');
+  const respondentEmail = tableColumnRange_(respondents, 'email');
+  const respondentName = tableColumnRange_(respondents, 'name');
 
-  const scoreDeleted = tableColumnRange(scores, '_isDeleted');
-  const formDeleted = tableColumnRange(forms, '_isDeleted');
+  const scoreDeleted = tableColumnRange_(scores, '_isDeleted');
+  const formDeleted = tableColumnRange_(forms, '_isDeleted');
 
   const flag = (range: string) => `ARRAYFORMULA(IF(${range}=TRUE${a}1${a}0))`;
   const lookup = (key: string, table: string, fallback: string) =>
@@ -122,21 +122,21 @@ function buildOverviewFormula(
  * @param respondents `Respondents` table.
  * @param scores `Scores` table.
  */
-function refreshOverview(
+function refreshOverview_(
   spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet = SpreadsheetApp.getActiveSpreadsheet(),
-  forms: OverviewSource = getFormsTable(),
-  respondents: OverviewSource = getRespondentsTable(),
-  scores: OverviewSource = getScoresTable(),
+  forms: OverviewSource = getFormsTable_(),
+  respondents: OverviewSource = getRespondentsTable_(),
+  scores: OverviewSource = getScoresTable_(),
 ): GoogleAppsScript.Spreadsheet.Sheet {
   const sheet =
     spreadsheet.getSheetByName(DB_SHEET_NAMES.overview) ??
     spreadsheet.insertSheet(DB_SHEET_NAMES.overview);
 
   sheet.clear();
-  const separators = detectFormulaSeparators(sheet);
+  const separators = detectFormulaSeparators_(sheet);
   sheet
     .getRange(1, 1)
-    .setFormula(buildOverviewFormula(forms, respondents, scores, separators));
+    .setFormula(buildOverviewFormula_(forms, respondents, scores, separators));
   sheet.setFrozenRows(1);
 
   if (!sheet.getProtections(SpreadsheetApp.ProtectionType.SHEET).length) {

@@ -1,4 +1,4 @@
-const installMenuLogger = createModuleLogger('menu.install');
+const installMenuLogger = createModuleLogger_('menu.install');
 
 /** Pause that lets the user read a toast before the next one replaces it. */
 const TOAST_PAUSE_MS = 1000;
@@ -12,7 +12,7 @@ const UNINSTALL_PAUSE_MS = 2000;
  * their own authority.
  */
 function menuInstall(): void {
-  runMenuAction(installMenuLogger, () => {
+  runMenuAction_(installMenuLogger, () => {
     assertCallerEffectiveUser_();
     if (
       ScriptApp.getAuthorizationInfo(
@@ -24,24 +24,24 @@ function menuInstall(): void {
       ScriptApp.requireAllScopes(ScriptApp.AuthMode.FULL);
     }
 
-    Toast.busy(tr('install.installing'));
-    installTriggers();
+    Toast.busy(tr_('install.installing'));
+    installTriggers_();
 
-    Toast.busy(tr('install.triggersInstalled'));
+    Toast.busy(tr_('install.triggersInstalled'));
     Utilities.sleep(TOAST_PAUSE_MS);
 
     const timeZone = Session.getScriptTimeZone();
     SpreadsheetApp.getActiveSpreadsheet().setSpreadsheetTimeZone(timeZone);
     Toast.busy(
-      tr('install.timeZoneBody'),
-      tr('install.timeZoneTitle', { timeZone }),
+      tr_('install.timeZoneBody'),
+      tr_('install.timeZoneTitle', { timeZone }),
     );
     Utilities.sleep(TOAST_PAUSE_MS);
 
-    Toast.busy(tr('install.creatingOverview'));
-    refreshOverview();
+    Toast.busy(tr_('install.creatingOverview'));
+    refreshOverview_();
 
-    Toast.success(tr('install.installed'));
+    Toast.success(tr_('install.installed'));
   });
 }
 
@@ -51,28 +51,31 @@ function menuInstall(): void {
  * their own authority.
  */
 function menuUninstall(): void {
-  runMenuAction(installMenuLogger, () => {
+  runMenuAction_(installMenuLogger, () => {
     assertCallerEffectiveUser_();
     const ui = SpreadsheetApp.getUi();
     const confirmation = ui.alert(
-      tr('uninstall.title'),
-      tr('uninstall.body'),
+      tr_('uninstall.title'),
+      tr_('uninstall.body'),
       ui.ButtonSet.OK_CANCEL,
     );
-    if (confirmation !== ui.Button.OK) throw createCancelledError();
+    if (confirmation !== ui.Button.OK) throw createCancelledError_();
 
-    Toast.warning(tr('uninstall.removingTriggers'), tr('uninstall.toastTitle'));
+    Toast.warning(
+      tr_('uninstall.removingTriggers'),
+      tr_('uninstall.toastTitle'),
+    );
     ScriptApp.getProjectTriggers().forEach((t) => ScriptApp.deleteTrigger(t));
     Utilities.sleep(UNINSTALL_PAUSE_MS);
 
     Toast.warning(
-      tr('uninstall.deletingProperties'),
-      tr('uninstall.toastTitle'),
+      tr_('uninstall.deletingProperties'),
+      tr_('uninstall.toastTitle'),
     );
     PropertiesService.getScriptProperties().deleteAllProperties();
     Utilities.sleep(UNINSTALL_PAUSE_MS);
 
-    Toast.warning('', tr('uninstall.complete'));
+    Toast.warning('', tr_('uninstall.complete'));
   });
 }
 
@@ -82,22 +85,22 @@ function menuUninstall(): void {
  * their own authority.
  */
 function menuSystemReset(): void {
-  runMenuAction(installMenuLogger, () => {
+  runMenuAction_(installMenuLogger, () => {
     assertCallerEffectiveUser_();
     const ui = SpreadsheetApp.getUi();
     const selectedButton = ui.alert(
-      tr('reset.title'),
-      tr('reset.body'),
+      tr_('reset.title'),
+      tr_('reset.body'),
       ui.ButtonSet.OK_CANCEL,
     );
-    if (selectedButton !== ui.Button.OK) throw createCancelledError();
+    if (selectedButton !== ui.Button.OK) throw createCancelledError_();
 
-    Toast.busy(tr('reset.resetting'));
+    Toast.busy(tr_('reset.resetting'));
     GasLock.withLock('script', () => {
       for (const table of [
-        getScoresTable(),
-        getRespondentsTable(),
-        getFormsTable(),
+        getScoresTable_(),
+        getRespondentsTable_(),
+        getFormsTable_(),
       ])
         table.deleteWhere(() => true);
       FormsCursor.deleteTrailing('cursor:', '');

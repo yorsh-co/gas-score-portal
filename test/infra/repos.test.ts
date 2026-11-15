@@ -6,7 +6,7 @@ describe('forms repository', () => {
   it('inserts a missing form with defaults and updates an existing one', () => {
     const { app } = loadApp();
     const table = new FakeTable();
-    const forms = app.createFormsRepo(table);
+    const forms = app.createFormsRepo_(table);
 
     forms.upsert({ url: 'u1', title: 'B' });
     forms.upsert({ url: 'u1', maxPoints: 0 });
@@ -22,7 +22,7 @@ describe('forms repository', () => {
 
   it('lists forms sorted by title', () => {
     const { app } = loadApp();
-    const forms = app.createFormsRepo(new FakeTable());
+    const forms = app.createFormsRepo_(new FakeTable());
     forms.upsert({ url: 'u1', title: 'Beta' });
     forms.upsert({ url: 'u2', title: 'Alpha' });
 
@@ -31,7 +31,7 @@ describe('forms repository', () => {
 
   it('updates the status and rejects unknown forms', () => {
     const { app } = loadApp();
-    const forms = app.createFormsRepo(new FakeTable());
+    const forms = app.createFormsRepo_(new FakeTable());
     forms.upsert({ url: 'u1' });
 
     expect(forms.updateStatus('u1', 'error', 'boom')).toMatchObject({
@@ -45,7 +45,7 @@ describe('forms repository', () => {
 describe('respondents repository', () => {
   it('finds by email ignoring case and spaces', () => {
     const { app } = loadApp();
-    const respondents = app.createRespondentsRepo(
+    const respondents = app.createRespondentsRepo_(
       new FakeTable([{ email: 'ana@x.org', name: 'Ana', alternatives: '' }]),
     );
 
@@ -55,7 +55,7 @@ describe('respondents repository', () => {
 
   it('finds the respondents that list an alternative email', () => {
     const { app } = loadApp();
-    const respondents = app.createRespondentsRepo(
+    const respondents = app.createRespondentsRepo_(
       new FakeTable([
         { email: 'a@x.org', name: 'A', alternatives: '' },
         { email: 'b@x.org', name: 'B', alternatives: 'A@x.org, c@x.org' },
@@ -69,7 +69,7 @@ describe('respondents repository', () => {
 
   it('matches alternatives exactly, not by substring', () => {
     const { app } = loadApp();
-    const respondents = app.createRespondentsRepo(
+    const respondents = app.createRespondentsRepo_(
       new FakeTable([
         { email: 'b@x.org', name: 'B', alternatives: 'ana@x.com' },
         { email: 'c@x.org', name: 'C', alternatives: 'x@y.org;\n Na@X.com' },
@@ -84,7 +84,7 @@ describe('respondents repository', () => {
   it('upserts by normalized email and inserts only missing ones in a batch', () => {
     const { app } = loadApp();
     const table = new FakeTable();
-    const respondents = app.createRespondentsRepo(table);
+    const respondents = app.createRespondentsRepo_(table);
 
     respondents.upsert({ email: ' Ana@X.org ', name: 'Ana' });
     respondents.upsert({ email: 'ana@x.org', alternatives: 'b@x.org' });
@@ -111,7 +111,7 @@ describe('scores repository', () => {
   it('writes only new and changed scores, in one batch each', () => {
     const { app } = loadApp();
     const table = new FakeTable();
-    const scores = app.createScoresRepo(table);
+    const scores = app.createScoresRepo_(table);
 
     scores.upsertMany('f1', [
       { email: 'a@x.org', score: 5 },
@@ -140,7 +140,7 @@ describe('scores repository', () => {
   it('does not write when nothing changed', () => {
     const { app } = loadApp();
     const table = new FakeTable();
-    const scores = app.createScoresRepo(table);
+    const scores = app.createScoresRepo_(table);
     scores.upsertMany('f1', [{ email: 'a@x.org', score: 5 }]);
     const writes = table.calls.insertMany;
 
@@ -152,7 +152,7 @@ describe('scores repository', () => {
 
   it('keeps a score of 0 and scopes scores per form', () => {
     const { app } = loadApp();
-    const scores = app.createScoresRepo(new FakeTable());
+    const scores = app.createScoresRepo_(new FakeTable());
     scores.upsertMany('f1', [{ email: 'a@x.org', score: 0 }]);
     scores.upsertMany('f2', [{ email: 'a@x.org', score: 3 }]);
 

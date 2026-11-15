@@ -43,9 +43,9 @@ function setup(scenario: Scenario = {}) {
   );
 
   const deps: SyncDepsApi = {
-    forms: app.createFormsRepo(formsTable),
-    respondents: app.createRespondentsRepo(respondentsTable),
-    scores: app.createScoresRepo(scoresTable),
+    forms: app.createFormsRepo_(formsTable),
+    respondents: app.createRespondentsRepo_(respondentsTable),
+    scores: app.createScoresRepo_(scoresTable),
     timer: {
       start: () => 0,
       setSafetyMargin: () => undefined,

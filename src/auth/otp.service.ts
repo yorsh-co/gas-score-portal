@@ -55,7 +55,7 @@ interface OtpService {
  * lookup is the real check.
  * @param email Normalized email.
  */
-function isValidEmail(email: string): boolean {
+function isValidEmail_(email: string): boolean {
   return email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
@@ -63,7 +63,7 @@ function isValidEmail(email: string): boolean {
  * Converts the signed bytes returned by `Utilities` into a hex string.
  * @param bytes Signed byte array.
  */
-function bytesToHex(bytes: readonly number[]): string {
+function bytesToHex_(bytes: readonly number[]): string {
   return bytes
     .map((byte) => ((byte + 256) % 256).toString(16).padStart(2, '0'))
     .join('');
@@ -99,7 +99,7 @@ function getOtpHmacKey_(): string {
  * @param value Value to sign.
  */
 function computeOtpHmac_(value: string): string {
-  return bytesToHex(
+  return bytesToHex_(
     Utilities.computeHmacSha256Signature(value, getOtpHmacKey_()),
   );
 }
@@ -109,7 +109,7 @@ function computeOtpHmac_(value: string): string {
  * @param a First string.
  * @param b Second string.
  */
-function constantTimeEquals(a: string, b: string): boolean {
+function constantTimeEquals_(a: string, b: string): boolean {
   let diff = a.length ^ b.length;
   const length = Math.max(a.length, b.length);
   for (let i = 0; i < length; i++) {
@@ -123,7 +123,7 @@ function constantTimeEquals(a: string, b: string): boolean {
  * fixes the version and variant digits, so only the fully random ones are used.
  * @param uuid Random UUID source.
  */
-function generateOtpCode(uuid: () => string): string {
+function generateOtpCode_(uuid: () => string): string {
   for (;;) {
     const hex = uuid().replace(/-/g, '');
     const random = hex.slice(0, 12) + hex.slice(20, 32);
@@ -140,7 +140,7 @@ function generateOtpCode(uuid: () => string): string {
  * Creates the OTP service.
  * @param deps Platform and app dependencies.
  */
-function createOtpService(deps: OtpServiceDeps): OtpService {
+function createOtpService_(deps: OtpServiceDeps): OtpService {
   const cacheKey = (email: string) => `otp:${deps.hmac(`email:${email}`)}`;
 
   /**
@@ -168,7 +168,7 @@ function createOtpService(deps: OtpServiceDeps): OtpService {
   };
 
   const issue = (rawEmail: string) => {
-    const email = normalizeEmail(rawEmail);
+    const email = normalizeEmail_(rawEmail);
     const key = cacheKey(email);
 
     // Checked before the respondent lookup so an exhausted quota looks the
@@ -181,7 +181,7 @@ function createOtpService(deps: OtpServiceDeps): OtpService {
     }
     if (!deps.isRespondent(email)) return;
 
-    const code = generateOtpCode(deps.uuid);
+    const code = generateOtpCode_(deps.uuid);
     const { previousRaw, previous } = GasLock.withLock('user', () => {
       // A new code voids the live one but keeps its failed attempts.
       const raw = deps.cache.get(key);
@@ -206,7 +206,7 @@ function createOtpService(deps: OtpServiceDeps): OtpService {
   };
 
   const check = (rawEmail: string, code: string): boolean => {
-    const email = normalizeEmail(rawEmail);
+    const email = normalizeEmail_(rawEmail);
     const key = cacheKey(email);
     return GasLock.withLock('user', () => {
       const raw = deps.cache.get(key);
@@ -218,7 +218,7 @@ function createOtpService(deps: OtpServiceDeps): OtpService {
         return false;
       }
 
-      if (constantTimeEquals(deps.hmac(code), entry.codeHmac)) {
+      if (constantTimeEquals_(deps.hmac(code), entry.codeHmac)) {
         deps.cache.remove(key);
         return true;
       }

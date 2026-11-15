@@ -5,8 +5,8 @@
  * @param e Trigger event; absent on a manual run.
  */
 function timedSyncScores(e?: GoogleAppsScript.Events.TimeDriven): void {
-  const logger = createModuleLogger('trigger.sync');
-  const timer = createSyncTimer();
+  const logger = createModuleLogger_('trigger.sync');
+  const timer = createSyncTimer_();
   if (
     !TriggerUtils.isProjectTrigger(e?.triggerUid, 'timedSyncScores') &&
     !isCallerEffectiveUser_()
@@ -23,7 +23,7 @@ function timedSyncScores(e?: GoogleAppsScript.Events.TimeDriven): void {
 
   new RespondentScoreSynchronizer(
     FormsCursor.initialize(),
-    createSyncDeps(timer),
+    createSyncDeps_(timer),
   ).run();
 }
 
@@ -33,8 +33,8 @@ function timedSyncScores(e?: GoogleAppsScript.Events.TimeDriven): void {
  * @param e Trigger event.
  */
 function continueSyncScores(e: GoogleAppsScript.Events.TimeDriven): void {
-  const logger = createModuleLogger('trigger.sync');
-  const timer = createSyncTimer();
+  const logger = createModuleLogger_('trigger.sync');
+  const timer = createSyncTimer_();
   if (!TriggerUtils.isProjectTrigger(e?.triggerUid, CONTINUATION_HANDLER)) {
     logger.warn('Ignored a call that is not from a continuation trigger');
     return;
@@ -49,5 +49,5 @@ function continueSyncScores(e: GoogleAppsScript.Events.TimeDriven): void {
     return;
   }
 
-  new RespondentScoreSynchronizer(cursor, createSyncDeps(timer)).run();
+  new RespondentScoreSynchronizer(cursor, createSyncDeps_(timer)).run();
 }

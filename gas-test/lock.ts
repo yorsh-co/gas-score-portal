@@ -23,19 +23,19 @@ test('the lock is released when the guarded callback throws', () => {
       throw new Error('boom');
     });
   } catch (err) {
-    message = getErrorMessage(err);
+    message = getErrorMessage_(err);
   }
 
   assert(message === 'boom', 'the callback error must propagate');
   assert(!GasLock.isHeld('script'), 'the lock must be released');
 });
 
-test('isLockTimeoutError matches the documented LockService message', () => {
+test('isLockTimeoutError_ matches the documented LockService message', () => {
   assert(
-    isLockTimeoutError(new Error(DOCUMENTED_LOCK_TIMEOUT_MESSAGE)),
+    isLockTimeoutError_(new Error(DOCUMENTED_LOCK_TIMEOUT_MESSAGE)),
     'the documented message must be recognised',
   );
-  assert(!isLockTimeoutError(new Error('Range not found')), 'unrelated');
+  assert(!isLockTimeoutError_(new Error('Range not found')), 'unrelated');
 });
 
 info('lock timeout', () => {

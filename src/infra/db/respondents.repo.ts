@@ -27,19 +27,19 @@ interface RespondentsRepo {
  * Trims and lowercases an email.
  * @param email Raw email.
  */
-function normalizeEmail(email: unknown): string {
-  return cellToString(email).trim().toLowerCase();
+function normalizeEmail_(email: unknown): string {
+  return cellToString_(email).trim().toLowerCase();
 }
 
 /**
  * Maps a stored entry to a respondent record.
  * @param entry Table entry.
  */
-function toRespondentRecord(entry: GasSheetDbEntry): RespondentRecord {
+function toRespondentRecord_(entry: GasSheetDbEntry): RespondentRecord {
   return {
-    email: cellToString(entry.email),
-    name: cellToString(entry.name),
-    alternatives: cellToString(entry.alternatives),
+    email: cellToString_(entry.email),
+    name: cellToString_(entry.name),
+    alternatives: cellToString_(entry.alternatives),
   };
 }
 
@@ -48,10 +48,10 @@ function toRespondentRecord(entry: GasSheetDbEntry): RespondentRecord {
  * separated by commas, semicolons or whitespace, including line breaks.
  * @param text Cell content.
  */
-function parseAlternatives(text: string): string[] {
+function parseAlternatives_(text: string): string[] {
   return text
     .split(/[\s,;]+/)
-    .map(normalizeEmail)
+    .map(normalizeEmail_)
     .filter((email) => email !== '');
 }
 
@@ -59,34 +59,36 @@ function parseAlternatives(text: string): string[] {
  * Creates the respondents repository.
  * @param table Backing table.
  */
-function createRespondentsRepo(table: DbTable): RespondentsRepo {
+function createRespondentsRepo_(table: DbTable): RespondentsRepo {
   const byEmail = (email: string) => (entry: GasSheetDbEntry) =>
-    normalizeEmail(entry.email) === email;
+    normalizeEmail_(entry.email) === email;
 
   return {
     findByEmail(email) {
-      const entry = table.findOneWhere(byEmail(normalizeEmail(email)));
-      return entry ? toRespondentRecord(entry) : null;
+      const entry = table.findOneWhere(byEmail(normalizeEmail_(email)));
+      return entry ? toRespondentRecord_(entry) : null;
     },
     findByAlternative(email) {
-      const needle = normalizeEmail(email);
+      const needle = normalizeEmail_(email);
       if (!needle) return [];
       return table
         .findWhere(
           (entry) =>
-            normalizeEmail(entry.email) !== needle &&
-            parseAlternatives(cellToString(entry.alternatives)).includes(
+            normalizeEmail_(entry.email) !== needle &&
+            parseAlternatives_(cellToString_(entry.alternatives)).includes(
               needle,
             ),
         )
-        .map(toRespondentRecord);
+        .map(toRespondentRecord_);
     },
     insertMissing(respondents) {
       return GasLock.withLock('script', () => {
-        const known = new Set(table.find().map((e) => normalizeEmail(e.email)));
+        const known = new Set(
+          table.find().map((e) => normalizeEmail_(e.email)),
+        );
         const added: GasSheetDbEntry[] = [];
         for (const respondent of respondents) {
-          const email = normalizeEmail(respondent.email);
+          const email = normalizeEmail_(respondent.email);
           if (!email || known.has(email)) continue;
           known.add(email);
           added.push({
@@ -100,15 +102,15 @@ function createRespondentsRepo(table: DbTable): RespondentsRepo {
       });
     },
     upsert(respondent) {
-      const email = normalizeEmail(respondent.email);
+      const email = normalizeEmail_(respondent.email);
       return GasLock.withLock('script', () => {
         const patch: GasSheetDbEntry = {};
         if (respondent.name !== undefined) patch.name = respondent.name;
         if (respondent.alternatives !== undefined)
           patch.alternatives = respondent.alternatives;
         const updated = table.updateOneWhere(byEmail(email), patch);
-        if (updated) return toRespondentRecord(updated);
-        return toRespondentRecord(
+        if (updated) return toRespondentRecord_(updated);
+        return toRespondentRecord_(
           table.insert({ email, name: '', alternatives: '', ...patch }),
         );
       });

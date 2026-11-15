@@ -63,7 +63,7 @@ interface DemoDataOptions {
  * @param seed Initial state.
  * @returns A function returning numbers in `[0, 1)`.
  */
-function createDemoRandom(seed: number): () => number {
+function createDemoRandom_(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
     state = (state + 0x6d2b79f5) >>> 0;
@@ -79,7 +79,7 @@ function createDemoRandom(seed: number): () => number {
  * @param list Non-empty list.
  * @param index Position, possibly beyond the end.
  */
-function pickAt<T>(list: readonly T[], index: number): T {
+function pickAt_<T>(list: readonly T[], index: number): T {
   return list[index % list.length] as T;
 }
 
@@ -87,22 +87,22 @@ function pickAt<T>(list: readonly T[], index: number): T {
  * Builds deterministic fake data. Pure: the same options give the same result.
  * @param options Sizes and seed.
  */
-function buildDemoData(options: DemoDataOptions = {}): DemoData {
+function buildDemoData_(options: DemoDataOptions = {}): DemoData {
   const respondentCount = options.respondents ?? 40;
   const formCount = options.forms ?? 8;
-  const random = createDemoRandom(options.seed ?? 1);
+  const random = createDemoRandom_(options.seed ?? 1);
   const pad = (n: number) => String(n).padStart(2, '0');
 
   const forms: FormRecord[] = [];
   for (let i = 0; i < formCount; i++) {
-    const base = pickAt(DEMO_FORM_TITLES, i);
+    const base = pickAt_(DEMO_FORM_TITLES, i);
     forms.push({
       url: `${DEMO_FORM_URL_PREFIX}form-${pad(i + 1)}`,
       title:
         i < DEMO_FORM_TITLES.length
           ? base
           : `${base} (${Math.floor(i / DEMO_FORM_TITLES.length) + 1})`,
-      maxPoints: pickAt(DEMO_MAX_POINTS, i),
+      maxPoints: pickAt_(DEMO_MAX_POINTS, i),
       status: 'linked',
       syncedAt: null,
       error: '',
@@ -112,11 +112,11 @@ function buildDemoData(options: DemoDataOptions = {}): DemoData {
   const respondents: RespondentRecord[] = [];
   const scores: DemoData['scores'] = [];
   for (let i = 0; i < respondentCount; i++) {
-    const first = pickAt(
+    const first = pickAt_(
       DEMO_FIRST_NAMES,
       Math.floor(random() * DEMO_FIRST_NAMES.length),
     );
-    const last = pickAt(
+    const last = pickAt_(
       DEMO_LAST_NAMES,
       Math.floor(random() * DEMO_LAST_NAMES.length),
     );
@@ -131,7 +131,7 @@ function buildDemoData(options: DemoDataOptions = {}): DemoData {
 
     const answered = forms.filter(() => random() < 0.7);
     if (answered.length === 0 && forms.length > 0) {
-      answered.push(pickAt(forms, Math.floor(random() * forms.length)));
+      answered.push(pickAt_(forms, Math.floor(random() * forms.length)));
     }
     for (const form of answered) {
       const max = form.maxPoints ?? 0;
@@ -150,7 +150,7 @@ function buildDemoData(options: DemoDataOptions = {}): DemoData {
  * Whether the email belongs to the demo data.
  * @param email Address to check.
  */
-function isDemoEmail(email: string): boolean {
+function isDemoEmail_(email: string): boolean {
   return String(email).trim().toLowerCase().endsWith(`@${DEMO_EMAIL_DOMAIN}`);
 }
 
@@ -158,11 +158,11 @@ function isDemoEmail(email: string): boolean {
  * Whether the form URL belongs to the demo data.
  * @param url Form URL to check.
  */
-function isDemoFormUrl(url: string): boolean {
+function isDemoFormUrl_(url: string): boolean {
   return String(url).startsWith(DEMO_FORM_URL_PREFIX);
 }
 
-/** Repositories `writeDemoData` stores into. */
+/** Repositories `writeDemoData_` stores into. */
 interface DemoRepos {
   forms: FormsRepo;
   respondents: RespondentsRepo;
@@ -176,7 +176,7 @@ interface DemoCounts {
   scores: number;
 }
 
-/** Tables `removeDemoData` deletes from. */
+/** Tables `removeDemoData_` deletes from. */
 interface DemoTables {
   forms: Pick<_GasSheetDbTable, 'deleteWhere'>;
   respondents: Pick<_GasSheetDbTable, 'deleteWhere'>;
@@ -190,7 +190,7 @@ interface DemoTables {
  * @param data Generated demo data.
  * @param repos Target repositories.
  */
-function writeDemoData(data: DemoData, repos: DemoRepos): DemoCounts {
+function writeDemoData_(data: DemoData, repos: DemoRepos): DemoCounts {
   data.forms.forEach((form) => repos.forms.upsert(form));
   return {
     forms: data.forms.length,
@@ -205,18 +205,18 @@ function writeDemoData(data: DemoData, repos: DemoRepos): DemoCounts {
  * @param tables `Forms`, `Respondents` and `Scores` tables.
  * @returns Number of rows deleted per table.
  */
-function removeDemoData(tables: DemoTables): DemoCounts {
+function removeDemoData_(tables: DemoTables): DemoCounts {
   return {
     forms: tables.forms.deleteWhere((row) =>
-      isDemoFormUrl(cellToString(row.url)),
+      isDemoFormUrl_(cellToString_(row.url)),
     ).length,
     respondents: tables.respondents.deleteWhere((row) =>
-      isDemoEmail(cellToString(row.email)),
+      isDemoEmail_(cellToString_(row.email)),
     ).length,
     scores: tables.scores.deleteWhere(
       (row) =>
-        isDemoEmail(cellToString(row.email)) ||
-        isDemoFormUrl(cellToString(row.formUrl)),
+        isDemoEmail_(cellToString_(row.email)) ||
+        isDemoFormUrl_(cellToString_(row.formUrl)),
     ).length,
   };
 }
@@ -229,11 +229,11 @@ interface DemoDbTables {
 }
 
 /** Returns the spreadsheet's `Forms`, `Respondents` and `Scores` tables. */
-function getDemoDbTables(): DemoDbTables {
+function getDemoDbTables_(): DemoDbTables {
   return {
-    forms: getFormsTable(),
-    respondents: getRespondentsTable(),
-    scores: getScoresTable(),
+    forms: getFormsTable_(),
+    respondents: getRespondentsTable_(),
+    scores: getScoresTable_(),
   };
 }
 
@@ -247,20 +247,20 @@ function getDemoDbTables(): DemoDbTables {
  */
 function seedDemoData(
   tables?: DemoDbTables,
-  refresh: () => unknown = refreshOverview,
+  refresh: () => unknown = refreshOverview_,
 ): DemoCounts {
   assertCallerEffectiveUser_('Run this function from the Apps Script editor.');
-  const target = tables === undefined ? getDemoDbTables() : tables;
+  const target = tables === undefined ? getDemoDbTables_() : tables;
   const counts = GasLock.withLock('script', () => {
-    const written = writeDemoData(buildDemoData(), {
-      forms: createFormsRepo(target.forms),
-      respondents: createRespondentsRepo(target.respondents),
-      scores: createScoresRepo(target.scores),
+    const written = writeDemoData_(buildDemoData_(), {
+      forms: createFormsRepo_(target.forms),
+      respondents: createRespondentsRepo_(target.respondents),
+      scores: createScoresRepo_(target.scores),
     });
     refresh();
     return written;
   });
-  createModuleLogger('seed').info('Demo data written', { ...counts });
+  createModuleLogger_('seed').info('Demo data written', { ...counts });
   return counts;
 }
 
@@ -274,15 +274,15 @@ function seedDemoData(
  */
 function clearDemoData(
   tables?: DemoDbTables,
-  refresh: () => unknown = refreshOverview,
+  refresh: () => unknown = refreshOverview_,
 ): DemoCounts {
   assertCallerEffectiveUser_('Run this function from the Apps Script editor.');
-  const target = tables === undefined ? getDemoDbTables() : tables;
+  const target = tables === undefined ? getDemoDbTables_() : tables;
   const counts = GasLock.withLock('script', () => {
-    const removed = removeDemoData(target);
+    const removed = removeDemoData_(target);
     refresh();
     return removed;
   });
-  createModuleLogger('seed').info('Demo data removed', { ...counts });
+  createModuleLogger_('seed').info('Demo data removed', { ...counts });
   return counts;
 }

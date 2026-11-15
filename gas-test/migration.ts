@@ -28,7 +28,7 @@ test('migrates a generated legacy matrix into the real tables', (ctx) => {
   const scores = readGeneratedLegacyScores(ctx, 'legacy_migrate');
   const forms = [['u1', 'Alpha', 'Vinculado ao sistema', '']];
 
-  const counts = migrateLegacyData({ forms, scores }, repos);
+  const counts = migrateLegacyData_({ forms, scores }, repos);
 
   assert(counts.forms === 3, `forms: ${counts.forms}`);
   assert(counts.respondents === 2, `respondents: ${counts.respondents}`);
@@ -42,8 +42,8 @@ test('migration is idempotent on the real tables', (ctx) => {
   const repos = createTestRepos(createTestTables(ctx));
   const scores = readGeneratedLegacyScores(ctx, 'legacy_rerun');
 
-  migrateLegacyData({ forms: [], scores }, repos);
-  const again = migrateLegacyData({ forms: [], scores }, repos);
+  migrateLegacyData_({ forms: [], scores }, repos);
+  const again = migrateLegacyData_({ forms: [], scores }, repos);
 
   assert(
     again.forms === 0 && again.respondents === 0 && again.scores === 0,

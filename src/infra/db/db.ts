@@ -22,12 +22,12 @@ let sheetDbInstance: GasSheetDb | null = null;
 const dbTables: Partial<Record<string, _GasSheetDbTable>> = {};
 
 /** Returns the database over the active spreadsheet, guarded by the script lock. */
-function getSheetDb(): GasSheetDb {
+function getSheetDb_(): GasSheetDb {
   if (!sheetDbInstance) {
     sheetDbInstance = new GasSheetDb({
       useActiveSpreadsheet: true,
       lockScope: 'script',
-      logger: createModuleLogger('sheetdb'),
+      logger: createModuleLogger_('sheetdb'),
     });
   }
   return sheetDbInstance;
@@ -37,35 +37,35 @@ function getSheetDb(): GasSheetDb {
  * Returns the table backed by a sheet, creating the sheet on first use.
  * @param sheetName Sheet name; one of `DB_SHEET_NAMES`.
  */
-function getDbTable(sheetName: string): _GasSheetDbTable {
+function getDbTable_(sheetName: string): _GasSheetDbTable {
   let table = dbTables[sheetName];
   if (!table) {
-    table = getSheetDb().table({ sheetName });
+    table = getSheetDb_().table({ sheetName });
     dbTables[sheetName] = table;
   }
   return table;
 }
 
 /** Returns the `Forms` table. */
-function getFormsTable(): _GasSheetDbTable {
-  return getDbTable(DB_SHEET_NAMES.forms);
+function getFormsTable_(): _GasSheetDbTable {
+  return getDbTable_(DB_SHEET_NAMES.forms);
 }
 
 /** Returns the `Respondents` table. */
-function getRespondentsTable(): _GasSheetDbTable {
-  return getDbTable(DB_SHEET_NAMES.respondents);
+function getRespondentsTable_(): _GasSheetDbTable {
+  return getDbTable_(DB_SHEET_NAMES.respondents);
 }
 
 /** Returns the `Scores` table. */
-function getScoresTable(): _GasSheetDbTable {
-  return getDbTable(DB_SHEET_NAMES.scores);
+function getScoresTable_(): _GasSheetDbTable {
+  return getDbTable_(DB_SHEET_NAMES.scores);
 }
 
 /**
  * Converts a stored cell to a string. Empty cells become `''`.
  * @param value Cell value.
  */
-function cellToString(value: unknown): string {
+function cellToString_(value: unknown): string {
   return value === undefined || value === null ? '' : String(value);
 }
 
@@ -74,7 +74,7 @@ function cellToString(value: unknown): string {
  * `0` is a real value and is preserved.
  * @param value Cell value.
  */
-function cellToNumber(value: unknown): number | null {
+function cellToNumber_(value: unknown): number | null {
   if (value === '' || value === undefined || value === null) return null;
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : null;
@@ -84,7 +84,7 @@ function cellToNumber(value: unknown): number | null {
  * Converts a stored cell to a valid date, or `null`.
  * @param value Cell value.
  */
-function cellToDate(value: unknown): Date | null {
+function cellToDate_(value: unknown): Date | null {
   return Object.prototype.toString.call(value) === '[object Date]' &&
     !isNaN((value as Date).getTime())
     ? (value as Date)

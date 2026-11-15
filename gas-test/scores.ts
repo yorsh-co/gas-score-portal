@@ -17,7 +17,7 @@ test('scores service serves a respondent end to end', (ctx) => {
   repos.scores.upsertMany('u1', [{ email: 'ana@x.org', score: 0 }]);
   repos.scores.upsertMany('u2', [{ email: 'ana@old.org', score: 15 }]);
 
-  const service = createScoresService(() => ({
+  const service = createScoresService_(() => ({
     ...repos,
     getExcludedUrls: () => ['u4'],
     getTitleStripPatterns: () => [],

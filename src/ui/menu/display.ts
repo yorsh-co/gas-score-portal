@@ -5,36 +5,36 @@
  * effect.
  */
 function onOpen(): void {
-  displayMenu();
+  displayMenu_();
 }
 
 /**
  * Builds the custom menu.
  */
-function displayMenu(): void {
+function displayMenu_(): void {
   const ui = SpreadsheetApp.getUi();
 
   const settingsMenu = ui
-    .createMenu(tr('menu.settings'))
-    .addItem(tr('menu.openSettings'), 'menuSettings')
+    .createMenu(tr_('menu.settings'))
+    .addItem(tr_('menu.openSettings'), 'menuSettings')
     .addSeparator()
-    .addItem(tr('menu.install'), 'menuInstall')
-    .addItem(tr('menu.uninstall'), 'menuUninstall')
+    .addItem(tr_('menu.install'), 'menuInstall')
+    .addItem(tr_('menu.uninstall'), 'menuUninstall')
     .addSeparator()
-    .addItem(tr('menu.systemReset'), 'menuSystemReset');
+    .addItem(tr_('menu.systemReset'), 'menuSystemReset');
 
   const formsMenu = ui
-    .createMenu(tr('menu.forms'))
-    .addItem(tr('menu.importDrive'), 'menuImportDriveForms')
-    .addItem(tr('menu.linkForm'), 'menuLinkNewForm')
-    .addItem(tr('menu.removeForms'), 'menuRemoveForms');
+    .createMenu(tr_('menu.forms'))
+    .addItem(tr_('menu.importDrive'), 'menuImportDriveForms')
+    .addItem(tr_('menu.linkForm'), 'menuLinkNewForm')
+    .addItem(tr_('menu.removeForms'), 'menuRemoveForms');
 
-  ui.createMenu(tr('menu.root'))
+  ui.createMenu(tr_('menu.root'))
     .addSubMenu(formsMenu)
     .addSubMenu(settingsMenu)
     .addToUi();
 
-  createModuleLogger('menu').info('Custom menu added to the UI');
+  createModuleLogger_('menu').info('Custom menu added to the UI');
 }
 
 /**
@@ -44,5 +44,5 @@ function displayMenu(): void {
  */
 function menuSettings(): void {
   assertCallerEffectiveUser_();
-  getConfig().showDialog(SpreadsheetApp.getUi());
+  getConfig_().showDialog(SpreadsheetApp.getUi());
 }
