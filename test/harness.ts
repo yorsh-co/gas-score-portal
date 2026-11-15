@@ -24,6 +24,8 @@ export interface AppExports {
     params?: Record<string, string | number>,
   ): string;
   tr(key: MessageKeyApi, params?: Record<string, string | number>): string;
+  isCallerEffectiveUser_(): boolean;
+  assertCallerEffectiveUser_(message?: string): void;
   getExcludedFormUrls_(): string[];
   saveExcludedFormUrls(urls: string[]): void;
   saveConfigValues(changes: Record<string, string>): void;
@@ -253,6 +255,8 @@ const EXPORTS: (keyof AppExports)[] = [
   'MESSAGES_PT_BR',
   't',
   'tr',
+  'isCallerEffectiveUser_',
+  'assertCallerEffectiveUser_',
   'getExcludedFormUrls_',
   'saveExcludedFormUrls',
   'saveConfigValues',

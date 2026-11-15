@@ -9,17 +9,6 @@ interface ContinuationOptions {
   dataString?: string | null;
 }
 
-/**
- * Whether the script runs with the caller's own authority: the active user is
- * known and is the effective user. False for `google.script.run` calls from
- * the web app, which executes as the deployer: there the active user is blank
- * for anonymous visitors and another account for signed-in ones.
- */
-function isCallerEffectiveUser(): boolean {
-  const caller = Session.getActiveUser().getEmail();
-  return !!caller && caller === Session.getEffectiveUser().getEmail();
-}
-
 /** Helpers to install and manage the project triggers. */
 const TriggerUtils = (() => {
   const triggerLogger = createModuleLogger('triggers');

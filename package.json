@@ -35,6 +35,7 @@
       "shared/i18n/en.ts",
       "shared/i18n/pt-BR.ts",
       "shared/i18n/i18n.ts",
+      "core/caller.ts",
       "core/config.ts",
       "core/errors.ts",
       "utils/types/stringUtils.ts",

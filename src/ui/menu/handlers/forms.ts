@@ -37,7 +37,7 @@ function getSelectedFormUrls(): string[] {
  */
 function menuImportDriveForms(): void {
   runMenuAction(formsMenuLogger, () => {
-    if (!isCallerEffectiveUser()) throw new GasForbiddenError();
+    assertCallerEffectiveUser_();
     Toast.loading();
     new FormsImporter({ allowPrompt: true }).run();
     Toast.success(tr('forms.imported'));

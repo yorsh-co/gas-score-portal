@@ -7,6 +7,6 @@ const SYNC_INTERVAL_MINUTES = 30;
  *   their own authority.
  */
 function installTriggers(): void {
-  if (!isCallerEffectiveUser()) throw new GasForbiddenError();
+  assertCallerEffectiveUser_();
   TriggerUtils.installTimedMinutes('timedSyncScores', SYNC_INTERVAL_MINUTES);
 }

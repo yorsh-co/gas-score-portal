@@ -159,21 +159,6 @@ function resolveConfigEditors_(): string[] {
 }
 
 /**
- * Whether the execution runs as the identified user calling it, as the menu
- * and the settings dialog do. False in the web app, which runs as the
- * deployer for every visitor, and when the user cannot be identified. Never
- * throws.
- */
-function runsAsActiveUser_(): boolean {
-  try {
-    const active = Session.getActiveUser().getEmail();
-    return active !== '' && active === Session.getEffectiveUser().getEmail();
-  } catch {
-    return false;
-  }
-}
-
-/**
  * Returns the settings. Created once per execution.
  */
 function getConfig(): AppConfig {
@@ -189,7 +174,7 @@ function getConfig(): AppConfig {
       editors: resolveConfigEditors_(),
       // google.script.run reaches GasConfigRpc from the web app too, where
       // only the editors may read the settings.
-      ...(!runsAsActiveUser_() && { restrictReads: true }),
+      ...(!isCallerEffectiveUser_() && { restrictReads: true }),
       logger: createModuleLogger('config'),
     });
   }

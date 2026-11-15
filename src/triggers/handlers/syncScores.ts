@@ -9,7 +9,7 @@ function timedSyncScores(e?: GoogleAppsScript.Events.TimeDriven): void {
   const timer = createSyncTimer();
   if (
     !TriggerUtils.isProjectTrigger(e?.triggerUid, 'timedSyncScores') &&
-    !isCallerEffectiveUser()
+    !isCallerEffectiveUser_()
   ) {
     logger.warn('Ignored a call that is not from the trigger or the user');
     return;

@@ -238,23 +238,6 @@ function getDemoDbTables(): DemoDbTables {
 }
 
 /**
- * Refuses callers other than the user the script runs as. The web app runs as
- * the deployer and exposes every top-level function through
- * `google.script.run`, where a visitor's active user is blank or another
- * account. Editor and `clasp run` executions run as their caller.
- * @throws {GasForbiddenError} When the active user is blank or is not the
- *   effective user.
- */
-function assertDemoDataCaller(): void {
-  const active = Session.getActiveUser().getEmail();
-  if (!active || active !== Session.getEffectiveUser().getEmail()) {
-    throw new GasForbiddenError(
-      'Run this function from the Apps Script editor.',
-    );
-  }
-}
-
-/**
  * Fills the `Forms`, `Respondents` and `Scores` tables with fake data.
  * Run from the Apps Script editor only; use a spreadsheet copy.
  * @param tables Target tables. Defaults to the spreadsheet's.
@@ -266,7 +249,7 @@ function seedDemoData(
   tables?: DemoDbTables,
   refresh: () => unknown = refreshOverview,
 ): DemoCounts {
-  assertDemoDataCaller();
+  assertCallerEffectiveUser_('Run this function from the Apps Script editor.');
   const target = tables === undefined ? getDemoDbTables() : tables;
   const counts = GasLock.withLock('script', () => {
     const written = writeDemoData(buildDemoData(), {
@@ -293,7 +276,7 @@ function clearDemoData(
   tables?: DemoDbTables,
   refresh: () => unknown = refreshOverview,
 ): DemoCounts {
-  assertDemoDataCaller();
+  assertCallerEffectiveUser_('Run this function from the Apps Script editor.');
   const target = tables === undefined ? getDemoDbTables() : tables;
   const counts = GasLock.withLock('script', () => {
     const removed = removeDemoData(target);
