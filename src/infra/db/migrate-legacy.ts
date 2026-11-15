@@ -51,7 +51,7 @@ interface MigrationCounts {
  * Returns a `syncedAt` patch, or nothing when the date is missing.
  * @param date Parsed legacy timestamp.
  */
-function dateField(date: Date | null): { syncedAt?: Date } {
+function dateField_(date: Date | null): { syncedAt?: Date } {
   return date ? { syncedAt: date } : {};
 }
 
@@ -59,7 +59,7 @@ function dateField(date: Date | null): { syncedAt?: Date } {
  * Maps the free-text legacy status to a form status and error text.
  * @param text Legacy status cell.
  */
-function mapLegacyStatus(text: string): { status: FormStatus; error: string } {
+function mapLegacyStatus_(text: string): { status: FormStatus; error: string } {
   if (!text || text === LEGACY_LINKED_STATUS)
     return { status: 'linked', error: '' };
   if (text === LEGACY_EXCLUDED_STATUS) return { status: 'excluded', error: '' };
@@ -74,7 +74,7 @@ function mapLegacyStatus(text: string): { status: FormStatus; error: string } {
  * @param repos Target repositories.
  * @param now Timestamp stored on migrated scores.
  */
-function migrateLegacyData(
+function migrateLegacyData_(
   legacy: LegacyData,
   repos: MigrationRepos,
   now: Date = new Date(),
@@ -88,17 +88,17 @@ function migrateLegacyData(
   const known = new Map(repos.forms.list().map((form) => [form.url, form]));
 
   for (const row of legacy.forms) {
-    const url = cellToString(row[0]).trim();
+    const url = cellToString_(row[0]).trim();
     if (!url || known.has(url)) continue;
-    const { status, error } = mapLegacyStatus(cellToString(row[2]).trim());
+    const { status, error } = mapLegacyStatus_(cellToString_(row[2]).trim());
     known.set(
       url,
       repos.forms.upsert({
         url,
-        title: cellToString(row[1]),
+        title: cellToString_(row[1]),
         status,
         error,
-        ...dateField(cellToDate(row[3])),
+        ...dateField_(cellToDate_(row[3])),
       }),
     );
     counts.forms++;
@@ -111,13 +111,13 @@ function migrateLegacyData(
   const formColumns: { col: number; url: string }[] = [];
   const header = matrix[layout.urlRow] ?? [];
   for (let col = layout.firstCol; col < header.length; col++) {
-    const url = cellToString(header[col]).trim();
+    const url = cellToString_(header[col]).trim();
     if (url) formColumns.push({ col, url });
   }
 
   for (const { col, url } of formColumns) {
-    const title = cellToString(matrix[layout.titleRow]?.[col]);
-    const maxPoints = cellToNumber(matrix[layout.pointsRow]?.[col]);
+    const title = cellToString_(matrix[layout.titleRow]?.[col]);
+    const maxPoints = cellToNumber_(matrix[layout.pointsRow]?.[col]);
     const stored = known.get(url);
     if (!stored) {
       known.set(
@@ -125,7 +125,7 @@ function migrateLegacyData(
         repos.forms.upsert({
           url,
           title,
-          ...dateField(cellToDate(matrix[layout.timestampRow]?.[col])),
+          ...dateField_(cellToDate_(matrix[layout.timestampRow]?.[col])),
           ...(maxPoints === null ? {} : { maxPoints }),
         }),
       );
@@ -143,9 +143,9 @@ function migrateLegacyData(
   const people = matrix.slice(layout.firstRow);
   counts.respondents = repos.respondents.insertMissing(
     people.map((row) => ({
-      email: cellToString(row[layout.emailCol]),
-      name: cellToString(row[layout.nameCol]),
-      alternatives: cellToString(row[layout.alternativesCol]),
+      email: cellToString_(row[layout.emailCol]),
+      name: cellToString_(row[layout.nameCol]),
+      alternatives: cellToString_(row[layout.alternativesCol]),
     })),
   );
 
@@ -153,12 +153,12 @@ function migrateLegacyData(
   for (const { col, url } of formColumns) {
     const seen = new Set<string>();
     for (const row of people) {
-      const email = normalizeEmail(row[layout.emailCol]);
+      const email = normalizeEmail_(row[layout.emailCol]);
       const cell = row[col];
       if (!email || cell === '' || cell === undefined || cell === null)
         continue;
       if (seen.has(email)) continue;
-      const score = cellToNumber(cell);
+      const score = cellToNumber_(cell);
       if (score === null) {
         counts.invalidScores++;
         continue;
@@ -180,12 +180,12 @@ function migrateLegacyData(
  * @param repos Target repositories.
  * @param refresh Rebuilds the overview sheet.
  */
-function runLegacyMigration(
+function runLegacyMigration_(
   spreadsheet: GoogleAppsScript.Spreadsheet.Spreadsheet,
   repos: MigrationRepos,
   refresh: () => void,
 ): MigrationCounts {
-  const logger = createModuleLogger('migration');
+  const logger = createModuleLogger_('migration');
   const formsSheet = spreadsheet.getSheetByName(LEGACY.formsSheet);
   const scoresSheet = spreadsheet.getSheetByName(LEGACY.scoresSheet);
   if (!formsSheet && !scoresSheet) {
@@ -214,7 +214,7 @@ function runLegacyMigration(
   }
   const matrix = scoresSheet ? scoresSheet.getDataRange().getValues() : [];
 
-  const counts = migrateLegacyData({ forms: formRows, scores: matrix }, repos);
+  const counts = migrateLegacyData_({ forms: formRows, scores: matrix }, repos);
 
   for (const sheet of [formsSheet, scoresSheet])
     if (sheet) sheet.setName(LEGACY.renamePrefix + sheet.getName());
@@ -228,17 +228,20 @@ function runLegacyMigration(
  * Migrates the legacy `💯 Notas` and `🟪 Forms` sheets into the data tables,
  * then renames them with a `LEGACY ` prefix. The legacy sheets are never
  * deleted. Idempotent. Runnable from the editor or through `clasp run`.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function migrateLegacySheets(): MigrationCounts {
+  assertCallerEffectiveUser_();
   return GasLock.withLock('script', () =>
-    runLegacyMigration(
+    runLegacyMigration_(
       SpreadsheetApp.getActiveSpreadsheet(),
       {
-        forms: createFormsRepo(getFormsTable()),
-        respondents: createRespondentsRepo(getRespondentsTable()),
-        scores: createScoresRepo(getScoresTable()),
+        forms: createFormsRepo_(getFormsTable_()),
+        respondents: createRespondentsRepo_(getRespondentsTable_()),
+        scores: createScoresRepo_(getScoresTable_()),
       },
-      () => refreshOverview(),
+      () => refreshOverview_(),
     ),
   );
 }

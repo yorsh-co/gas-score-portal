@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { declaresGlobal, loadApp } from '../harness';
 
-describe('getConfig', () => {
+describe('getConfig_', () => {
   it('returns the defaults when nothing is stored', () => {
     const { app } = loadApp();
 
-    expect(app.getConfig().getAll()).toMatchObject({
+    expect(app.getConfig_().getAll()).toMatchObject({
       locale: 'en',
       portalTitle: 'Score Portal',
       faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
@@ -18,7 +18,7 @@ describe('getConfig', () => {
   it('is memoized within an execution', () => {
     const { app } = loadApp();
 
-    expect(app.getConfig()).toBe(app.getConfig());
+    expect(app.getConfig_()).toBe(app.getConfig_());
   });
 
   it('resolves the editors from the owner and the spreadsheet editors', () => {
@@ -27,7 +27,7 @@ describe('getConfig', () => {
       editors: ['ed1@example.org', 'ED2@example.org'],
     });
 
-    expect([...app.getConfig().editors].sort()).toEqual([
+    expect([...app.getConfig_().editors].sort()).toEqual([
       'ed1@example.org',
       'ed2@example.org',
       'owner@example.org',
@@ -37,13 +37,13 @@ describe('getConfig', () => {
   it('handles a spreadsheet without an owner', () => {
     const { app } = loadApp({ owner: null, editors: ['ed@example.org'] });
 
-    expect(app.getConfig().editors).toEqual(['ed@example.org']);
+    expect(app.getConfig_().editors).toEqual(['ed@example.org']);
   });
 
   it('falls back to the default for an invalid stored value', () => {
     const { app } = loadApp({ properties: { 'gasConfig:locale': '"fr"' } });
 
-    expect(app.getConfig().get('locale')).toBe('en');
+    expect(app.getConfig_().get('locale')).toBe('en');
   });
 });
 
@@ -64,7 +64,7 @@ describe('excluded forms', () => {
       activeUser: 'owner@example.org',
     });
 
-    app.saveExcludedFormUrls(['https://a', 'https://b']);
+    app.saveExcludedFormUrls_(['https://a', 'https://b']);
 
     expect(app.getExcludedFormUrls_()).toEqual(['https://a', 'https://b']);
   });
@@ -75,7 +75,7 @@ describe('excluded forms', () => {
       activeUser: 'intruder@example.org',
     });
 
-    expect(() => app.saveExcludedFormUrls(['https://a'])).toThrow();
+    expect(() => app.saveExcludedFormUrls_(['https://a'])).toThrow();
   });
 });
 
@@ -87,7 +87,7 @@ describe('form title strip patterns', () => {
     });
 
     expect(() =>
-      app.saveConfigValues({ formTitleStripPatterns: '^ok\n(unclosed' }),
+      app.saveConfigValues_({ formTitleStripPatterns: '^ok\n(unclosed' }),
     ).toThrow(/\(unclosed/);
   });
 
@@ -97,7 +97,7 @@ describe('form title strip patterns', () => {
       activeUser: 'owner@example.org',
     });
 
-    app.saveConfigValues({ formTitleStripPatterns: '^t4\\s*\n\nquiz' });
+    app.saveConfigValues_({ formTitleStripPatterns: '^t4\\s*\n\nquiz' });
 
     expect(app.getFormTitleStripPatterns_()).toEqual(['^t4\\s*', 'quiz']);
   });
@@ -109,7 +109,7 @@ describe('brand settings validation', () => {
   it('rejects a malformed secondaryColor', () => {
     const { app } = loadApp(owner);
 
-    expect(() => app.saveConfigValues({ secondaryColor: 'red' })).toThrow(
+    expect(() => app.saveConfigValues_({ secondaryColor: 'red' })).toThrow(
       expect.objectContaining({ name: 'GasValidationError' }),
     );
   });
@@ -119,7 +119,7 @@ describe('brand settings validation', () => {
     (faviconUrl) => {
       const { app } = loadApp(owner);
 
-      expect(() => app.saveConfigValues({ faviconUrl })).toThrow(
+      expect(() => app.saveConfigValues_({ faviconUrl })).toThrow(
         expect.objectContaining({ name: 'GasValidationError' }),
       );
     },
@@ -133,7 +133,7 @@ describe('brand settings validation', () => {
   ])('rejects %s value %s', (key, value) => {
     const { app } = loadApp(owner);
 
-    expect(() => app.saveConfigValues({ [key]: value })).toThrow(
+    expect(() => app.saveConfigValues_({ [key]: value })).toThrow(
       expect.objectContaining({ name: 'GasValidationError' }),
     );
   });
@@ -205,11 +205,22 @@ describe('settings reads through GasConfigRpc', () => {
 });
 
 describe('google.script.run surface', () => {
-  it.each(['getExcludedFormUrls', 'getFormTitleStripPatterns'])(
-    'declares %s only as a private function',
-    (name) => {
-      expect(declaresGlobal(name)).toBe(false);
-      expect(declaresGlobal(`${name}_`)).toBe(true);
-    },
-  );
+  it.each([
+    'getExcludedFormUrls',
+    'getFormTitleStripPatterns',
+    'refreshOverview',
+    'saveConfigValues',
+    'saveExcludedFormUrls',
+    'saveDriveFolderUrl',
+    'installTriggers',
+    'getConfig',
+    'tr',
+    'getApp',
+    'createFormsRepo',
+    'writeDemoData',
+    'displayMenu',
+  ])('declares %s only as a private function', (name) => {
+    expect(declaresGlobal(name)).toBe(false);
+    expect(declaresGlobal(`${name}_`)).toBe(true);
+  });
 });

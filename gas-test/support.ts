@@ -32,8 +32,8 @@ function createTestTables(ctx: GasTestContext): TestTables {
  */
 function createTestRepos(tables: TestTables) {
   return {
-    forms: createFormsRepo(tables.forms),
-    respondents: createRespondentsRepo(tables.respondents),
-    scores: createScoresRepo(tables.scores),
+    forms: createFormsRepo_(tables.forms),
+    respondents: createRespondentsRepo_(tables.respondents),
+    scores: createScoresRepo_(tables.scores),
   };
 }

@@ -31,7 +31,7 @@ function createOtpHarness(respondents: string[]): OtpHarness {
   const cache = CacheService.getScriptCache();
   const deps = {
     cache,
-    hmac: computeOtpHmac,
+    hmac: computeOtpHmac_,
     uuid: () => Utilities.getUuid(),
     now: () => Date.now() + offset,
     sleep: () => undefined,
@@ -46,8 +46,8 @@ function createOtpHarness(respondents: string[]): OtpHarness {
     logger: { error: () => undefined },
   };
   return {
-    otp: createOtpService(deps),
-    sessions: createSessionService(deps),
+    otp: createOtpService_(deps),
+    sessions: createSessionService_(deps),
     sent,
     advance: (ms) => {
       offset += ms;
@@ -100,7 +100,7 @@ function callRpc(
       method === 'GET' ? app.doGet(event as never) : app.doPost(event as never)
     ) as RpcResult;
   } catch (err) {
-    return JSON.parse(getErrorMessage(err)) as RpcResult;
+    return JSON.parse(getErrorMessage_(err)) as RpcResult;
   }
 }
 
@@ -165,7 +165,7 @@ test('the sign-in flow round-trips through the web app over RPC', () => {
   const email = uniqueEmail();
   const other = uniqueEmail();
   const harness = createOtpHarness([email, other]);
-  const app = createWebApp(
+  const app = createWebApp_(
     {
       getByUser: (userId) => ({
         email: userId,
@@ -178,7 +178,7 @@ test('the sign-in flow round-trips through the web app over RPC', () => {
         ],
       }),
     },
-    { otp: harness.otp, sessions: harness.sessions, hmac: computeOtpHmac },
+    { otp: harness.otp, sessions: harness.sessions, hmac: computeOtpHmac_ },
   );
 
   const requested = callRpc(app, 'POST', '/api/auth/otp', {

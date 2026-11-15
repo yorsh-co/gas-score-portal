@@ -4,9 +4,9 @@
  * @param e Request event.
  */
 function doGet(e: GoogleAppsScript.Events.DoGet) {
-  if (e?.parameter?.route) return getApp().doGet(e);
+  if (e?.parameter?.route) return getApp_().doGet(e);
 
-  const config = getConfig();
+  const config = getConfig_();
   const output = HtmlService.createHtmlOutput(_PORTAL_HTML)
     .setTitle(config.get('portalTitle') ?? 'Score Portal')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
@@ -20,5 +20,5 @@ function doGet(e: GoogleAppsScript.Events.DoGet) {
  * @param e Request event.
  */
 function doPost(e: GoogleAppsScript.Events.DoPost) {
-  return getApp().doPost(e);
+  return getApp_().doPost(e);
 }

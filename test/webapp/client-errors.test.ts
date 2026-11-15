@@ -3,9 +3,9 @@ import { loadApp } from '../harness';
 
 function setup() {
   const { app } = loadApp();
-  const webApp = app.createWebApp(
+  const webApp = app.createWebApp_(
     { getByUser: () => null },
-    app.createAuthServices(() => ({ findByEmail: () => null }), {
+    app.createAuthServices_(() => ({ findByEmail: () => null }), {
       error: () => undefined,
     }),
   );
@@ -97,7 +97,7 @@ describe('POST /api/client-errors', () => {
 
     try {
       expect(() =>
-        app.createRedactedLogger().error('boom', { circular }),
+        app.createRedactedLogger_().error('boom', { circular }),
       ).not.toThrow();
     } finally {
       spies.forEach((s) => s.mockRestore());
@@ -116,7 +116,7 @@ describe('POST /api/client-errors', () => {
     const start = Date.now();
 
     try {
-      app.createRedactedLogger().error('boom', {
+      app.createRedactedLogger_().error('boom', {
         x: `ana@x.org ${'a'.repeat(50_000)}`,
       });
     } finally {

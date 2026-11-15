@@ -21,19 +21,24 @@ const GSheetsUiUtils = {
     { acceptBlank = false }: PromptOptions = {},
   ): string {
     const ui = SpreadsheetApp.getUi();
-    let prompt = body ? body : tr('prompt.default', { title });
+    let prompt = body ? body : tr_('prompt.default', { title });
     prompt = warning ? `${prompt}\n\n⚠️ ${warning}` : prompt;
 
     const response = ui.prompt(title, prompt, ui.ButtonSet.OK_CANCEL);
 
     if (response.getSelectedButton() !== ui.Button.OK)
-      throw createCancelledError();
+      throw createCancelledError_();
 
     const input = response.getResponseText().trim();
     if (!acceptBlank && !input)
-      return GSheetsUiUtils.promptForValue(title, body, tr('prompt.notBlank'), {
-        acceptBlank,
-      });
+      return GSheetsUiUtils.promptForValue(
+        title,
+        body,
+        tr_('prompt.notBlank'),
+        {
+          acceptBlank,
+        },
+      );
 
     return input;
   },

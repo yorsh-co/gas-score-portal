@@ -17,7 +17,7 @@ interface DriveSearchOptions {
 
 /** Google Drive lookups. */
 const GDrive = (() => {
-  const driveLogger = createModuleLogger('drive');
+  const driveLogger = createModuleLogger_('drive');
 
   const mimeTypes = {
     gForm: 'application/vnd.google-apps.form',

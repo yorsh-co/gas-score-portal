@@ -93,6 +93,35 @@ A respondent proves control of their mailbox with a one-time code.
   answered like a success.
 - **Mailbox compromise.** Out of scope: whoever reads the mailbox can sign in.
 
+## Key exposure (2026-11-15)
+
+Until this fix, `getOtpHmacKey` and `computeOtpHmac` were public Apps Script
+globals. The web app runs as the deployer for anonymous visitors, so any
+visitor could call them through `google.script.run`. Every deployed version up
+to this fix exposed both.
+
+- **What was exposed.** The key itself, through `getOtpHmacKey`, which also
+  created the key on first call. An HMAC oracle, through `computeOtpHmac`.
+- **What the key derives.** The OTP cache key `otp:HMAC(email:<e>)`, the stored
+  `codeHmac = HMAC(code)`, the session cache key `session:HMAC(token:<t>)` and
+  the rate-limit keys `<prefix>:HMAC(limit:<e>)` (`src/webapp/routes.ts`).
+- **OTP forgery.** Not possible with the key alone: verification compares
+  against the `codeHmac` stored in `CacheService`, and no public function read
+  or wrote that cache (`CacheService` is only used in `createAuthServices`,
+  which needs function arguments that `google.script.run` cannot send). But
+  with any cache read, the key lets an attacker compute a victim's OTP cache
+  key and invert the 6-digit `codeHmac` offline in at most 10^6 HMACs. That
+  recovers the live code and takes over the account. The key was the only
+  protection for codes at rest.
+- **Session forgery.** Not possible: tokens are random UUIDs (122 bits) kept
+  only as an HMAC. The key does not help produce one without a cache write, and
+  the HMAC cannot be inverted.
+- **Rate limits.** The key lets an attacker compute counter keys, which is
+  harmless without a cache write.
+- **Conclusion.** Treat the key as compromised and rotate it after every
+  deployment serves the fixed code, as described in
+  [OTP key rotation](../../README.md#otp-key-rotation).
+
 ## Consequences
 
 - The manifest gains the `script.send_mail` scope.

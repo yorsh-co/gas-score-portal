@@ -14,12 +14,12 @@ function setup(
   } = {},
 ) {
   const { app } = loadApp();
-  const forms = app.createFormsRepo(new FakeTable(options.forms ?? []));
-  const respondents = app.createRespondentsRepo(
+  const forms = app.createFormsRepo_(new FakeTable(options.forms ?? []));
+  const respondents = app.createRespondentsRepo_(
     new FakeTable(options.respondents ?? []),
   );
-  const scores = app.createScoresRepo(new FakeTable(options.scores ?? []));
-  return app.createScoresService(() => ({
+  const scores = app.createScoresRepo_(new FakeTable(options.scores ?? []));
+  return app.createScoresService_(() => ({
     forms,
     respondents,
     scores,

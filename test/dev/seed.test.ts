@@ -6,35 +6,35 @@ describe('demo data generator', () => {
   const { app } = loadApp();
 
   it('is deterministic per seed and differs across seeds', () => {
-    expect(app.buildDemoData({ seed: 7 })).toEqual(
-      app.buildDemoData({ seed: 7 }),
+    expect(app.buildDemoData_({ seed: 7 })).toEqual(
+      app.buildDemoData_({ seed: 7 }),
     );
-    expect(app.buildDemoData({ seed: 7 })).not.toEqual(
-      app.buildDemoData({ seed: 8 }),
+    expect(app.buildDemoData_({ seed: 7 })).not.toEqual(
+      app.buildDemoData_({ seed: 8 }),
     );
   });
 
   it('honours the requested counts and defaults', () => {
-    const custom = app.buildDemoData({ respondents: 12, forms: 3 });
+    const custom = app.buildDemoData_({ respondents: 12, forms: 3 });
     // 12 primary rows plus an alias row for every 5th respondent.
     expect(custom.respondents).toHaveLength(15);
     expect(custom.forms).toHaveLength(3);
 
-    const defaults = app.buildDemoData();
+    const defaults = app.buildDemoData_();
     expect(defaults.respondents).toHaveLength(48);
     expect(defaults.forms).toHaveLength(8);
   });
 
   it('marks every email and form URL as demo data', () => {
-    const data = app.buildDemoData();
-    expect(data.respondents.every((r) => app.isDemoEmail(r.email))).toBe(true);
-    expect(data.scores.every((s) => app.isDemoEmail(s.email))).toBe(true);
-    expect(data.forms.every((f) => app.isDemoFormUrl(f.url))).toBe(true);
+    const data = app.buildDemoData_();
+    expect(data.respondents.every((r) => app.isDemoEmail_(r.email))).toBe(true);
+    expect(data.scores.every((s) => app.isDemoEmail_(s.email))).toBe(true);
+    expect(data.forms.every((f) => app.isDemoFormUrl_(f.url))).toBe(true);
     expect(data.forms.every((f) => f.status === 'linked')).toBe(true);
   });
 
   it('keeps scores within the form maximum without duplicates', () => {
-    const data = app.buildDemoData();
+    const data = app.buildDemoData_();
     const max = new Map(data.forms.map((f) => [f.url, f.maxPoints ?? 0]));
     const keys = new Set<string>();
     for (const s of data.scores) {
@@ -47,7 +47,7 @@ describe('demo data generator', () => {
   });
 
   it('gives every primary respondent a score, counting alias scores', () => {
-    const data = app.buildDemoData();
+    const data = app.buildDemoData_();
     const owner = new Map<string, string>();
     for (const r of data.respondents) {
       owner.set(r.email, r.alternatives || r.email);
@@ -59,25 +59,25 @@ describe('demo data generator', () => {
   });
 
   it('has a Respondents row for every score email', () => {
-    const data = app.buildDemoData();
+    const data = app.buildDemoData_();
     const emails = new Set(data.respondents.map((r) => r.email));
     expect(data.scores.every((s) => emails.has(s.email))).toBe(true);
   });
 
   it('exposes alias scores through the scores service', () => {
-    const data = app.buildDemoData();
+    const data = app.buildDemoData_();
     const tables = {
       forms: new FakeTable(),
       respondents: new FakeTable(),
       scores: new FakeTable(),
     };
     const repos = {
-      forms: app.createFormsRepo(tables.forms),
-      respondents: app.createRespondentsRepo(tables.respondents),
-      scores: app.createScoresRepo(tables.scores),
+      forms: app.createFormsRepo_(tables.forms),
+      respondents: app.createRespondentsRepo_(tables.respondents),
+      scores: app.createScoresRepo_(tables.scores),
     };
-    app.writeDemoData(data, repos);
-    const service = app.createScoresService(() => ({
+    app.writeDemoData_(data, repos);
+    const service = app.createScoresService_(() => ({
       ...repos,
       getExcludedUrls: () => [],
       getTitleStripPatterns: () => [],
@@ -106,8 +106,8 @@ describe('demo data generator', () => {
   });
 
   it('does not treat real addresses or URLs as demo data', () => {
-    expect(app.isDemoEmail('ana@gmail.com')).toBe(false);
-    expect(app.isDemoFormUrl('https://forms.gle/abc')).toBe(false);
+    expect(app.isDemoEmail_('ana@gmail.com')).toBe(false);
+    expect(app.isDemoFormUrl_('https://forms.gle/abc')).toBe(false);
   });
 
   describe('storage', () => {
@@ -118,19 +118,19 @@ describe('demo data generator', () => {
         scores: new FakeTable(),
       };
       const repos = {
-        forms: app.createFormsRepo(tables.forms),
-        respondents: app.createRespondentsRepo(tables.respondents),
-        scores: app.createScoresRepo(tables.scores),
+        forms: app.createFormsRepo_(tables.forms),
+        respondents: app.createRespondentsRepo_(tables.respondents),
+        scores: app.createScoresRepo_(tables.scores),
       };
       return { tables, repos };
     };
 
     it('inserts nothing new when written twice', () => {
       const { tables, repos } = setup();
-      const data = app.buildDemoData();
+      const data = app.buildDemoData_();
 
-      const first = app.writeDemoData(data, repos);
-      const second = app.writeDemoData(data, repos);
+      const first = app.writeDemoData_(data, repos);
+      const second = app.writeDemoData_(data, repos);
 
       expect(first.respondents).toBe(data.respondents.length);
       expect(first.scores).toBe(data.scores.length);
@@ -149,10 +149,10 @@ describe('demo data generator', () => {
         formUrl: 'https://forms.gle/real',
         score: 5,
       });
-      const data = app.buildDemoData();
-      app.writeDemoData(data, repos);
+      const data = app.buildDemoData_();
+      app.writeDemoData_(data, repos);
 
-      const removed = app.removeDemoData(tables);
+      const removed = app.removeDemoData_(tables);
 
       expect(removed).toEqual({
         forms: data.forms.length,
@@ -187,7 +187,7 @@ describe('demo data generator', () => {
 
     it('seedDemoData writes the default demo data under the script lock', () => {
       const { app, locks, tables, sizes, refresh, refreshedWith } = setup();
-      const data = app.buildDemoData();
+      const data = app.buildDemoData_();
 
       const counts = app.seedDemoData(tables, refresh);
 

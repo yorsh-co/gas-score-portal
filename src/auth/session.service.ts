@@ -23,7 +23,7 @@ interface SessionService {
  * token, so the cache never holds a usable token.
  * @param deps Platform dependencies.
  */
-function createSessionService(deps: SessionServiceDeps): SessionService {
+function createSessionService_(deps: SessionServiceDeps): SessionService {
   const cacheKey = (token: string) => `session:${deps.hmac(`token:${token}`)}`;
 
   return {

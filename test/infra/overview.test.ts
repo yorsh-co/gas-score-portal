@@ -20,11 +20,11 @@ const forms = () => source('Forms', ['_id', 'url', 'title']);
 const respondents = () => source('Respondents', ['_id', 'email', 'name']);
 const scores = () => source('Scores', ['_id', 'email', 'formUrl', 'score']);
 
-describe('columnLetter', () => {
+describe('columnLetter_', () => {
   it('converts indexes to A1 letters', () => {
     const { app } = loadApp();
 
-    expect([1, 26, 27, 52, 53].map((n) => app.columnLetter(n))).toEqual([
+    expect([1, 26, 27, 52, 53].map((n) => app.columnLetter_(n))).toEqual([
       'A',
       'Z',
       'AA',
@@ -34,11 +34,11 @@ describe('columnLetter', () => {
   });
 });
 
-describe('buildOverviewFormula', () => {
+describe('buildOverviewFormula_', () => {
   it('references the table columns by their position', () => {
     const { app } = loadApp();
 
-    const formula = app.buildOverviewFormula(forms(), respondents(), scores());
+    const formula = app.buildOverviewFormula_(forms(), respondents(), scores());
 
     expect(formula).toContain("'Scores'!B2:B");
     expect(formula).toContain("'Scores'!D2:D");
@@ -48,7 +48,7 @@ describe('buildOverviewFormula', () => {
   it('keeps one column per form, and uses max so duplicates never inflate', () => {
     const { app } = loadApp();
 
-    const formula = app.buildOverviewFormula(forms(), respondents(), scores());
+    const formula = app.buildOverviewFormula_(forms(), respondents(), scores());
 
     expect(formula).toContain('max(Col4)');
     expect(formula).not.toContain('sum(');
@@ -59,7 +59,7 @@ describe('buildOverviewFormula', () => {
   it('excludes soft-deleted scores and forms', () => {
     const { app } = loadApp();
 
-    const formula = app.buildOverviewFormula(forms(), respondents(), scores());
+    const formula = app.buildOverviewFormula_(forms(), respondents(), scores());
 
     expect(formula).toContain("'Scores'!E2:E=TRUE");
     expect(formula).toContain("'Forms'!D2:D=TRUE");
@@ -67,13 +67,13 @@ describe('buildOverviewFormula', () => {
   });
 });
 
-describe('buildOverviewFormula in a decimal-comma locale', () => {
+describe('buildOverviewFormula_ in a decimal-comma locale', () => {
   const commaLocale = { arg: ';', column: '\\' };
 
   it('uses the locale separators outside the query string', () => {
     const { app } = loadApp();
 
-    const formula = app.buildOverviewFormula(
+    const formula = app.buildOverviewFormula_(
       forms(),
       respondents(),
       scores(),
@@ -89,7 +89,7 @@ describe('buildOverviewFormula in a decimal-comma locale', () => {
   });
 });
 
-describe('detectFormulaSeparators', () => {
+describe('detectFormulaSeparators_', () => {
   function probeSheet(display: string) {
     const cell = {
       setFormula: vi.fn(),
@@ -103,7 +103,7 @@ describe('detectFormulaSeparators', () => {
     const { app } = loadApp({ globals });
     const { sheet, cell } = probeSheet('1');
 
-    expect(app.detectFormulaSeparators(sheet)).toEqual({
+    expect(app.detectFormulaSeparators_(sheet)).toEqual({
       arg: ',',
       column: ',',
     });
@@ -113,14 +113,14 @@ describe('detectFormulaSeparators', () => {
   it('switches to semicolons when the probe is a parse error', () => {
     const { app } = loadApp({ globals });
 
-    expect(app.detectFormulaSeparators(probeSheet('#ERROR!').sheet)).toEqual({
+    expect(app.detectFormulaSeparators_(probeSheet('#ERROR!').sheet)).toEqual({
       arg: ';',
       column: '\\',
     });
   });
 });
 
-describe('refreshOverview', () => {
+describe('refreshOverview_', () => {
   function fakeSheet(protections: unknown[] = []) {
     const protection = {
       setWarningOnly: vi.fn().mockReturnThis(),
@@ -152,7 +152,7 @@ describe('refreshOverview', () => {
       insertSheet: vi.fn(() => sheet),
     };
 
-    app.refreshOverview(spreadsheet, forms(), respondents(), scores());
+    app.refreshOverview_(spreadsheet, forms(), respondents(), scores());
 
     expect(spreadsheet.insertSheet).toHaveBeenCalledWith('Overview');
     expect(range.setFormula).toHaveBeenCalledTimes(2);
@@ -170,7 +170,7 @@ describe('refreshOverview', () => {
       insertSheet: vi.fn(),
     };
 
-    app.refreshOverview(spreadsheet, forms(), respondents(), scores());
+    app.refreshOverview_(spreadsheet, forms(), respondents(), scores());
 
     expect(spreadsheet.insertSheet).not.toHaveBeenCalled();
     expect(sheet.clear).toHaveBeenCalled();

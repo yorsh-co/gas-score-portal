@@ -30,8 +30,8 @@ interface SyncDeps {
  * Creates a started timer with the synchronization's safety margin. Create it
  * at the top of the execution so every step shares one budget.
  */
-function createSyncTimer(): ExecutionTimerApi {
-  const timer = ExecutionTimer();
+function createSyncTimer_(): ExecutionTimerApi {
+  const timer = ExecutionTimer_();
   timer.start();
   timer.setSafetyMargin(SYNC_SAFETY_MARGIN_MS);
   return timer;
@@ -42,13 +42,13 @@ function createSyncTimer(): ExecutionTimerApi {
  * services.
  * @param timer Started timer of the execution.
  */
-function createSyncDeps(
-  timer: ExecutionTimerApi = createSyncTimer(),
+function createSyncDeps_(
+  timer: ExecutionTimerApi = createSyncTimer_(),
 ): SyncDeps {
   return {
-    forms: createFormsRepo(getFormsTable()),
-    respondents: createRespondentsRepo(getRespondentsTable()),
-    scores: createScoresRepo(getScoresTable()),
+    forms: createFormsRepo_(getFormsTable_()),
+    respondents: createRespondentsRepo_(getRespondentsTable_()),
+    scores: createScoresRepo_(getScoresTable_()),
     timer,
     getExcludedUrls: getExcludedFormUrls_,
     openForm: (url) => GForms.forms.get({ url }),
@@ -73,11 +73,11 @@ function createSyncDeps(
  * or changed scores are stored.
  */
 class RespondentScoreSynchronizer {
-  private readonly logger = createModuleLogger('sync');
+  private readonly logger = createModuleLogger_('sync');
 
   constructor(
     private readonly cursor: FormsCursor,
-    private readonly deps: SyncDeps = createSyncDeps(),
+    private readonly deps: SyncDeps = createSyncDeps_(),
   ) {}
 
   /**
@@ -105,7 +105,7 @@ class RespondentScoreSynchronizer {
     } catch (err) {
       if (started) throw err;
       this.logger.warn('Another synchronization is running, skipping', {
-        error: getErrorMessage(err),
+        error: getErrorMessage_(err),
       });
       this.cursor.delete();
       return;
@@ -164,9 +164,9 @@ class RespondentScoreSynchronizer {
     } catch (err) {
       this.logger.error('Failed to sync a form', {
         form: record.url,
-        error: getErrorMessage(err),
+        error: getErrorMessage_(err),
       });
-      this.deps.forms.updateStatus(record.url, 'error', getErrorMessage(err));
+      this.deps.forms.updateStatus(record.url, 'error', getErrorMessage_(err));
       return false;
     }
   }
@@ -175,7 +175,7 @@ class RespondentScoreSynchronizer {
     const { deps } = this;
     const linked = LinkedForm.fromRecord(record);
     linked.form = deps.openForm(record.url);
-    if (!linked.form) throw new GasNotFoundError(tr('error.fileInaccessible'));
+    if (!linked.form) throw new GasNotFoundError(tr_('error.fileInaccessible'));
 
     const maxPoints = linked.getMaxPoints();
     const formScores = deps.getFormScores(

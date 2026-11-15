@@ -3,12 +3,12 @@ import { loadApp } from '../harness';
 
 const logger = { warn: vi.fn(), error: vi.fn() };
 
-describe('runMenuAction', () => {
+describe('runMenuAction_', () => {
   it('runs the action without side effects on success', () => {
     const { app, toasts } = loadApp();
     const action = vi.fn();
 
-    app.runMenuAction(logger, action);
+    app.runMenuAction_(logger, action);
 
     expect(action).toHaveBeenCalledOnce();
     expect(toasts).toEqual([]);
@@ -19,7 +19,7 @@ describe('runMenuAction', () => {
     const failure = new Error('boom');
 
     expect(() =>
-      app.runMenuAction(logger, () => {
+      app.runMenuAction_(logger, () => {
         throw failure;
       }),
     ).toThrow(failure);
@@ -32,14 +32,14 @@ describe('runMenuAction', () => {
     const sink = { warn: vi.fn(), error: vi.fn() };
 
     expect(() =>
-      app.runMenuAction(sink, () => {
-        throw app.createCancelledError();
+      app.runMenuAction_(sink, () => {
+        throw app.createCancelledError_();
       }),
     ).toThrow();
     expect(sink.warn).toHaveBeenCalledOnce();
 
     expect(() =>
-      app.runMenuAction(sink, () => {
+      app.runMenuAction_(sink, () => {
         throw new TypeError('bug');
       }),
     ).toThrow();
@@ -53,7 +53,7 @@ describe('lock timeouts in menu actions', () => {
     const sink = { warn: vi.fn(), error: vi.fn() };
 
     expect(() =>
-      app.runMenuAction(sink, () => {
+      app.runMenuAction_(sink, () => {
         throw new Error('Lock timeout: another process was holding the lock');
       }),
     ).not.toThrow();
@@ -66,7 +66,7 @@ describe('lock timeouts in menu actions', () => {
   it('does not treat other errors as lock timeouts', () => {
     const { app } = loadApp();
 
-    expect(app.isLockTimeoutError(new Error('boom'))).toBe(false);
-    expect(app.isLockTimeoutError(new Error('Lock timeout'))).toBe(true);
+    expect(app.isLockTimeoutError_(new Error('boom'))).toBe(false);
+    expect(app.isLockTimeoutError_(new Error('Lock timeout'))).toBe(true);
   });
 });

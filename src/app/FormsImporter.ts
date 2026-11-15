@@ -13,10 +13,10 @@ class FormsImporter {
   private warning: string | null = null;
   private readonly allowPrompt: boolean;
   private readonly timer: ExecutionTimerApi | undefined;
-  private readonly logger = createModuleLogger('importer');
+  private readonly logger = createModuleLogger_('importer');
 
   constructor(options: FormsImporterOptions = {}) {
-    this.parentFolderUrl = getConfig().get('driveFolderUrl') ?? '';
+    this.parentFolderUrl = getConfig_().get('driveFolderUrl') ?? '';
     this.allowPrompt = options.allowPrompt ?? false;
     this.timer = options.timer;
   }
@@ -27,18 +27,18 @@ class FormsImporter {
   run(): void {
     this.resolveParentFolder();
     this.persistParentFolder();
-    Toast.loading(tr('importer.searching'));
+    Toast.loading(tr_('importer.searching'));
 
     const newForms = this.filterNewForms(this.fetchForms());
     this.logger.info('Found new forms', { count: newForms.length });
-    Toast.busy(tr('importer.importing', { count: newForms.length }));
+    Toast.busy(tr_('importer.importing', { count: newForms.length }));
 
     this.insertForms(newForms);
   }
 
   private resolveParentFolder(): void {
     if (!this.parentFolderUrl && !this.allowPrompt)
-      throw new GasValidationError(tr('importer.folderRequired'));
+      throw new GasValidationError(tr_('importer.folderRequired'));
 
     while (!this.parentFolderId) {
       if (!this.parentFolderUrl)
@@ -50,7 +50,7 @@ class FormsImporter {
             this.parentFolderUrl,
           );
         } else {
-          this.warning = tr('importer.folderAccessWarning', {
+          this.warning = tr_('importer.folderAccessWarning', {
             url: this.parentFolderUrl,
           });
           this.parentFolderUrl = '';
@@ -66,21 +66,21 @@ class FormsImporter {
 
   /** Saves the folder in the settings when it changed. A failure is only logged. */
   private persistParentFolder(): void {
-    if (this.parentFolderUrl === (getConfig().get('driveFolderUrl') ?? ''))
+    if (this.parentFolderUrl === (getConfig_().get('driveFolderUrl') ?? ''))
       return;
     try {
-      saveDriveFolderUrl(this.parentFolderUrl);
+      saveDriveFolderUrl_(this.parentFolderUrl);
     } catch (err) {
       this.logger.warn('Could not save the Drive folder in the settings', {
-        error: getErrorMessage(err),
+        error: getErrorMessage_(err),
       });
     }
   }
 
   private promptForFolderUrl(): string {
     return GSheetsUiUtils.promptForValue(
-      tr('importer.promptTitle'),
-      tr('importer.promptBody'),
+      tr_('importer.promptTitle'),
+      tr_('importer.promptBody'),
       this.warning,
 
       { acceptBlank: true },
@@ -88,7 +88,7 @@ class FormsImporter {
   }
 
   private fetchForms(): GoogleAppsScript.Forms.Form[] {
-    const config = getConfig();
+    const config = getConfig_();
     const files = GDrive.files.search({
       parentId: this.parentFolderId,
       titleQuery: config.get('formsTitleQuery') ?? '',
@@ -116,7 +116,7 @@ class FormsImporter {
     forms: GoogleAppsScript.Forms.Form[],
   ): GoogleAppsScript.Forms.Form[] {
     const known = new Set([
-      ...createFormsRepo(getFormsTable())
+      ...createFormsRepo_(getFormsTable_())
         .list()
         .map((form) => form.url),
       ...getExcludedFormUrls_(),
@@ -125,7 +125,7 @@ class FormsImporter {
   }
 
   private insertForms(forms: GoogleAppsScript.Forms.Form[]): void {
-    const repo = createFormsRepo(getFormsTable());
+    const repo = createFormsRepo_(getFormsTable_());
     for (const form of forms) {
       const linked = new LinkedForm().initializeFromForm(form);
       repo.upsert({ url: linked.url, title: linked.title, status: 'linked' });

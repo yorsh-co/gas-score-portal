@@ -49,12 +49,12 @@ interface ScoresRepo {
  * Maps a stored entry to a score record.
  * @param entry Table entry.
  */
-function toScoreRecord(entry: GasSheetDbEntry): ScoreRecord {
+function toScoreRecord_(entry: GasSheetDbEntry): ScoreRecord {
   return {
-    email: normalizeEmail(entry.email),
-    formUrl: cellToString(entry.formUrl),
-    score: cellToNumber(entry.score) ?? 0,
-    updatedAt: cellToDate(entry.updatedAt),
+    email: normalizeEmail_(entry.email),
+    formUrl: cellToString_(entry.formUrl),
+    score: cellToNumber_(entry.score) ?? 0,
+    updatedAt: cellToDate_(entry.updatedAt),
   };
 }
 
@@ -62,11 +62,11 @@ function toScoreRecord(entry: GasSheetDbEntry): ScoreRecord {
  * Creates the scores repository.
  * @param table Backing table.
  */
-function createScoresRepo(table: DbTable): ScoresRepo {
+function createScoresRepo_(table: DbTable): ScoresRepo {
   const getByForm = (formUrl: string): Map<string, number> => {
     const scores = new Map<string, number>();
     for (const entry of table.findWhere((e) => e.formUrl === formUrl)) {
-      const record = toScoreRecord(entry);
+      const record = toScoreRecord_(entry);
       scores.set(record.email, record.score);
     }
     return scores;
@@ -80,11 +80,13 @@ function createScoresRepo(table: DbTable): ScoresRepo {
         const known = new Set(
           table
             .find()
-            .map((e) => key(normalizeEmail(e.email), cellToString(e.formUrl))),
+            .map((e) =>
+              key(normalizeEmail_(e.email), cellToString_(e.formUrl)),
+            ),
         );
         const added: GasSheetDbEntry[] = [];
         for (const { email, formUrl, score } of scores) {
-          const normalized = normalizeEmail(email);
+          const normalized = normalizeEmail_(email);
           const id = key(normalized, formUrl);
           if (known.has(id)) continue;
           known.add(id);
@@ -95,17 +97,17 @@ function createScoresRepo(table: DbTable): ScoresRepo {
       });
     },
     getByEmails(emails) {
-      const wanted = new Set(emails.map(normalizeEmail));
+      const wanted = new Set(emails.map(normalizeEmail_));
       return table
-        .findWhere((entry) => wanted.has(normalizeEmail(entry.email)))
-        .map(toScoreRecord);
+        .findWhere((entry) => wanted.has(normalizeEmail_(entry.email)))
+        .map(toScoreRecord_);
     },
     upsertMany(formUrl, scores, now = new Date()) {
       return GasLock.withLock('script', () => {
         const stored = getByForm(formUrl);
         const incoming = new Map<string, number>();
         for (const { email, score } of scores)
-          incoming.set(normalizeEmail(email), score);
+          incoming.set(normalizeEmail_(email), score);
 
         const changed = new Map<string, number>();
         const added: GasSheetDbEntry[] = [];
@@ -124,9 +126,9 @@ function createScoresRepo(table: DbTable): ScoresRepo {
           table.updateWhere(
             (entry) =>
               entry.formUrl === formUrl &&
-              changed.has(normalizeEmail(entry.email)),
+              changed.has(normalizeEmail_(entry.email)),
             (entry) => ({
-              score: changed.get(normalizeEmail(entry.email)),
+              score: changed.get(normalizeEmail_(entry.email)),
               updatedAt: now,
             }),
           );

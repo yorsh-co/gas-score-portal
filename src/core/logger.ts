@@ -19,6 +19,6 @@ const appLogger = new GasLogger({
  * Returns a logger bound to a module name.
  * @param module Module name added to every entry.
  */
-function createModuleLogger(module: string): GasLogger {
+function createModuleLogger_(module: string): GasLogger {
   return appLogger.child({ module });
 }

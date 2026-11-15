@@ -14,7 +14,7 @@ const EMAIL_PATTERN = /(?<![^\s/@%])[^\s/@%]+(?:@|%40)[^\s/@%]+\.[^\s/@%]+/gi;
  * @param value Log field.
  * @param depth Remaining nesting depth.
  */
-function redactEmails(value: unknown, depth = 4): unknown {
+function redactEmails_(value: unknown, depth = 4): unknown {
   if (typeof value === 'string') {
     return value.replace(EMAIL_PATTERN, (match) =>
       StringUtils.maskEmail(match.replace(/%40/i, '@')),
@@ -23,14 +23,15 @@ function redactEmails(value: unknown, depth = 4): unknown {
   if (value === null || typeof value !== 'object') return value;
   if (depth === 0) {
     try {
-      return redactEmails(JSON.stringify(value));
+      return redactEmails_(JSON.stringify(value));
     } catch {
       return '[unserializable]';
     }
   }
-  if (Array.isArray(value)) return value.map((v) => redactEmails(v, depth - 1));
+  if (Array.isArray(value))
+    return value.map((v) => redactEmails_(v, depth - 1));
   return Object.fromEntries(
-    Object.entries(value).map(([k, v]) => [k, redactEmails(v, depth - 1)]),
+    Object.entries(value).map(([k, v]) => [k, redactEmails_(v, depth - 1)]),
   );
 }
 
@@ -39,14 +40,14 @@ function redactEmails(value: unknown, depth = 4): unknown {
  * before they are logged, such as the respondent email in a lookup path.
  * @param module Module name of the logger.
  */
-function createRedactedLogger(module = 'webapp'): GasLogger {
-  const logger = createModuleLogger(module);
+function createRedactedLogger_(module = 'webapp'): GasLogger {
+  const logger = createModuleLogger_(module);
   const redacted =
     (level: 'debug' | 'info' | 'warn' | 'error') =>
     (message: string, meta?: GasLoggerMeta) =>
       logger[level](
-        redactEmails(message) as string,
-        meta === undefined ? undefined : (redactEmails(meta) as GasLoggerMeta),
+        redactEmails_(message) as string,
+        meta === undefined ? undefined : (redactEmails_(meta) as GasLoggerMeta),
       );
   return {
     debug: redacted('debug'),
@@ -98,10 +99,10 @@ const LOG_REDACT_KEYS = [
  * Reads the request email, rejecting a malformed one.
  * @param req Request.
  */
-function requireBodyEmail(req: GasWebAppRequest): string {
-  const email = bodyEmail(req);
-  if (!isValidEmail(email)) {
-    throw new GasValidationError(tr('auth.invalidEmail'));
+function requireBodyEmail_(req: GasWebAppRequest): string {
+  const email = bodyEmail_(req);
+  if (!isValidEmail_(email)) {
+    throw new GasValidationError(tr_('auth.invalidEmail'));
   }
   return email;
 }
@@ -110,10 +111,10 @@ function requireBodyEmail(req: GasWebAppRequest): string {
  * Creates the unauthenticated auth router.
  * @param auth Auth services.
  */
-function createAuthRouter(auth: AuthServices): GasWebAppRouter {
+function createAuthRouter_(auth: AuthServices): GasWebAppRouter {
   const router = new GasWebAppRouter();
   const validateEmail: GasWebAppHandler = (req, _res, next) => {
-    requireBodyEmail(req);
+    requireBodyEmail_(req);
     next();
   };
   // The counters are shared across visitors. Under USER_DEPLOYING the user
@@ -132,7 +133,7 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
       keyFn: key,
     });
   const emailKey = (prefix: string) => (req: GasWebAppRequest) =>
-    `${prefix}:${auth.hmac(`limit:${bodyEmail(req)}`)}`;
+    `${prefix}:${auth.hmac(`limit:${bodyEmail_(req)}`)}`;
   const globalLimit = limiter(() => 'otp:global', OTP_GLOBAL_LIMIT);
   const emailLimit = limiter(emailKey('otp'), OTP_EMAIL_LIMIT);
   const verifyGlobalLimit = limiter(() => 'verify:global', VERIFY_GLOBAL_LIMIT);
@@ -145,9 +146,9 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
   );
 
   router.post('/otp', validateEmail, globalLimit, emailLimit, (req, res) => {
-    auth.otp.request(requireBodyEmail(req));
+    auth.otp.request(requireBodyEmail_(req));
     res.json({
-      message: tr('auth.otpRequested', { minutes: OTP_TTL_SECONDS / 60 }),
+      message: tr_('auth.otpRequested', { minutes: OTP_TTL_SECONDS / 60 }),
     });
   });
 
@@ -158,14 +159,14 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
     verifyEmailLimit,
     verifyEmailDailyLimit,
     (req, res) => {
-      const email = requireBodyEmail(req);
+      const email = requireBodyEmail_(req);
       const code = (req.body as { code?: unknown }).code;
       if (
         typeof code !== 'string' ||
         !/^\d{6}$/.test(code) ||
         !auth.otp.verify(email, code)
       ) {
-        throw new GasUnauthorizedError(tr('auth.invalidCode'));
+        throw new GasUnauthorizedError(tr_('auth.invalidCode'));
       }
       res.json({ token: auth.sessions.create(email) });
     },
@@ -179,17 +180,17 @@ function createAuthRouter(auth: AuthServices): GasWebAppRouter {
  * @param service Scores service.
  * @param auth Auth services.
  */
-function createApiRouter(
+function createApiRouter_(
   service: ScoresService,
   auth: AuthServices,
 ): GasWebAppRouter {
   const api = new GasWebAppRouter();
-  const requireSession = createSessionAuth(auth.sessions, getLocale);
+  const requireSession = createSessionAuth_(auth.sessions, getLocale_);
 
   api.get('/meta', (_req, res) => {
-    const config = getConfig();
+    const config = getConfig_();
     res.json({
-      locale: getLocale(),
+      locale: getLocale_(),
       portalTitle: config.get('portalTitle') ?? 'Score Portal',
       brand: {
         primaryColor: config.get('primaryColor') ?? null,
@@ -206,7 +207,7 @@ function createApiRouter(
 
   api.get('/me/scores', requireSession, (req, res) => {
     const scores = service.getByUser(req.user?.email ?? '');
-    if (!scores) throw new GasNotFoundError(tr('error.respondentNotFound'));
+    if (!scores) throw new GasNotFoundError(tr_('error.respondentNotFound'));
 
     res.json(scores);
   });
@@ -222,10 +223,10 @@ function createApiRouter(
       lockService: GasLock,
       keyFn: () => 'client-errors:global',
     }),
-    createClientErrorHandler(createRedactedLogger('client')),
+    createClientErrorHandler(createRedactedLogger_('client')),
   );
 
-  api.use('/auth', createAuthRouter(auth));
+  api.use('/auth', createAuthRouter_(auth));
 
   return api;
 }
@@ -235,16 +236,16 @@ function createApiRouter(
  * @param service Scores service.
  * @param auth Auth services.
  */
-function createWebApp(service: ScoresService, auth: AuthServices): GasWebApp {
-  const webApp = new GasWebApp({ logger: createRedactedLogger() });
+function createWebApp_(service: ScoresService, auth: AuthServices): GasWebApp {
+  const webApp = new GasWebApp({ logger: createRedactedLogger_() });
   const ack = createAckTracker();
   webApp.use(ack.middleware);
   webApp.get('/ack', ack.handler);
   webApp.use(
-    createLoggingMiddleware(createRedactedLogger(), {
+    createLoggingMiddleware(createRedactedLogger_(), {
       redact: LOG_REDACT_KEYS,
     }),
   );
-  webApp.use('/api', createApiRouter(service, auth));
+  webApp.use('/api', createApiRouter_(service, auth));
   return webApp;
 }

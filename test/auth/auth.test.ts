@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi } from 'vitest';
-import { loadApp } from '../harness';
+import { declaresGlobal, loadApp } from '../harness';
 
 const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org']);
 
@@ -28,7 +28,7 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
     },
   });
   const { app } = env;
-  const auth = app.createAuthServices(
+  const auth = app.createAuthServices_(
     () => ({
       findByEmail: (email: string) =>
         RESPONDENTS.has(email)
@@ -37,7 +37,7 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
     }),
     { error: (message: string) => logged.push(message) },
   );
-  const webApp = app.createWebApp(
+  const webApp = app.createWebApp_(
     {
       getByUser: (email: string) => {
         lookups.push(email);
@@ -246,7 +246,7 @@ describe('OTP service internals', () => {
     const sent: string[] = [];
     const sleeps: number[] = [];
     const clock = { now: 1_000_000 };
-    const otp = env.app.createOtpService({
+    const otp = env.app.createOtpService_({
       cache: env.cache,
       hmac: (value: string) => `h(${value})`,
       uuid: () => uuid,
@@ -459,4 +459,14 @@ describe('GET /api/me/scores', () => {
   it('removed the unauthenticated lookup route', () => {
     expect(setup().scores().error).toMatch(/401/);
   });
+});
+
+describe('google.script.run surface', () => {
+  it.each(['getOtpHmacKey', 'computeOtpHmac'])(
+    'declares %s only as a private function',
+    (name) => {
+      expect(declaresGlobal(name)).toBe(false);
+      expect(declaresGlobal(`${name}_`)).toBe(true);
+    },
+  );
 });

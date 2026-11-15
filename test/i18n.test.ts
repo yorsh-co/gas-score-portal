@@ -55,15 +55,15 @@ describe('t', () => {
   });
 });
 
-describe('tr', () => {
+describe('tr_', () => {
   it('follows the locale setting', () => {
     const { app } = loadApp({ properties: { 'gasConfig:locale': '"pt-BR"' } });
 
-    expect(app.tr('toast.error')).toBe('Erro');
+    expect(app.tr_('toast.error')).toBe('Erro');
   });
 
   it('defaults to English', () => {
-    expect(loadApp().app.tr('toast.error')).toBe('Error');
+    expect(loadApp().app.tr_('toast.error')).toBe('Error');
   });
 });
 
@@ -77,7 +77,7 @@ describe('GET /api/meta', () => {
         'gasConfig:faviconUrl': '"https://example.org/icon.png"',
       },
     });
-    const webApp = app.createWebApp({ getByUser: () => null }, {});
+    const webApp = app.createWebApp_({ getByUser: () => null }, {});
 
     const response = webApp.doGet({ parameter: { route: '/api/meta' } });
 
@@ -96,7 +96,7 @@ describe('GET /api/meta', () => {
 
   it('returns the locale, title and brand', () => {
     const { app } = loadApp({ properties: { 'gasConfig:locale': '"pt-BR"' } });
-    const webApp = app.createWebApp({ getByUser: () => null }, {});
+    const webApp = app.createWebApp_({ getByUser: () => null }, {});
 
     const response = webApp.doGet({ parameter: { route: '/api/meta' } });
 
