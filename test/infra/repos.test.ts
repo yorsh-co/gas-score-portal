@@ -109,6 +109,19 @@ describe('respondents repository', () => {
     ).toEqual(['c@x.org']);
   });
 
+  it('finds an alternative stored in the other Unicode form', () => {
+    const { app } = loadApp();
+    const respondents = app.createRespondentsRepo_(
+      new FakeTable([
+        { email: 'b@x.org', name: 'B', alternatives: 'joa\u0303o@x.org' },
+      ]),
+    );
+
+    expect(
+      respondents.findByAlternative('jo\u00e3o@x.org').map((r) => r.email),
+    ).toEqual(['b@x.org']);
+  });
+
   it('upserts by normalized email and inserts only missing ones in a batch', () => {
     const { app } = loadApp();
     const table = new FakeTable();
@@ -175,6 +188,35 @@ describe('scores repository', () => {
     ]);
 
     expect(result).toEqual({ inserted: 0, updated: 1, unchanged: 0 });
+    expect([...scores.getByForm('f1')]).toEqual([['jo\u00e3o@x.org', 6]]);
+  });
+
+  it('finds scores stored in the other Unicode form', () => {
+    const { app } = loadApp();
+    const scores = app.createScoresRepo_(
+      new FakeTable([
+        { email: 'joa\u0303o@x.org', formUrl: 'f1', score: 4, updatedAt: now },
+      ]),
+    );
+
+    expect(scores.getByEmails(['jo\u00e3o@x.org']).map((s) => s.score)).toEqual(
+      [4],
+    );
+  });
+
+  it('updates a score whose stored email is in the other Unicode form', () => {
+    const { app } = loadApp();
+    const table = new FakeTable([
+      { email: 'joa\u0303o@x.org', formUrl: 'f1', score: 4, updatedAt: now },
+    ]);
+    const scores = app.createScoresRepo_(table);
+
+    const result = scores.upsertMany('f1', [
+      { email: 'jo\u00e3o@x.org', score: 6 },
+    ]);
+
+    expect(result).toEqual({ inserted: 0, updated: 1, unchanged: 0 });
+    expect(table.calls.insertMany).toBe(0);
     expect([...scores.getByForm('f1')]).toEqual([['jo\u00e3o@x.org', 6]]);
   });
 
