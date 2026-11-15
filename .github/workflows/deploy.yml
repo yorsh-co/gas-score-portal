@@ -14,4 +14,5 @@ jobs:
     uses: yorsh-co/gasdev/.github/workflows/gas-deploy.yml@v3.2.1
     with:
       environment: ${{ github.ref_name == 'main' && 'live' || 'dev' }}
+      build: npm run build && node scripts/check-public-globals.js dist
     secrets: inherit

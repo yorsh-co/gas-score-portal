@@ -51,6 +51,10 @@ fails at `SpreadsheetApp.getUi()` before any side effect.
 calls them, and the scheduled sync calls `saveDriveFolderUrl` where a guard
 would change behaviour. `installTriggers` is private and keeps its guard.
 
+## Enforcement
+
+`scripts/check-public-globals.js` fails when a top-level function without a trailing `_` is not on its `ALLOWLIST`, which is the list above. It runs from the `precheck` hook, so `npm run check` and CI run it, and the deploy workflow scans the built `dist/` as well.
+
 ## Rejected alternative
 
 `const` namespaces (for example `const Auth = { ... }`) would hide the

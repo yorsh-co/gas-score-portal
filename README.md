@@ -131,7 +131,7 @@ Tests create sheets named `__gt_<epochMs>_...` and delete them afterwards.
 
 ## CI
 
-`npm run check` is the quality gate: formatting, lint, typecheck, the vitest suite and `gasdev check`. Deployment runs through the reusable workflow and the `gasdev setup` and `gasdev deploy` commands from the shared `gasdev` package.
+`npm run check` is the quality gate: formatting, lint, typecheck, the vitest suite and `gasdev check`. It also runs the public-globals check (`scripts/check-public-globals.js`, through `precheck`), and the deploy job scans `dist/` with the same script. Deployment runs through the reusable workflow and the `gasdev setup` and `gasdev deploy` commands from the shared `gasdev` package.
 
 ### Deployment
 
