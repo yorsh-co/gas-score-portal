@@ -46,10 +46,11 @@ has no guard: as a simple trigger it can run with a blank active user, so a
 guard would hide the menu from legitimate editors. Called from the web app, it
 fails at `SpreadsheetApp.getUi()` before any side effect.
 
-`refreshOverview`, `saveConfigValues`, `saveExcludedFormUrls` and
-`saveDriveFolderUrl` are private and unguarded: nothing outside the script
-calls them, and the scheduled sync calls `saveDriveFolderUrl` where a guard
-would change behaviour. `installTriggers` is private and keeps its guard.
+`refreshOverview_`, `saveConfigValues_`, `saveExcludedFormUrls_` and
+`saveDriveFolderUrl_` (formerly public) are private and unguarded: nothing
+outside the script calls them, and the scheduled sync calls
+`saveDriveFolderUrl_` where a guard would change behaviour. `installTriggers_`
+(formerly `installTriggers`) is private and keeps its guard.
 
 ## Enforcement
 
@@ -65,4 +66,8 @@ result, and the codebase already uses the trailing underscore.
 
 - Private functions no longer appear in the editor Run menu.
 - A new public function needs an allowlist entry, enforced at build time.
-- The shared guard is mandatory for each public entry point.
+- Every new public entry point calls `assertCallerEffectiveUser_` first, or
+  this ADR records why it has its own check.
+- The guard trusts any call that runs with the deployer's own authority, so
+  script injection into a page the deployer has open could still reach the
+  guarded entry points through `google.script.run`.
