@@ -64,6 +64,16 @@ export interface AppExports {
   timedSyncScores(e?: { triggerUid: string }): void;
   installTriggers(): void;
   menuImportDriveForms(): void;
+  menuInstall(): void;
+  menuUninstall(): void;
+  menuSystemReset(): void;
+  menuLinkNewForm(): void;
+  menuRemoveForms(): void;
+  menuSettings(): void;
+  onOpen(): void;
+  migrateLegacySheets(): MigrationCountsApi;
+  /** Tables cached by name; seeding it replaces the Sheets-backed ones. */
+  dbTables: Record<string, unknown>;
   isLockTimeoutError(err: unknown): boolean;
   RespondentScoreSynchronizer: new (
     cursor: FormsCursorApi,
@@ -270,6 +280,15 @@ const EXPORTS: (keyof AppExports)[] = [
   'timedSyncScores',
   'installTriggers',
   'menuImportDriveForms',
+  'menuInstall',
+  'menuUninstall',
+  'menuSystemReset',
+  'menuLinkNewForm',
+  'menuRemoveForms',
+  'menuSettings',
+  'onOpen',
+  'migrateLegacySheets',
+  'dbTables',
   'isLockTimeoutError',
   'RespondentScoreSynchronizer',
   'createFormsRepo',
@@ -388,6 +407,22 @@ export function createFakeProperties(initial: Record<string, string> = {}) {
   };
   return properties;
 }
+
+/**
+ * `Session` of a `google.script.run` call to the web app, which executes as
+ * the deployer `owner@x.org`.
+ * @param visitor Email of the visitor; blank when anonymous.
+ */
+export const webAppSession = (visitor: string) => ({
+  getActiveUser: () => ({ getEmail: () => visitor }),
+  getEffectiveUser: () => ({ getEmail: () => 'owner@x.org' }),
+});
+
+/** Web app visitors other than the deployer: label and email. */
+export const WEB_APP_VISITORS: [string, string][] = [
+  ['an anonymous visitor', ''],
+  ['another signed-in user', 'visitor@x.org'],
+];
 
 /** Options of the fake Apps Script environment. */
 export interface FakeEnvironmentOptions {

@@ -228,8 +228,11 @@ function runLegacyMigration(
  * Migrates the legacy `💯 Notas` and `🟪 Forms` sheets into the data tables,
  * then renames them with a `LEGACY ` prefix. The legacy sheets are never
  * deleted. Idempotent. Runnable from the editor or through `clasp run`.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function migrateLegacySheets(): MigrationCounts {
+  assertCallerEffectiveUser_();
   return GasLock.withLock('script', () =>
     runLegacyMigration(
       SpreadsheetApp.getActiveSpreadsheet(),

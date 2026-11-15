@@ -46,9 +46,12 @@ function menuImportDriveForms(): void {
 
 /**
  * Links a single Form, reactivating it if it was excluded.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function menuLinkNewForm(): void {
   runMenuAction(formsMenuLogger, () => {
+    assertCallerEffectiveUser_();
     Toast.loading();
 
     let form: GoogleAppsScript.Forms.Form | null = null;
@@ -92,9 +95,12 @@ function menuLinkNewForm(): void {
 
 /**
  * Removes the selected Forms from the system and excludes them from sync.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function menuRemoveForms(): void {
   runMenuAction(formsMenuLogger, () => {
+    assertCallerEffectiveUser_();
     Toast.loading();
 
     const forms = createFormsRepo(getFormsTable());

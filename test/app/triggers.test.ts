@@ -1,21 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { loadApp } from '../harness';
-
-/**
- * `Session` of a `google.script.run` call to the web app, which executes as
- * the deployer `owner@x.org`.
- * @param visitor Email of the visitor; blank when anonymous.
- */
-const webAppSession = (visitor: string) => ({
-  getActiveUser: () => ({ getEmail: () => visitor }),
-  getEffectiveUser: () => ({ getEmail: () => 'owner@x.org' }),
-});
-
-/** Web app visitors other than the deployer: label and email. */
-const WEB_APP_VISITORS: [string, string][] = [
-  ['an anonymous visitor', ''],
-  ['another signed-in user', 'visitor@x.org'],
-];
+import { loadApp, WEB_APP_VISITORS, webAppSession } from '../harness';
 
 describe('FormsCursor', () => {
   it('initialize saves a new cursor and removes the earlier ones of the user', () => {

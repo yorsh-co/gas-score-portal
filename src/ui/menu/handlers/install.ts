@@ -8,9 +8,12 @@ const UNINSTALL_PAUSE_MS = 2000;
 /**
  * Requests authorization if needed, installs the triggers and sets the
  * spreadsheet time zone.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function menuInstall(): void {
   runMenuAction(installMenuLogger, () => {
+    assertCallerEffectiveUser_();
     if (
       ScriptApp.getAuthorizationInfo(
         ScriptApp.AuthMode.FULL,
@@ -44,9 +47,12 @@ function menuInstall(): void {
 
 /**
  * Removes every trigger and all stored script properties.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function menuUninstall(): void {
   runMenuAction(installMenuLogger, () => {
+    assertCallerEffectiveUser_();
     const ui = SpreadsheetApp.getUi();
     const confirmation = ui.alert(
       tr('uninstall.title'),
@@ -72,9 +78,12 @@ function menuUninstall(): void {
 
 /**
  * Clears the data tables and revokes the script permissions.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function menuSystemReset(): void {
   runMenuAction(installMenuLogger, () => {
+    assertCallerEffectiveUser_();
     const ui = SpreadsheetApp.getUi();
     const selectedButton = ui.alert(
       tr('reset.title'),

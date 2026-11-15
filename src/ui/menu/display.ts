@@ -1,5 +1,8 @@
 /**
- * Adds the custom menu when the spreadsheet opens.
+ * Adds the custom menu when the spreadsheet opens. It has no caller guard: as
+ * a simple trigger it can run with a blank active user, which a guard would
+ * refuse, and from the web app `SpreadsheetApp.getUi` fails before any side
+ * effect.
  */
 function onOpen(): void {
   displayMenu();
@@ -36,7 +39,10 @@ function displayMenu(): void {
 
 /**
  * Opens the settings dialog.
+ * @throws {GasForbiddenError} When the caller does not run the script with
+ * their own authority.
  */
 function menuSettings(): void {
+  assertCallerEffectiveUser_();
   getConfig().showDialog(SpreadsheetApp.getUi());
 }
