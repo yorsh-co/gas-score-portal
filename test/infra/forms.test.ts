@@ -5,6 +5,7 @@ interface FakeResponse {
   respondentEmail?: string;
   typedEmail?: string;
   time: number;
+  id?: string;
 }
 
 /** Builds a fake form whose responses carry a collected or typed email. */
@@ -20,6 +21,7 @@ function fakeForm(responses: FakeResponse[], withEmailItem = true) {
           r.typedEmail === undefined
             ? null
             : { getResponse: () => r.typedEmail },
+        getId: () => r.id ?? `resp-${r.time}`,
         getTimestamp: () => new Date(r.time),
         getGradableItemResponses: () => [{ getScore: () => 1 }],
       })),
@@ -62,21 +64,38 @@ describe.each([
 
 describe('GForms.responses.getScores without an email', () => {
   const missing = () => loadApp().app.MISSING_RESPONDENT_EMAIL;
+  const placeholder = (id: string) => `${missing()} (${id})`.toLowerCase();
 
   it('uses the missing-email placeholder', () => {
-    expect(emails([{ time: 1 }])).toEqual([missing()]);
+    expect(emails([{ id: 'A1', time: 1 }])).toEqual([placeholder('A1')]);
   });
 
   it('uses the placeholder when the form has no email item', () => {
-    expect(emails([{ time: 1 }], false)).toEqual([missing()]);
+    expect(emails([{ id: 'A1', time: 1 }], false)).toEqual([placeholder('A1')]);
   });
 
   it.each(['', '   '])(
     'treats the typed answer %j as missing',
     (typedEmail) => {
-      expect(emails([{ typedEmail, time: 1 }])).toEqual([missing()]);
+      expect(emails([{ id: 'A1', typedEmail, time: 1 }])).toEqual([
+        placeholder('A1'),
+      ]);
     },
   );
+
+  it('gives each response without an email its own key', () => {
+    expect(
+      emails([
+        { id: 'A1', time: 1 },
+        { id: 'B2', time: 2 },
+      ]).sort(),
+    ).toEqual([placeholder('A1'), placeholder('B2')].sort());
+  });
+
+  it('keeps the key stable across syncs', () => {
+    const response = { id: 'A1', time: 1 };
+    expect(emails([response])).toEqual(emails([response]));
+  });
 
   it('falls back to the typed answer when the collected email is blank', () => {
     expect(

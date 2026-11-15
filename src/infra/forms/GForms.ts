@@ -15,8 +15,18 @@ interface FormScoresOptions {
   multipleResponsesPerUser: MultipleResponsesPolicy;
 }
 
-/** Placeholder email of a response that did not provide one. */
+/** Label prefix of the placeholder email of a response without one. */
 const MISSING_RESPONDENT_EMAIL = 'E-mail n\u00e3o fornecido';
+
+/**
+ * Builds the placeholder email of a response that did not provide one, unique
+ * per response and stable across syncs.
+ * @param responseId Form response ID.
+ * @returns The key, normalized as the repositories store it.
+ */
+function missingRespondentEmail_(responseId: string): string {
+  return normalizeEmail_(`${MISSING_RESPONDENT_EMAIL} (${responseId})`);
+}
 
 /** Google Forms lookups. */
 const GForms = (() => {
@@ -94,7 +104,7 @@ const GForms = (() => {
       if (typed) return typed;
     }
 
-    return MISSING_RESPONDENT_EMAIL;
+    return missingRespondentEmail_(resp.getId());
   };
 
   /**
