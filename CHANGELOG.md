@@ -64,6 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- The portal frontend type-checks again, and `npm run typecheck` now covers `tsconfig.frontend.json`, so `npm run check` and CI catch frontend type errors.
 - The access code now appears before the portal title in the email, so a title containing a 6-digit number cannot be mistaken for the code.
 - The access-code email is now a complete, link-free HTML document with a matching plain-text part, a reason line and a footer naming the portal, to reduce Gmail spam flagging. The README gains an "Email deliverability" section (DKIM/SPF/DMARC). See [ADR 0009](docs/adr/0009-otp-email-content.md).
 
