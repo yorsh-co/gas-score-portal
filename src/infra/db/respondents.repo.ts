@@ -8,7 +8,8 @@ interface RespondentRecord {
 
 /** Repository over the `Respondents` table. */
 interface RespondentsRepo {
-  /** Finds a respondent by email, ignoring case and surrounding spaces. */
+  /** Finds a respondent by email, ignoring case, surrounding spaces and Unicode
+   * composition form. */
   findByEmail(email: string): RespondentRecord | null;
   /** Respondents that list the email among their alternatives. */
   findByAlternative(email: string): RespondentRecord[];
@@ -24,11 +25,12 @@ interface RespondentsRepo {
 }
 
 /**
- * Trims and lowercases an email.
+ * Trims, lowercases and NFC-normalizes an email. Lowercasing runs before
+ * NFC so the result is idempotent.
  * @param email Raw email.
  */
 function normalizeEmail_(email: unknown): string {
-  return cellToString_(email).trim().toLowerCase();
+  return cellToString_(email).trim().toLowerCase().normalize('NFC');
 }
 
 /**

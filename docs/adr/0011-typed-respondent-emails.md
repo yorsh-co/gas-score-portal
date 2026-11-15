@@ -4,7 +4,7 @@ Date: 2026-11-15
 
 ## Status
 
-Accepted
+Accepted. Normalization superseded by [0012](0012-nfc-email-normalization.md)
 
 ## Context
 
