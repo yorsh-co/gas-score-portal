@@ -89,19 +89,25 @@ const GForms = (() => {
     return itemResponse ? String(itemResponse.getResponse() || '') : '';
   };
 
+  /**
+   * Resolves the key of a response: the collected email, else the typed email,
+   * else a per-response placeholder. Malformed addresses count as missing.
+   * @param resp Form response.
+   * @param emailItem Free-text email item, if the form has one.
+   */
   const getRespondentEmail = (
     resp: GoogleAppsScript.Forms.FormResponse,
     emailItem: GoogleAppsScript.Forms.Item | undefined,
   ): string => {
     const collected = normalizeEmail_(resp.getRespondentEmail());
-    if (collected) return collected;
+    if (collected && isValidEmail_(collected)) return collected;
 
     if (emailItem) {
       const itemResp = resp.getResponseForItem(emailItem);
       const typed = itemResp
         ? normalizeEmail_(String(itemResp.getResponse()))
         : '';
-      if (typed) return typed;
+      if (typed && isValidEmail_(typed)) return typed;
     }
 
     return missingRespondentEmail_(resp.getId());

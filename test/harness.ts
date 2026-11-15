@@ -28,6 +28,8 @@ export interface AppExports {
     };
   };
   MISSING_RESPONDENT_EMAIL: string;
+  missingRespondentEmail_(responseId: string): string;
+  isValidEmail_(email: string): boolean;
   MESSAGES_EN: Record<string, string>;
   MESSAGES_PT_BR: Record<string, string>;
   t(
@@ -274,6 +276,8 @@ const EXPORTS: (keyof AppExports)[] = [
   'GasError',
   'GForms',
   'MISSING_RESPONDENT_EMAIL',
+  'missingRespondentEmail_',
+  'isValidEmail_',
   'getConfig_',
   'MESSAGES_EN',
   'MESSAGES_PT_BR',
