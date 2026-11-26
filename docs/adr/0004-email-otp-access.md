@@ -6,6 +6,8 @@ Date: 2026-11-06
 
 Accepted
 
+Amended 2026-11-26: per-email request cooldown and daily cap.
+
 ## Context
 
 The legacy web app returned the scores of any respondent to anyone who knew
@@ -38,6 +40,9 @@ A respondent proves control of their mailbox with a one-time code.
   measured from the start of the request, for respondents and non-respondents
   alike. Every verification takes at least 2,500 ms (`VERIFY_MIN_RESPONSE_MS`)
   by the same mechanism, whether or not a code is live.
+- `POST /api/auth/otp` is also limited to one request per email every 60
+  seconds and to 5 per email per day, on top of the 15 minute limits (see
+  "Request cooldown and daily cap").
 - `POST /api/auth/verify` is rate limited to 10 attempts per email and 200
   across all emails per 15 minutes, and to 20 attempts per email per day
   (86,400 s window, keyed by the HMAC of the normalized email). The daily
@@ -71,7 +76,10 @@ A respondent proves control of their mailbox with a one-time code.
   of at most 10 per email per window: a success chance of about 0.001% per
   window (10 in 10^6). Without a daily cap, 96 windows a day would allow 960
   guesses, about 0.1% per day and roughly 30% over a year of sustained
-  attack. The daily cap of 20 per email bounds it to 20 guesses a day: about
+  attack. Requests are also limited to 1 per 60 seconds and 5 per day per
+  email, which bounds the codes issued, and so the sends, to 5 a day (at most 20 if the
+  daily counter lapses after 6 hours idle). The
+  daily cap of 20 per email bounds it to 20 guesses a day: about
   0.002% per day and about 0.7% over a year. Cache entries live at most 6
   hours (`CacheService` limit), so a counter can lapse after 6 hours without
   attempts; in that worst case the cap is 20 per 6 hours, at most 80 guesses
@@ -80,7 +88,8 @@ A respondent proves control of their mailbox with a one-time code.
 - **Denial of service.** The global cap is also a weakness: 50 requests lock
   everyone out of requesting a code for the rest of the window (200 requests
   for verification). The per-email limit lets anyone block a given
-  respondent's sign-in the same way. Fixed windows also allow up to 2x the
+  respondent's sign-in the same way, and the daily request cap lets an
+  attacker keep one respondent from requesting a code for up to a day. Fixed windows also allow up to 2x the
   limit across a window boundary. These trade-offs are accepted.
 - **Replay.** A code is deleted on success and on the fifth failure. A session
   token is a random UUID, kept only as an HMAC, and expires after 30 minutes
@@ -92,6 +101,29 @@ A respondent proves control of their mailbox with a one-time code.
   user sees a generic "try later" message (503). A failed send is logged and
   answered like a success.
 - **Mailbox compromise.** Out of scope: whoever reads the mailbox can sign in.
+
+## Request cooldown and daily cap (2026-11-26)
+
+Flooding one inbox with codes gets the sending account flagged as a spammer,
+so `POST /api/auth/otp` limits each email to one request every 60 seconds and
+5 per day, besides the 3 per 15 minutes per email and 50 per 15 minutes global
+limits.
+
+- The middleware order is `validateEmail`, global limit, email limit,
+  cooldown, daily limit. The daily limiter runs last, so requests rejected by
+  the cooldown or the window limits do not use the daily budget.
+- Both apply before the respondent lookup, so an unknown email is rejected
+  exactly like a respondent and the enumeration guarantee holds.
+- The cooldown is not a fixed-window limiter, which would let two sends go
+  out about a second apart across a bucket boundary. It stores the time the
+  block ends in the script cache (60 s TTL) under the `user` lock, so it is
+  measured from the last allowed request. It is set when a request passes it,
+  even if a later limiter rejects the request or the send fails.
+- The daily cap reuses the rate limiter with an 86,400 s window. As for the
+  verify daily cap, `CacheService` limits the TTL to 6 hours, so a counter idle
+  for 6 hours lapses: the worst case is 5 per 6 hours, at most 20 a day.
+- Keys are `otp:cooldown:HMAC(limit:<email>)` and `otp:daily:HMAC(limit:<email>)`,
+  so no clear email is stored.
 
 ## Key exposure (2026-11-15)
 
