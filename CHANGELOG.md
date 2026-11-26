@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `POST /api/auth/otp` now limits each email to one request every 60 seconds and 5 per day, applied identically to unknown emails, so a single inbox cannot be flooded with codes.
 - The results panel shows a "Loading scores…" indicator while scores load.
 - A "Refresh" link on the results panel reloads the scores without signing out.
 - `npm run screenshots` captures the README screenshots with Playwright from fixture data; screenshots regenerated for the full-height layout and theme toggle.
