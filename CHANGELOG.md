@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Tab icon missing in the deployed app: the default `faviconUrl` is now served through jsDelivr, because `yorsh.co` rejects requests with a Google referrer.
+
 ### Changed
 
 - More space above the portal logo (48px on desktop, 32px on phones).
