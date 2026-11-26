@@ -69,6 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Results panel no longer shows an outline after a page refresh.
 - Each response without an email is now stored under its own key, `E-mail não fornecido (<response ID>)`, stable across syncs, so such responses are no longer merged under `multipleResponsesPerUser`. The legacy grouped row `e-mail não fornecido` is left untouched, and a full re-sync recreates its responses as separate rows. If an editor fixes a placeholder row by hand, a later sync re-creates it only if the response falls inside the re-read window (`SYNC_OVERLAP_MS` before `syncedAt`) or the form is fully re-synced.
 - Malformed collected or typed respondent emails are now ignored at sync, and the response is keyed by its per-response placeholder, so typing another response's placeholder can no longer overwrite that response's score. See [ADR 0013](docs/adr/0013-reject-malformed-respondent-emails.md), which narrows [ADR 0011](docs/adr/0011-typed-respondent-emails.md). Existing rows under malformed keys are not migrated.
 - The portal frontend type-checks again, and `npm run typecheck` now covers `tsconfig.frontend.json`, so `npm run check` and CI catch frontend type errors.
