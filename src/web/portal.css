@@ -128,9 +128,6 @@ button.lg {
 button:hover {
   background: var(--accent-strong);
 }
-button.busy {
-  color: transparent;
-}
 button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -353,6 +350,14 @@ button.link:hover {
 button.link:disabled {
   color: var(--muted);
   text-decoration: none;
+}
+button.busy,
+button.busy:disabled {
+  color: transparent;
+}
+button.link .spinner {
+  border-color: var(--brand);
+  border-bottom-color: transparent;
 }
 button.icon-button {
   padding: 8px;
