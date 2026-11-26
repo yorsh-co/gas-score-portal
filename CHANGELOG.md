@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Busy buttons now show only the spinner, not the label.
+- Tab icon missing in the deployed app: the default `faviconUrl` is now served through jsDelivr, because `yorsh.co` rejects requests with a Google referrer.
 
 ### Changed
 

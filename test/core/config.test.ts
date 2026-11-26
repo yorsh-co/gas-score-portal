@@ -8,7 +8,8 @@ describe('getConfig_', () => {
     expect(app.getConfig_().getAll()).toMatchObject({
       locale: 'en',
       portalTitle: 'Score Portal',
-      faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+      faviconUrl:
+        'https://cdn.jsdelivr.net/gh/yorsh-co/gas-score-portal@main/src/web/brand/favicon-32x32.png',
       privacyPolicyUrl: 'https://yorsh.co/privacy',
       termsUrl: 'https://yorsh.co/terms',
       excludedFormUrls: null,

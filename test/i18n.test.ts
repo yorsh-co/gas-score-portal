@@ -108,7 +108,8 @@ describe('GET /api/meta', () => {
         brand: {
           primaryColor: null,
           logoUrl: null,
-          faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+          faviconUrl:
+            'https://cdn.jsdelivr.net/gh/yorsh-co/gas-score-portal@main/src/web/brand/favicon-32x32.png',
         },
       },
     });
