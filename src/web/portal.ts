@@ -337,11 +337,13 @@ function withBusyButton(buttonId: string, call: () => Promise<void>): void {
   if (busyButtons.has(buttonId) || button.disabled) return;
   busyButtons.add(buttonId);
   button.disabled = true;
+  button.classList.add('busy');
   const spinner = document.createElement('span');
   spinner.className = 'spinner';
   button.appendChild(spinner);
   call().finally(() => {
     spinner.remove();
+    button.classList.remove('busy');
     busyButtons.delete(buttonId);
     button.disabled = false;
     if (buttonId === 'resend-btn') renderResend();

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Busy buttons now show only the spinner, not the label.
+
 ### Changed
 
 - More space above the portal logo (48px on desktop, 32px on phones).

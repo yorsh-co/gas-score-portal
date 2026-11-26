@@ -351,6 +351,14 @@ button.link:disabled {
   color: var(--muted);
   text-decoration: none;
 }
+button.busy,
+button.busy:disabled {
+  color: transparent;
+}
+button.link .spinner {
+  border-color: var(--brand);
+  border-bottom-color: transparent;
+}
 button.icon-button {
   padding: 8px;
   background: none;
