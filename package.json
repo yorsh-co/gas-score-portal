@@ -16,13 +16,13 @@
   "devDependencies": {
     "@google/clasp": "^3.4.1",
     "@types/google-apps-script": "^2.0.13",
-    "@types/node": "^22.20.5",
+    "@types/node": "^26.6.6",
     "eslint": "^10.15.0",
     "gasdev": "github:yorsh-co/gasdev#semver:3.3.0-beta.0",
     "playwright": "^1.65.1",
-    "prettier": "^3.9.6",
-    "typescript": "^5.9.3",
-    "vitest": "^5.0.3"
+    "prettier": "^3.10.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1"
   },
   "overrides": {
     "minimatch": "^11.0.1",
