@@ -59,7 +59,8 @@ const CONFIG_SCHEMA = {
     description:
       'HTTPS address of the web app icon. Empty uses the Yorsh icon.',
     group: 'general',
-    default: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+    default:
+      'https://cdn.jsdelivr.net/gh/yorsh-co/gas-score-portal@main/src/web/brand/favicon-32x32.png',
     pattern: '^https://',
     patternMessage: 'Use an address that starts with https://.',
   },

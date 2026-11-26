@@ -26,9 +26,11 @@ the settings dialog.
   no third-party font requests. This adds about 80 KB to the page.
 - Default mark: the Yorsh mark, Light variant in light mode and Dark variant in
   dark mode (`<picture>` with `prefers-color-scheme`). The default
-  `faviconUrl` is `https://yorsh.co/assets/icon/favicon-32x32.png`, because
-  the Apps Script tab icon only comes from `HtmlOutput.setFaviconUrl` and
-  needs a hosted URL.
+  `faviconUrl` is the repository's `src/web/brand/favicon-32x32.png` served
+  through jsDelivr, because the Apps Script tab icon only comes from
+  `HtmlOutput.setFaviconUrl` and needs a hosted URL. `yorsh.co` is not used:
+  it answers 403 to requests carrying a Google referrer, which is what the
+  Apps Script sandbox sends.
 - Layout and copy are unchanged; only tokens and components change. There is
   no theme toggle: the page follows the OS colour scheme.
 - The gas-config settings dialog keeps the default `workspace` theme.

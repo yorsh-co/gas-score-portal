@@ -65,6 +65,28 @@ describe('entry points', () => {
     expect(calls).toContain('favicon:https://x.org/f.ico');
   });
 
+  it.each(['""', '"   "'])(
+    'doGet falls back to the default favicon when the saved value is %s',
+    (stored) => {
+      const calls: string[] = [];
+      const output = {
+        setTitle: () => output,
+        addMetaTag: () => output,
+        setFaviconUrl: (url: string) => (calls.push(`favicon:${url}`), output),
+      };
+      const { app } = loadApp({
+        properties: { 'gasConfig:faviconUrl': stored },
+        globals: { HtmlService: { createHtmlOutput: () => output } },
+      });
+
+      app.doGet({ parameter: {} });
+
+      expect(calls).toEqual([
+        'favicon:https://cdn.jsdelivr.net/gh/yorsh-co/gas-score-portal@main/src/web/brand/favicon-32x32.png',
+      ]);
+    },
+  );
+
   it('doGet sends a request with a route to the router', () => {
     const { app } = loadApp();
 
@@ -113,7 +135,8 @@ describe('GET /api/meta', () => {
           primaryColor: null,
           secondaryColor: null,
           logoUrl: null,
-          faviconUrl: 'https://yorsh.co/assets/icon/favicon-32x32.png',
+          faviconUrl:
+            'https://cdn.jsdelivr.net/gh/yorsh-co/gas-score-portal@main/src/web/brand/favicon-32x32.png',
         },
         legal: {
           privacyPolicyUrl: 'https://yorsh.co/privacy',
