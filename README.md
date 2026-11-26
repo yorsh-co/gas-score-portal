@@ -58,7 +58,8 @@ Use an account only for this portal, so spam reports and bounces do not reach yo
 2. Give it edit access to the spreadsheet and the linked Forms.
 3. Sign in to clasp as that account and run `npm run deploy:setup`, approving the scopes as that account.
 4. Store its `~/.clasprc.json` as the `CLASPRC_JSON` secret of each GitHub environment.
-5. Request a code and check the `From` address. In "Show original", SPF, DKIM and DMARC must pass.
+5. While signed in to the spreadsheet as that account, run the menu item "💽 Install the script" (`💽 Instalar o Script` in `pt-BR`) so the installable triggers run as it and use its quota.
+6. Request a code and check the `From` address. In "Show original", SPF, DKIM and DMARC must pass.
 
 Risks and mitigations:
 
@@ -66,7 +67,7 @@ Risks and mitigations:
 - **Suspension takes the portal down.** If Google suspends or locks the account, codes and sign-in stop. Keep recovery options current and keep a second editor on the spreadsheet who can redeploy.
 - **CI holds a powerful credential.** `CLASPRC_JSON` holds a refresh token for the account's granted scopes. Use the account for nothing else, own no other files with it, and restrict the `live` environment.
 - **Consumer limits.** 100 codes per day, a `@gmail.com` sender (not on your domain, so no DKIM or brand of your own), and Google may delete consumer accounts inactive for 2 years, so sign in periodically.
-- **Quota and trigger ownership.** Apps Script quotas apply to the account they run as. Installable triggers run as whoever created them, so decide which account owns them.
+- **Quota and trigger ownership.** Apps Script quotas apply to the account they run as. Installable triggers run as whoever created them, so install them as the dedicated account (step 5).
 - **Access to respondent data.** The dedicated account can read the spreadsheet and Forms, which adds one more identity to protect.
 
 ### OTP key rotation
