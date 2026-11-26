@@ -39,7 +39,7 @@ Linked Forms may collect emails as "Responder input", so respondents need no Goo
 
 ### Email deliverability
 
-Access codes are sent from your Workspace domain. Authenticate it so Gmail does not file them as spam ([ADR 9](docs/adr/0009-otp-email-content.md)):
+Access codes are sent from the deploying account, either a Workspace user on your domain or a consumer account. Authenticate the domain (Workspace only) so Gmail does not file them as spam ([ADR 9](docs/adr/0009-otp-email-content.md)):
 
 1. Enable DKIM in the Workspace Admin console (Apps › Google Workspace › Gmail › Authenticate email) and publish the TXT record it shows.
 2. Publish an SPF record, `v=spf1 include:_spf.google.com ~all`, merged with any existing SPF record.
@@ -47,6 +47,27 @@ Access codes are sent from your Workspace domain. Authenticate it so Gmail does 
 4. Send yourself a code and, in Gmail, open "Show original". SPF, DKIM (`d=<your domain>`) and DMARC must all show PASS.
 5. Optionally monitor reputation with Google Postmaster Tools.
 6. Ask early recipients to mark the message "Not spam".
+
+Codes are sent as the deploying account; see [Dedicated sending account](#dedicated-sending-account).
+
+### Dedicated sending account
+
+Use an account only for this portal, so spam reports and bounces do not reach your personal or main organisation account ([ADR 14](docs/adr/0014-dedicated-sending-account.md)).
+
+1. Create the account: a Workspace user on your domain, or a free consumer account. Turn on 2-Step Verification and set recovery options.
+2. Give it edit access to the spreadsheet and the linked Forms.
+3. Sign in to clasp as that account and run `npm run deploy:setup`, approving the scopes as that account.
+4. Store its `~/.clasprc.json` as the `CLASPRC_JSON` secret of each GitHub environment.
+5. Request a code and check the `From` address. In "Show original", SPF, DKIM and DMARC must pass.
+
+Risks and mitigations:
+
+- **Reputation is only partly isolated.** On a Workspace user of your domain, spam reports still hurt the domain's reputation. Only a separate domain or a consumer account isolates it fully. Gmail also scores content and the Apps Script sending infrastructure.
+- **Suspension takes the portal down.** If Google suspends or locks the account, codes and sign-in stop. Keep recovery options current and keep a second editor on the spreadsheet who can redeploy.
+- **CI holds a powerful credential.** `CLASPRC_JSON` holds a refresh token for the account's granted scopes. Use the account for nothing else, own no other files with it, and restrict the `live` environment.
+- **Consumer limits.** 100 codes per day, a `@gmail.com` sender (not on your domain, so no DKIM or brand of your own), and Google may delete consumer accounts inactive for 2 years, so sign in periodically.
+- **Quota and trigger ownership.** Apps Script quotas apply to the account they run as. Installable triggers run as whoever created them, so decide which account owns them.
+- **Access to respondent data.** The dedicated account can read the spreadsheet and Forms, which adds one more identity to protect.
 
 ### OTP key rotation
 
