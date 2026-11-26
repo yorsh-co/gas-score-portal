@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unanswered forms show "Not answered" instead of `NaN / 10`, and the average ignores them.
 - The portal's average score now uses the same 10-point scale as each row. It summed raw points, so forms worth more than 10 points could push it past 10.
 - Portal buttons use the page font, and "Not answered" no longer hyphenates in the score column.
+- Scores column is wider (11em) so the score and "Not answered" stay on one line.
 - Precomposed and decomposed addresses (for example `joão`) are now one identity at ingest, in the repositories and at sign-in. Emails are trimmed, lowercased and NFC-normalized. No migration is needed: stored rows are normalized on comparison and rewritten on their next write. See [ADR 0012](docs/adr/0012-nfc-email-normalization.md).
 
 ### Removed
