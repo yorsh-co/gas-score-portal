@@ -77,9 +77,9 @@ A respondent proves control of their mailbox with a one-time code.
   window (10 in 10^6). Without a daily cap, 96 windows a day would allow 960
   guesses, about 0.1% per day and roughly 30% over a year of sustained
   attack. Requests are also limited to 1 per 60 seconds and 5 per day per
-  email, which bounds the codes issued, and so the sends, to 5 a day (at most 20 if the
-  daily counter lapses after 6 hours idle). The
-  daily cap of 20 per email bounds it to 20 guesses a day: about
+  email, which bounds the codes issued, and so the sends, to 5 a day (at
+  most 20 if the daily counter lapses after 6 hours idle). The daily cap of
+  20 per email bounds it to 20 guesses a day: about
   0.002% per day and about 0.7% over a year. Cache entries live at most 6
   hours (`CacheService` limit), so a counter can lapse after 6 hours without
   attempts; in that worst case the cap is 20 per 6 hours, at most 80 guesses
@@ -89,8 +89,9 @@ A respondent proves control of their mailbox with a one-time code.
   everyone out of requesting a code for the rest of the window (200 requests
   for verification). The per-email limit lets anyone block a given
   respondent's sign-in the same way, and the daily request cap lets an
-  attacker keep one respondent from requesting a code for up to a day. Fixed windows also allow up to 2x the
-  limit across a window boundary. These trade-offs are accepted.
+  attacker keep one respondent from requesting a code for up to a day. Fixed
+  windows also allow up to 2x the limit across a window boundary. These
+  trade-offs are accepted.
 - **Replay.** A code is deleted on success and on the fifth failure. A session
   token is a random UUID, kept only as an HMAC, and expires after 30 minutes
   without renewal. Tokens travel in the query string of a `google.script.run`

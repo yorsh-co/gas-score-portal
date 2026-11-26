@@ -4,7 +4,9 @@ import { declaresGlobal, loadApp } from '../harness';
 
 const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org', 'jo\u00e3o@x.org']);
 
-function setup(options: { quota?: number; sendFails?: boolean } = {}) {
+function setup(
+  options: { quota?: number; sendFails?: boolean; now?: () => number } = {},
+) {
   const state = { mailFails: options.sendFails ?? false };
   const sent: {
     to: string;
@@ -17,6 +19,12 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
   const env = loadApp({
     realUuids: true,
     globals: {
+      // The app runs in its own realm, so Date.now() is overridden there.
+      ...(options.now && {
+        Date: class extends Date {
+          static now = options.now;
+        },
+      }),
       MailApp: {
         getRemainingDailyQuota: () => options.quota ?? 100,
         sendEmail: (message: (typeof sent)[number]) => {
@@ -56,9 +64,7 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
     try {
       return { response: fn() as { data: Record<string, any> } };
     } catch (err) {
-      return {
-        error: (err as Error).message,
-      };
+      return { error: (err as Error).message };
     }
   };
   const requestCode = (email: string) =>
@@ -179,6 +185,18 @@ describe('requesting a code', () => {
     expect(s.sent.filter((m) => m.to === 'ana@x.org')).toHaveLength(2);
   });
 
+  it('measures the cooldown against the wall clock while the entry is cached', () => {
+    let now = Date.now();
+    const s = setup({ now: () => now });
+    const start = now;
+
+    expect(s.requestCode('ana@x.org').error).toBeUndefined();
+    now = start + 59_000;
+    expect(s.requestCode('ana@x.org').error).toMatch(/1\/60s.*429/);
+    now = start + 61_000;
+    expect(s.requestCode('ana@x.org').error).toBeUndefined();
+  });
+
   it('applies the cooldown to unknown emails and sends nothing', () => {
     const s = setup();
     s.requestCode('ana@x.org');
@@ -202,6 +220,8 @@ describe('requesting a code', () => {
 
   it('answers 429 to a 6th request for the same email in a day', () => {
     const s = setup();
+    // Each advance lapses the 15 minute window counter's TTL, so only the
+    // daily counter limits the requests.
     for (let i = 0; i < 5; i++) {
       expect(s.requestCode('ana@x.org').error).toBeUndefined();
       s.advance(901);
