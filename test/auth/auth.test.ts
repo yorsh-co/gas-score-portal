@@ -4,7 +4,9 @@ import { declaresGlobal, loadApp } from '../harness';
 
 const RESPONDENTS = new Set(['ana@x.org', 'bob@x.org', 'jo\u00e3o@x.org']);
 
-function setup(options: { quota?: number; sendFails?: boolean } = {}) {
+function setup(
+  options: { quota?: number; sendFails?: boolean; now?: () => number } = {},
+) {
   const state = { mailFails: options.sendFails ?? false };
   const sent: {
     to: string;
@@ -17,6 +19,12 @@ function setup(options: { quota?: number; sendFails?: boolean } = {}) {
   const env = loadApp({
     realUuids: true,
     globals: {
+      // The app runs in its own realm, so Date.now() is overridden there.
+      ...(options.now && {
+        Date: class extends Date {
+          static now = options.now;
+        },
+      }),
       MailApp: {
         getRemainingDailyQuota: () => options.quota ?? 100,
         sendEmail: (message: (typeof sent)[number]) => {
@@ -125,12 +133,13 @@ describe('requesting a code', () => {
     expect(setup().requestCode('nope').error).toMatch(/400/);
   });
 
-  it('answers 429 after 3 requests for the same email', () => {
+  it('answers 429 after 3 requests for the same email in a window', () => {
     const s = setup();
 
-    s.requestCode('ana@x.org');
-    s.requestCode('ana@x.org');
-    s.requestCode('ana@x.org');
+    for (let i = 0; i < 3; i++) {
+      s.requestCode('ana@x.org');
+      s.advance(61);
+    }
 
     expect(s.requestCode('ana@x.org').error).toMatch(/429/);
     expect(s.requestCode('zed@x.org').error).toBeUndefined();
@@ -140,17 +149,98 @@ describe('requesting a code', () => {
     const s = setup();
 
     s.requestCode('jo\u00e3o@x.org');
+    s.advance(61);
     s.requestCode('joa\u0303o@x.org');
+    s.advance(61);
     s.requestCode('jo\u00e3o@x.org');
+    s.advance(61);
 
     expect(s.requestCode('joa\u0303o@x.org').error).toMatch(/429/);
   });
 
   it('counts unknown emails toward the limit too', () => {
     const s = setup();
-    for (let i = 0; i < 3; i++) s.requestCode('zed@x.org');
+    for (let i = 0; i < 3; i++) {
+      s.requestCode('zed@x.org');
+      s.advance(61);
+    }
 
     expect(s.requestCode('zed@x.org').error).toMatch(/429/);
+  });
+
+  it('answers 429 to a second request within 60 seconds, then allows it', () => {
+    const s = setup();
+
+    expect(s.requestCode('ana@x.org').error).toBeUndefined();
+    const blocked = s.requestCode('ana@x.org');
+    expect(blocked.error).toMatch(/1\/60s.*429/);
+    const retryAfter = JSON.parse(blocked.error ?? '{}').details
+      ?.retryAfterSeconds;
+    expect(retryAfter).toBeGreaterThanOrEqual(1);
+    expect(retryAfter).toBeLessThanOrEqual(60);
+    expect(s.requestCode('bob@x.org').error).toBeUndefined();
+    s.advance(61);
+
+    expect(s.requestCode('ana@x.org').error).toBeUndefined();
+    expect(s.sent.filter((m) => m.to === 'ana@x.org')).toHaveLength(2);
+  });
+
+  it('measures the cooldown against the wall clock while the entry is cached', () => {
+    let now = Date.now();
+    const s = setup({ now: () => now });
+    const start = now;
+
+    expect(s.requestCode('ana@x.org').error).toBeUndefined();
+    now = start + 59_000;
+    expect(s.requestCode('ana@x.org').error).toMatch(/1\/60s.*429/);
+    now = start + 61_000;
+    expect(s.requestCode('ana@x.org').error).toBeUndefined();
+  });
+
+  it('applies the cooldown to unknown emails and sends nothing', () => {
+    const s = setup();
+    s.requestCode('ana@x.org');
+    const known = s.requestCode('ana@x.org');
+    s.requestCode('zed@x.org');
+    s.sent.length = 0;
+
+    const unknown = s.requestCode('zed@x.org');
+
+    expect(unknown.error).toMatch(/1\/60s/);
+    expect(unknown.error).toBe(known.error);
+    expect(s.sent).toHaveLength(0);
+  });
+
+  it('shares the cooldown between precomposed and decomposed addresses', () => {
+    const s = setup();
+    s.requestCode('jo\u00e3o@x.org');
+
+    expect(s.requestCode('joa\u0303o@x.org').error).toMatch(/1\/60s/);
+  });
+
+  it('answers 429 to a 6th request for the same email in a day', () => {
+    const s = setup();
+    // Each advance lapses the 15 minute window counter's TTL, so only the
+    // daily counter limits the requests.
+    for (let i = 0; i < 5; i++) {
+      expect(s.requestCode('ana@x.org').error).toBeUndefined();
+      s.advance(901);
+    }
+
+    expect(s.requestCode('ana@x.org').error).toMatch(/5\/86400s/);
+    expect(s.requestCode('bob@x.org').error).toBeUndefined();
+  });
+
+  it('does not spend the daily budget on requests the cooldown rejected', () => {
+    const s = setup();
+    for (let i = 0; i < 4; i++) s.requestCode('ana@x.org');
+    s.advance(901);
+
+    for (let i = 0; i < 4; i++) {
+      expect(s.requestCode('ana@x.org').error).toBeUndefined();
+      s.advance(901);
+    }
+    expect(s.requestCode('ana@x.org').error).toMatch(/5\/86400s/);
   });
 
   it('logs at error and says try later when the quota is exhausted, for any email', () => {
@@ -184,6 +274,7 @@ describe('requesting a code', () => {
     s.verify('ana@x.org', wrong);
     s.verify('ana@x.org', wrong);
     s.state.mailFails = true;
+    s.advance(61);
 
     s.requestCode('ana@x.org');
     s.state.mailFails = false;
@@ -199,6 +290,7 @@ describe('requesting a code', () => {
     const first = s.lastCode();
     const wrong = first === WRONG ? '111111' : WRONG;
     for (let i = 0; i < 3; i++) s.verify('ana@x.org', wrong);
+    s.advance(61);
 
     s.requestCode('ana@x.org');
     const second = s.lastCode();
@@ -411,7 +503,11 @@ describe('verifying a code', () => {
     }
 
     expect(s.verify('ana@x.org', code).error).toMatch(/401/);
-    expect(s.cacheKeys().filter((k) => k.startsWith('otp:'))).toEqual([]);
+    expect(
+      s
+        .cacheKeys()
+        .filter((k) => k.startsWith('otp:') && !k.startsWith('otp:cooldown:')),
+    ).toEqual([]);
   });
 
   it('still accepts the right code after fewer than 5 wrong attempts', () => {

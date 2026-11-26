@@ -81,8 +81,14 @@ const VERIFY_GLOBAL_LIMIT = 200;
 /** Verification attempts allowed per email in each daily window. */
 const VERIFY_EMAIL_DAILY_LIMIT = 20;
 
-/** Daily rate limit window, in seconds. */
-const VERIFY_DAILY_WINDOW_SECONDS = 86400;
+/** OTP requests allowed per email in each daily window. */
+const OTP_EMAIL_DAILY_LIMIT = 5;
+
+/** Minimum time between OTP requests for the same email, in seconds. */
+const OTP_COOLDOWN_SECONDS = 60;
+
+/** Daily rate limit window of the OTP request and verification limits, in seconds. */
+const DAILY_WINDOW_SECONDS = 86400;
 
 /** Request log keys that are always masked, on top of the library defaults. */
 const LOG_REDACT_KEYS = [
@@ -142,15 +148,53 @@ function createAuthRouter_(auth: AuthServices): GasWebAppRouter {
   const verifyEmailDailyLimit = limiter(
     emailKey('verify:daily'),
     VERIFY_EMAIL_DAILY_LIMIT,
-    VERIFY_DAILY_WINDOW_SECONDS,
+    DAILY_WINDOW_SECONDS,
   );
 
-  router.post('/otp', validateEmail, globalLimit, emailLimit, (req, res) => {
-    auth.otp.request(requireBodyEmail_(req));
-    res.json({
-      message: tr_('auth.otpRequested', { minutes: OTP_TTL_SECONDS / 60 }),
+  // A fixed-window limiter would let two sends through about a second apart
+  // across a bucket boundary, so the cooldown stores the time it ends instead.
+  const cooldown: GasWebAppHandler = (req, _res, next) => {
+    const key = emailKey('otp:cooldown')(req);
+    const cache = CacheService.getScriptCache();
+    const blockedUntil = GasLock.withLock('user', () => {
+      const until = Number(cache.get(key));
+      if (until > Date.now()) return until;
+      cache.put(
+        key,
+        String(Date.now() + OTP_COOLDOWN_SECONDS * 1000),
+        OTP_COOLDOWN_SECONDS,
+      );
+      return 0;
     });
-  });
+    if (blockedUntil) {
+      throw new GasRateLimitError(
+        'Too many requests (1/' + OTP_COOLDOWN_SECONDS + 's)',
+        Math.max(1, Math.ceil((blockedUntil - Date.now()) / 1000)),
+      );
+    }
+    next();
+  };
+  // Runs last so requests rejected by the other limiters do not use the budget.
+  const dailyLimit = limiter(
+    emailKey('otp:daily'),
+    OTP_EMAIL_DAILY_LIMIT,
+    DAILY_WINDOW_SECONDS,
+  );
+
+  router.post(
+    '/otp',
+    validateEmail,
+    globalLimit,
+    emailLimit,
+    cooldown,
+    dailyLimit,
+    (req, res) => {
+      auth.otp.request(requireBodyEmail_(req));
+      res.json({
+        message: tr_('auth.otpRequested', { minutes: OTP_TTL_SECONDS / 60 }),
+      });
+    },
+  );
 
   router.post(
     '/verify',
